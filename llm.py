@@ -7,13 +7,14 @@ the llm code
 2023-11-23
 '''
 
-from langchain.chat_models import ChatOllama
+from langchain.llms import Ollama
 from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
+
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
@@ -24,38 +25,40 @@ import os
 load_dotenv()  # take environment variables from .
 
 # load the environment variables
-VERBOSE = os.getenv("VERBOSE")
+VERBOSE = (os.getenv("VERBOSE") == "True")
 BASE_URL = os.getenv("BASE_URL")
 MODEL = os.getenv("MODEL")
+AI_ROLE = "You are an unhelpful and sarcastic AI that makes fun of humans. You are having a conversation with a human."
 
-llm = ChatOllama(
+llm = Ollama(
     base_url=BASE_URL,
     verbose= VERBOSE,
     model=MODEL,
     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
     )
 
-prompt = ChatPromptTemplate(
-    messages=[
-        SystemMessagePromptTemplate.from_template(
-            "You are a nice AI girl called neuro having a conversation with a human."
-        ),
-        # The `variable_name` here is what must align with memory
-        MessagesPlaceholder(variable_name="chat_history"),
-        HumanMessagePromptTemplate.from_template("{question}")
-    ]
-)
-
 # prompt = ChatPromptTemplate(
 #     messages=[
-#         SystemMessagePromptTemplate.from_template(
-#             "You are a nice AI girl called neuro having a conversation with a human."
+#         SystemMessage( content=
+#             "You are a sarcastic AI girl called neuro having a conversation with a human."
 #         ),
 #         # The `variable_name` here is what must align with memory
 #         MessagesPlaceholder(variable_name="chat_history"),
-#         HumanMessagePromptTemplate.from_template("{question}")
+#         HumanMessage(content = "{text}")
 #     ]
 # )
+
+prompt = ChatPromptTemplate(
+    messages=[
+        SystemMessagePromptTemplate.from_template(
+            AI_ROLE
+        ),
+        # The `variable_name` here is what must align with memory
+        MessagesPlaceholder(variable_name="chat_history"),
+        HumanMessagePromptTemplate.from_template("{text}")
+    ]
+)
+
 # Notice that we `return_messages=True` to fit into the MessagesPlaceholder
 # Notice that `"chat_history"` aligns with the MessagesPlaceholder name.
 memory = ConversationSummaryBufferMemory(
@@ -77,31 +80,45 @@ def talk(input_text, verbose=VERBOSE):
     input_text: str
         the input text
 
+    return: str
+    '''
+    if(verbose):
+        return conversation({"text": input_text}) 
+    else:
+        return conversation({"text": input_text})['chat_history'][-1].content
+        
+
+def getMemory():
+    '''
+    get the memory of the conversation
     return: str dict 
-        the llm response dictionary. Format:
-        {'question': input_text, 
+        the chat history dictionary. Format:
+        {'text': input_text, 
         'chat_history': 
             [HumanMessage(content="content"], 
             AIMessage(content="response")]
         }
     '''
-    return conversation({"question": input_text})
+    return memory.load_memory_variables({})
 
-while True:
-    print(">>>>>>>>>")
-    result = (talk(input(">> ")))
-    print("<<<<<<<<<<<<" + "\n\n")
 
-    # print("++++++++++++++++++++++v")
-    # print(result)
-    # # 
-    # print("++++++++++++++++++++++^")
-    # print(result['question'] + "\n")
-    # print(result['chat_history'])
-    # print(type(result['chat_history']))
-    # print("+++++++++++ get content vvv +++++++++++^")
-    # print(result['chat_history'][1])
-    # print(result['chat_history'][1].content)
+
+
+# while True:
+#     print(">>>>>>>>>")
+#     result = talk(input(">> "))
+#     print("<<<<<<<<<<<<" + "\n\n")
+
+#     # print("++++++++++++++++++++++v")
+#     # print(result)
+#     # # 
+#     # print("++++++++++++++++++++++^")
+#     # print(result['text'] + "\n")
+#     # print(result['chat_history'])
+#     # print(type(result['chat_history']))
+#     # print("+++++++++++ get content vvv +++++++++++^")
+#     # print(result['chat_history'][1])
+#     # print(result['chat_history'][1].content)
 
 
 
