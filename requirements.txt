@@ -1,0 +1,2 @@
+langchain==0.0.340
+python-dotenv==1.0.0
