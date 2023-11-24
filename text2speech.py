@@ -2,6 +2,7 @@ import os
 import azure.cognitiveservices.speech as speechsdk
 import api_keys
 import traceback
+import utils
 
 # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
 speech_config = speechsdk.SpeechConfig(subscription=api_keys.TTS_API_Key, region=api_keys.TTS_REGION)
@@ -27,11 +28,8 @@ def speak(text):
     text: str
         the text to speak
     '''
-    # Validate text input to make sure it's a string and not empty.
-    if not isinstance(text, str) or text.strip() == "":
-        print("The text to speak cannot be empty or non-string.")
-        print("Received type: {} and value: {}".format(type(text), text))
-        traceback.print_stack()  # Print the trace stack
+    # validate the text
+    if not utils.validate_text(text):
         return
 
     speech_synthesis_result = speech_synthesizer.speak_text_async(text).get()

@@ -19,7 +19,7 @@ def speechInteractionMode():
     while True:
         recognitionResult = speech2TextOnce()
         if(recognitionResult != ""):
-            print(">> Recognized: \n" + recognitionResult + "\n")
+            print("\n>> Recognized: \n" + recognitionResult + "\n")
             callLLM(recognitionResult)
             print("\n======\n")
     

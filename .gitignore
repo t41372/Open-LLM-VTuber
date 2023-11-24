@@ -2,3 +2,4 @@ api_keys.py
 .env
 __pycache__
 .conda
+lab.ipynb

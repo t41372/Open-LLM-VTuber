@@ -83,7 +83,7 @@ def speech2TextOnce():
 
     # process recognition result
     if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        return "Recognition Result: {}".format(result.text)
+        return result.text
     elif result.reason == speechsdk.ResultReason.NoMatch:
         print("Not recognized")
     elif result.reason == speechsdk.ResultReason.Canceled:
