@@ -74,7 +74,7 @@ conversation = LLMChain(
     memory=memory
 )
 
-def talk(input_text, verbose=VERBOSE):
+def talkToLLM(input_text, verbose=VERBOSE):
     '''
     talk to the llm and return the response. 
     input_text: str
@@ -82,10 +82,22 @@ def talk(input_text, verbose=VERBOSE):
 
     return: str
     '''
+    result = "Error: No result from LLM. There is a problem with the LLM function. Function talkToLLM at LLM.py"
     if(verbose):
-        return conversation({"text": input_text}) 
-    else:
-        return conversation({"text": input_text})['chat_history'][-1].content
+        print("\n>> Conversation:")
+        print(conversation({"text": input_text}) )
+    
+    result = conversation({"text": input_text})['chat_history'][-1].content
+    # The llm sometimes returns "Me: " or "AI: " at the beginning of the response.
+    # We need to remove them.
+    if result.startswith("Me:"):
+        result = result[4:]
+    elif result.startswith("AI:"):
+        result = result[4:]
+        
+    return result
+
+
         
 
 def getMemory():

@@ -1,1 +1,4 @@
-api_keys.txt
+api_keys.py
+.env
+__pycache__
+.conda

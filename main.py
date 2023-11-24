@@ -1,19 +1,44 @@
 
-from llm import talk, getMemory
+from llm import talkToLLM, getMemory
+from text2speech import speak 
+from speech2text import launchContinuousSpeech2TextService, speech2TextOnce
 
-while True:
-    result = talk(input(">> "))
+def textInteractionMode():
+    '''
+    interact with the llm in text mode, but with speech output
+    '''
+    while True:
+        callLLM(input(">> "))
 
-    # print("++++++++++++++++++++++v")
-    # print(result)
-    # # 
-    # print("++++++++++++++++++++++^")
-    # print(result['question'] + "\n")
-    # print(result['chat_history'])
-    # print(type(result['chat_history']))
-    # print("+++++++++++ get content vvv +++++++++++^")
-    # print(result['chat_history'][1])
-    print(">> Print: \n")
-    print(result)
-    print("\n")
-    # print(getMemory())
+def speechInteractionMode():
+    '''
+    Lauch the speech to text service and interact with the llm in speech mode.
+    The function callbackToLLM is the callback function when a sentence is recognized.
+    '''
+    # recognitionResult = launchContinuousSpeech2TextService(callLLM)
+    while True:
+        recognitionResult = speech2TextOnce()
+        if(recognitionResult != ""):
+            print(">> Recognized: \n" + recognitionResult + "\n")
+            callLLM(recognitionResult)
+            print("\n======\n")
+    
+
+
+def callLLM(text, verbose=False):
+        '''
+        Call the llm with text and print the result.
+        text: str
+            the text that is recognized
+        '''
+        result = talkToLLM(text)
+        if verbose:
+            print(">> Results: \n")
+            print(result)
+        speak(result)
+        print("\n")
+
+
+# =======
+speechInteractionMode()
+    
