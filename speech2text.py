@@ -1,11 +1,13 @@
 import azure.cognitiveservices.speech as speechsdk
 import time
 import api_keys
+from halo import Halo
 
 class SpeechRecognitionResult:
     def __init__(self):
         self.text = ""
 
+# This function is by default not used. It is used in the continuous speech to text service.
 def speech_recognition_callback(event_args, result, callbackToLLM):
     if event_args.result.reason == speechsdk.ResultReason.RecognizedSpeech:
         result.text += event_args.result.text + " "
@@ -17,6 +19,7 @@ def speech_recognition_callback(event_args, result, callbackToLLM):
     elif event_args.result.reason == speechsdk.ResultReason.EndOfDictation or event_args.result.reason == speechsdk.ResultReason.NoMatch:
         print("End of Dictation")
 
+# This function is by default not used. It is used in the continuous speech to text service.
 def launchContinuousSpeech2TextService(callbackToLLM=None):
     '''
     Launch the continuous speech to text service. The callback function will be called when a sentence is recognized.
@@ -44,8 +47,12 @@ def launchContinuousSpeech2TextService(callbackToLLM=None):
     speech_recognizer.recognized.connect(lambda evt: speech_recognition_callback(evt, result, callbackToLLM))
 
     # start the recognizer
-    print("Start Voice Recognition...")
+
+    # 
+    spinner = Halo(text='AI is listening...', spinner='dots')
+    spinner.start()
     speech_recognizer.start_continuous_recognition()
+    spinner.stop()
 
     try:
         # keep the program running
@@ -78,8 +85,10 @@ def speech2TextOnce():
     speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
 
     # start speech recognition
-    print("Speech recognition start...")
+    spinner = Halo(text='AI is listening...', spinner='dots')
+    spinner.start()
     result = speech_recognizer.recognize_once()
+    spinner.stop()
 
     # process recognition result
     if result.reason == speechsdk.ResultReason.RecognizedSpeech:
