@@ -27,8 +27,8 @@ def launchContinuousSpeech2TextService(callbackToLLM=None):
 
     '''
     # set up the api key and region
-    subscription_key = api_keys.TTS_API_Key
-    region = api_keys.TTS_REGION
+    subscription_key = api_keys.AZURE_API_Key
+    region = api_keys.AZURE_REGION
 
     # create the speech config and audio config
     speech_config = speechsdk.SpeechConfig(subscription=subscription_key, region=region)
@@ -68,8 +68,8 @@ def speech2TextOnce():
         the transcribed text. Return "" if nothing is recognized or failed.
     '''
     # set up the api key and region
-    subscription_key = api_keys.TTS_API_Key
-    region = api_keys.TTS_REGION
+    subscription_key = api_keys.AZURE_API_Key
+    region = api_keys.AZURE_REGION
     
     # create the speech config
     speech_config = speechsdk.SpeechConfig(subscription=subscription_key, region=region)

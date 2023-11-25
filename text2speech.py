@@ -5,11 +5,11 @@ import traceback
 import utils
 
 # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
-speech_config = speechsdk.SpeechConfig(subscription=api_keys.TTS_API_Key, region=api_keys.TTS_REGION)
+speech_config = speechsdk.SpeechConfig(subscription=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
 audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
 
 # The language of the voice that speaks.
-speech_config.speech_synthesis_voice_name='en-US-AshleyNeural'
+speech_config.speech_synthesis_voice_name=api_keys.AZURE_VOICE
 
 speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
 
