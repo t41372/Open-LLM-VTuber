@@ -1,8 +1,8 @@
 ## Open-LLM-VTuber
 
-> :warning: This project is in the prototyping stage. Most of the features and promises have not yet been implemented. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
+> :warning: This project is in the **prototyping stage**. Most of the features and promises have not yet been implemented. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-This project is an attempt to recreate the closed-source AI VTuber `near-sama` with open-source alternatives. The end goal is to run a similar thing *completely offline* on both macOS and Windows. You don't want your chat history with your *digital pet* to be seen by OpenAI researchers right? And... you don't want your *digital pet* to care about some *trivial* things like morality right?
+This project is an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that **run completely offline on both macOS and Windows**. You don't want your chat history with your *digital pet* to be seen by OpenAI researchers right? And... you don't want your *digital pet* to care about some *trivial* things like morality right?
 
 Written in Python with Langchain. Using Ollama as the LLM server. Support **macOS** (first-class citizen 🙌because I'm using Mac) and **Windows** **(not yet)**
 
