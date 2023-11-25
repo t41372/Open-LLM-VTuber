@@ -1,7 +1,4 @@
 api_keys.py
-.env
 legacy/
 __pycache__/
 .conda
-lab.ipynb
-chat-test.txt
