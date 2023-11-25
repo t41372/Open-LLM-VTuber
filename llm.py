@@ -30,7 +30,8 @@ load_dotenv()  # take environment variables from .
 VERBOSE = (os.getenv("VERBOSE") == "True")
 BASE_URL = os.getenv("BASE_URL")
 MODEL = os.getenv("MODEL")
-AI_ROLE = "You are an unhelpful and sarcastic AI that makes fun of humans. You are having a conversation with a human."
+AI_NAME = os.getenv("AI_NAME")
+AI_ROLE = os.getenv("AI_ROLE")
 
 llm = Ollama(
     base_url=BASE_URL,
@@ -46,7 +47,7 @@ prompt = ChatPromptTemplate(
         ),
         # The `variable_name` here is what must align with memory
         MessagesPlaceholder(variable_name="chat_history"),
-        HumanMessagePromptTemplate.from_template("{text}\nAI: \""),
+        HumanMessagePromptTemplate.from_template("{text} \n" + AI_NAME + ": "),
     ]
 )
 
@@ -90,7 +91,7 @@ def talkToLLM(input_text, verbose=VERBOSE):
 
     # The llm sometimes returns "Me: " or "AI: " at the beginning of the response.
     # We need to remove them.
-    utils.removeBadPrefix(result)
+    utils.removeBadPrefix(result, ["Me:", "AI:", "Unhelpful AI:", "{}:".format(AI_NAME) ])
 
     return result
 
