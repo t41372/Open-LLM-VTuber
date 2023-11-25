@@ -1,7 +1,22 @@
 
-from llm import talkToLLM, getMemory
-from text2speech import speak 
-from speech2text import launchContinuousSpeech2TextService, speech2TextOnce
+import llm
+import text2speech 
+import speech2text
+from dotenv import load_dotenv
+import utils
+import os
+
+from datetime import datetime
+now = datetime.now()
+
+load_dotenv()  # take environment variables from .
+
+CURRENT_SESSION_ID = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+SAVE_CHAT_HISTORY = (os.getenv("SAVE_CHAT_HISTORY") == "True")
+
+CHAT_HISTORY_DIR = os.getenv("CHAT_HISTORY_DIR")
+
 
 def textInteractionMode():
     '''
@@ -21,25 +36,31 @@ def speechInteractionMode():
     # recognitionResult = launchContinuousSpeech2TextService(callLLM)
 
     while True:
-        recognitionResult = speech2TextOnce()
+        recognitionResult = speech2text.speech2TextOnce()
         if(recognitionResult != ""):
-            print("\n>> Recognized: \n" + recognitionResult + "\n")
+            print("\nUser Input: \n" + recognitionResult + "\n")
             callLLM(recognitionResult)
             print("\n======\n")
     
 
 
-def callLLM(text, verbose=False):
+def callLLM(text, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, chatHistoryDir=CHAT_HISTORY_DIR):
         '''
         Call the llm with text and print the result.
         text: str
             the text that is recognized
         '''
-        result = talkToLLM(text)
+        result = llm.talkToLLM(text)
         if verbose:
             print(">> Results: \n")
             print(result)
-        speak(result)
+
+        if saveChatHistory:
+            message = "User: \n" + text + "\n\n" + "AI: \n" + result + "\n\n"
+            utils.messageLogger(message, chatHistoryDir, CURRENT_SESSION_ID + ".txt")
+
+
+        text2speech.speak(result)
         print("\n")
 
 

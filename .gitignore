@@ -1,4 +1,6 @@
-api_keys.py
 legacy/
 __pycache__/
 .conda
+
+api_keys.py
+chat_history/
