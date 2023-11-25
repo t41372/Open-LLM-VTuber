@@ -81,8 +81,8 @@ def callLLM(text, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, chatHistoryD
 
 if __name__ == "__main__":
     if MEMORY_SNAPSHOT:
-        backUpFilePath = utils.backupFile(MEMORY_DB_PATH)
-        print(">>> Memory snapshot saved at " + llm.memory.memory_db_path + ".bk")
+        backUpFilePath = utils.backUpFile(MEMORY_DB_PATH)
+        print(">>> Memory snapshot saved at " + MEMORY_DB_PATH + ".bk")
     speechInteractionMode()
 
     if MEMORY_SNAPSHOT:

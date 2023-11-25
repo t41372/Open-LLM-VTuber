@@ -20,8 +20,6 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
 from langchain.memory import ConversationSummaryBufferMemory
 
-import chromadb
-
 from dotenv import load_dotenv
 import os
 import utils
@@ -52,13 +50,14 @@ llm = Ollama(
 
 prompt = ChatPromptTemplate(
     messages=[
-        SystemMessagePromptTemplate.from_template(
-            AI_ROLE
-        ),
+        # SystemMessagePromptTemplate.from_template(
+        #     AI_ROLE
+        # ),
         # The `variable_name` here is what must align with memory
         MessagesPlaceholder(variable_name="chat_history"),
-        HumanMessagePromptTemplate.from_template("{text} \n" + AI_NAME + ": "),
+        HumanMessagePromptTemplate.from_template("{text}\nAI: "),
     ]
+
 )
 
 # Notice that we `return_messages=True` to fit into the MessagesPlaceholder
@@ -67,7 +66,7 @@ memory = ConversationSummaryBufferMemory(
     llm=llm,
     memory_key="chat_history", 
     return_messages=True, 
-    max_token_limit=8000)
+    max_token_limit=7500)
 
 conversation = LLMChain(
     llm=llm,
