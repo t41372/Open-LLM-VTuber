@@ -13,7 +13,6 @@ from langchain.prompts import (
     MessagesPlaceholder,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
-    AIMessagePromptTemplate
 )
 
 from langchain.callbacks.manager import CallbackManager

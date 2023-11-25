@@ -44,5 +44,9 @@ def callLLM(text, verbose=False):
 
 
 # =======
-speechInteractionMode()
+
+if __name__ == "__main__":
+    speechInteractionMode()
+    #  textInteractionMode()
+
     
