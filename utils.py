@@ -66,3 +66,52 @@ def messageLogger(message, chatHistoryDir, filename):
         print("Failed to log message:", str(e))
         # print("message: {} \n chatHistoryDir: {} \n filename: {}".format(message, chatHistoryDir, filename))
 
+
+def backUpFile(targetFilePath, verbose=True):
+    '''
+    Back up the file by creating a copy of it. 
+    Backup file will be named as the original file with .bk extension.
+    targetFilePath: str
+        the path to the file to be backup.
+    return: str
+        the path to the backup file
+    '''
+    
+    # Get the directory and filename from the memory_db_path
+    directory, filename = os.path.split(targetFilePath)
+    
+    # Create the backup file path
+    backup_path = os.path.join(directory, f"{filename}.bk")
+    
+    # Copy the memory database file to the backup file path
+    os.system("cp -v {} {}".format(targetFilePath, backup_path))
+
+    if verbose:
+        print("Backup file created at: {}".format(backup_path))
+    
+    return backup_path
+
+def restoreFile(targetFilePath, backupFilePath, verbose=True):
+    '''
+    Restore the file by replacing the target file with the backup file.
+    targetFilePath: str
+        the path to the file to be replaced by backup.
+    backupFilePath: str
+        the path to the backup file.
+    return: str
+        the path to the target file
+    '''
+    os.system("cp -v {} {}".format(backupFilePath, targetFilePath))
+    
+    # Remove the backup file
+    os.system("rm -v {}".format(backupFilePath))
+
+    if verbose:
+        print("File restored at: {}".format(targetFilePath))
+    
+    return targetFilePath
+
+
+
+
+

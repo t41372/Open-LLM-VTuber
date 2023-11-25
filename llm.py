@@ -19,6 +19,9 @@ from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
 from langchain.memory import ConversationSummaryBufferMemory
+
+import chromadb
+
 from dotenv import load_dotenv
 import os
 import utils
@@ -31,13 +34,21 @@ BASE_URL = os.getenv("BASE_URL")
 MODEL = os.getenv("MODEL")
 AI_NAME = os.getenv("AI_NAME")
 AI_ROLE = os.getenv("AI_ROLE")
+MEMORY_DB_PATH = os.getenv("MEMORY_DB_PATH")
+
+
 
 llm = Ollama(
     base_url=BASE_URL,
     verbose= VERBOSE,
     model=MODEL,
+    system=AI_ROLE,
     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
     )
+
+
+
+
 
 prompt = ChatPromptTemplate(
     messages=[
@@ -81,7 +92,7 @@ def talkToLLM(input_text, verbose=VERBOSE):
     result = "Error: No result from LLM. There is a problem with the LLM function. Function talkToLLM at LLM.py"
     if(verbose):
         print("\n>> Conversation:")
-        print(getMemory())
+        print(getShortTermMemory())
     
     result = conversation({"text": input_text})['chat_history'][-1].content.strip()
     # result = conversation.predict(text=input_text).strip()
@@ -95,11 +106,9 @@ def talkToLLM(input_text, verbose=VERBOSE):
     return result
 
 
-
-
         
 
-def getMemory():
+def getShortTermMemory():
     '''
     get the memory of the conversation
     return: str dict 
@@ -115,21 +124,6 @@ def getMemory():
 
 
 
-# while True:
-#     print(">>>>>>>>>")
-#     result = talk(input(">> "))
-#     print("<<<<<<<<<<<<" + "\n\n")
-
-#     # print("++++++++++++++++++++++v")
-#     # print(result)
-#     # # 
-#     # print("++++++++++++++++++++++^")
-#     # print(result['text'] + "\n")
-#     # print(result['chat_history'])
-#     # print(type(result['chat_history']))
-#     # print("+++++++++++ get content vvv +++++++++++^")
-#     # print(result['chat_history'][1])
-#     # print(result['chat_history'][1].content)
 
 
 

@@ -16,6 +16,8 @@ This is my first Python and actual serious LLM project, and I have never dealt w
 
 BTW, I don't like Langchain. I think it's a bit overcomplicated. I use it because I still have very limited knowledge about LLM, especially vector database and memory, and I want to be able to integrate more things in the future. Maybe it's because I'm a newbie, but that doesn't change my negative opinions about Langchain. I feel like I have spent more effort and enjoyed more frustration in getting Langchain to work properly than learning Python as a whole.
 
+**Langchain is poorly documented with a steep learning curve in my opinion, and is causing more problem by itself than in my opinion, dealing with those tools directly. I will start to detach my code from Langchain from this point.** 
+
 
 
 ### Tech Stack & Current Project State

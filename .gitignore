@@ -2,5 +2,8 @@ legacy/
 __pycache__/
 .conda
 
-api_keys.py
 chat_history/
+knowledge_base/*
+!knowledge_base/README.md
+api_keys.py
+memory.db
