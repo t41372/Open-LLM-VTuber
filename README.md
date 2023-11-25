@@ -6,6 +6,10 @@ This project is an attempt to recreate the closed-source AI VTuber `near-sama` w
 
 Written in Python with Langchain. Using Ollama as the LLM server. Support **macOS** (first-class citizen 🙌because I'm using Mac) and **Windows** **(not yet)**
 
+
+https://github.com/t41372/LangChain-Lab-04-Ollama/assets/36402030/81d68b96-e3d8-4bd1-a46e-c3a3e823486e
+
+
 ### Words from an incompetent developer
 
 This is my first Python and actual serious LLM project, and I have never dealt with Live2D things before. I still have a lot to learn. If you have a better understanding and want to make this project better, feel free to open a pull request.
