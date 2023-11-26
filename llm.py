@@ -11,13 +11,16 @@ from langchain.llms import Ollama
 from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
-    SystemMessagePromptTemplate,
+    # SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
+
+from langchain.prompts import PromptTemplate
 
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
+from langchain.chains import ConversationChain
 from langchain.memory import ConversationSummaryBufferMemory
 
 from dotenv import load_dotenv
@@ -30,8 +33,9 @@ load_dotenv()  # take environment variables from .
 VERBOSE = (os.getenv("VERBOSE") == "True")
 BASE_URL = os.getenv("BASE_URL")
 MODEL = os.getenv("MODEL")
+USER_NAME = os.getenv("USER_NAME")
 AI_NAME = os.getenv("AI_NAME")
-AI_ROLE = os.getenv("AI_ROLE")
+SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT")
 MEMORY_DB_PATH = os.getenv("MEMORY_DB_PATH")
 
 
@@ -40,40 +44,51 @@ llm = Ollama(
     base_url=BASE_URL,
     verbose= VERBOSE,
     model=MODEL,
-    system=AI_ROLE,
+    system=SYSTEM_PROMPT,
     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
     )
 
-
-
-
-
 prompt = ChatPromptTemplate(
     messages=[
-        # SystemMessagePromptTemplate.from_template(
-        #     AI_ROLE
-        # ),
+        # The prompt basically looks like this:
+        # "{chat_history} \nHuman: {user_input}\n {AI_NAME}: {response}":
+        # template = "{chat_history}"+USER_NAME+":\n{user_input}\n"+AI_NAME+":"
+
+        # The system prompt is now sent directly to llama instead of putting it here
         # The `variable_name` here is what must align with memory
         MessagesPlaceholder(variable_name="chat_history"),
-        HumanMessagePromptTemplate.from_template("{text}\nAI: "),
+        HumanMessagePromptTemplate.from_template("\n{user_input}\n" + AI_NAME + ":"),
+        # 
     ]
 
 )
 
+
+memory = ConversationSummaryBufferMemory(
+        human_prefix=USER_NAME,
+        ai_prefix=AI_NAME,
+        llm=llm,
+        memory_key="chat_history", 
+        return_messages=True, 
+        max_token_limit=7500)
+
 # Notice that we `return_messages=True` to fit into the MessagesPlaceholder
 # Notice that `"chat_history"` aligns with the MessagesPlaceholder name.
-memory = ConversationSummaryBufferMemory(
-    llm=llm,
-    memory_key="chat_history", 
-    return_messages=True, 
-    max_token_limit=7500)
 
-conversation = LLMChain(
-    llm=llm,
+conversation = ConversationChain(
     prompt=prompt,
-    verbose=VERBOSE,
+    input_key="user_input",
+    llm=llm,
+    verbose=True,
     memory=memory,
 )
+
+# conversation = LLMChain(
+#     llm=llm,
+#     prompt=prompt,
+#     verbose=VERBOSE,
+#     memory=memory,
+# )
 
 def talkToLLM(input_text, verbose=VERBOSE):
     '''
@@ -93,7 +108,8 @@ def talkToLLM(input_text, verbose=VERBOSE):
         print("\n>> Conversation:")
         print(getShortTermMemory())
     
-    result = conversation({"text": input_text})['chat_history'][-1].content.strip()
+    result = conversation({"user_input": input_text})['chat_history'][-1].content.strip()
+    # result = conversation.predict(user_input=input_text).strip()
     # result = conversation.predict(text=input_text).strip()
     # print(">> mem: \n")
     # getMemory()
