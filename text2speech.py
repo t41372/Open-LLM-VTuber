@@ -13,14 +13,6 @@ speech_config.speech_synthesis_voice_name=api_keys.AZURE_VOICE
 
 speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
 
-def test_speak():
-    '''
-    test the speak function
-    '''
-    # Get text from the console and synthesize to the default speaker.
-    print("Enter some text that you want to speak >")
-    speak(input())
-
 
 def speak(text):
     '''

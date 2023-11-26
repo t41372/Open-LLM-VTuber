@@ -92,6 +92,8 @@ This project, by default, launches the audio interaction mode, meaning you can t
 
 
 
+### Azure API for Speech Recognition and Speech to Text
+
 Create a file named `api_keys.py` in the project directory, paste the following text into the file, and fill in the API keys and region you gathered from your Azure account.
 
 ~~~python
@@ -108,6 +110,10 @@ AZURE_VOICE="en-US-AshleyNeural"
 
 
 If you're using macOS, you need to enable the microphone permission of your terminal emulator (you run this program inside your terminal right? Enable the microphone permission of your terminal). If you fail to do so, the speech recognition will not be able to hear you because it does have permission to use your microphone.
+
+
+
+
 
 
 
