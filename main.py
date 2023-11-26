@@ -29,7 +29,7 @@ def textInteractionMode():
     '''
     while True:
         user_input = input(">> ")
-        if user_input == EXIT_PHRASE:
+        if user_input.lower() == EXIT_PHRASE.lower():
             print("Exiting...")
             break
         else:
@@ -47,11 +47,12 @@ def speechInteractionMode():
 
     while True:
         recognitionResult = speech2text.speech2TextOnce()
-        if recognitionResult == EXIT_PHRASE:
+        if recognitionResult.strip().lower().replace(".", "") == EXIT_PHRASE.lower():
             print("Exiting...")
-            break
-        if(recognitionResult != ""):
-            print("\nUser Input: \n" + recognitionResult + "\n")
+            
+            return
+        elif(recognitionResult != ""):
+            print("\nUser Input: \n" + recognitionResult + "\nAI Response: \n")
             callLLM(recognitionResult)
             print("\n======\n")
     
