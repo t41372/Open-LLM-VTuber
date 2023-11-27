@@ -7,3 +7,4 @@ knowledge_base/*
 !knowledge_base/README.md
 api_keys.py
 memory.db
+memory.db.bk
