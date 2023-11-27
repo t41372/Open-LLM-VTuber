@@ -1,10 +1,11 @@
 
-import llm
+from Ollama import Ollama
 import text2speech 
 import speech2text
 from dotenv import load_dotenv
 import utils
 import os
+import sys
 
 from datetime import datetime
 now = datetime.now()
@@ -23,7 +24,9 @@ MEMORY_SNAPSHOT = (os.getenv("MEMORY_SNAPSHOT") == "True")
 
 MEMORY_DB_PATH = os.getenv("MEMORY_DB_PATH")
 
-def textInteractionMode():
+TTS_ON = (os.getenv("TTS_ON") == "True")
+
+def textInteractionMode(llm:Ollama):
     '''
     interact with the llm in text mode, but with speech output
     '''
@@ -33,9 +36,9 @@ def textInteractionMode():
             print("Exiting...")
             break
         else:
-            callLLM(user_input)
+            callLLM(user_input, llm)
 
-def speechInteractionMode():
+def speechInteractionMode(llm:Ollama):
     '''
     Lauch the speech to text service and interact with the llm in speech mode.
     The function callbackToLLM is the callback function when a sentence is recognized.
@@ -52,19 +55,20 @@ def speechInteractionMode():
             
             return
         elif(recognitionResult != ""):
-            print("\nUser Input: \n" + recognitionResult + "\nAI Response: \n")
-            callLLM(recognitionResult)
-            print("\n======\n")
+            print("\nUser Input: \n" + recognitionResult + "\n\nAI Response: \n")
+            callLLM(recognitionResult, llm)
+            print("======\n")
     
 
 
-def callLLM(text, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, chatHistoryDir=CHAT_HISTORY_DIR):
+def callLLM(text, llm:Ollama,verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, 
+            chatHistoryDir=CHAT_HISTORY_DIR, ttsOn=TTS_ON):
         '''
         Call the llm with text and print the result.
         text: str
             the text that is recognized
         '''
-        result = llm.talkToLLM(text)
+        result = llm.generateWithMemory(text)
         if verbose:
             print(">> Results: \n")
             print(result)
@@ -73,21 +77,38 @@ def callLLM(text, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, chatHistoryD
             message = "User: \n" + text + "\n\n" + "AI: \n" + result + "\n\n"
             utils.messageLogger(message, chatHistoryDir, CURRENT_SESSION_ID + ".txt")
 
-
-        text2speech.speak(result)
+        if ttsOn:
+            text2speech.speak(result)
         print("\n")
 
 
 # =======
 
 if __name__ == "__main__":
+
+    # instantiate the ollama
+    try:
+        llm = Ollama(
+            base_url=os.getenv("BASE_URL"),
+            verbose=(os.getenv("VERBOSE") == "True"),
+            model=os.getenv("MODEL"),
+            system=os.getenv("SYSTEM_PROMPT"),
+        )
+    except Exception as e:
+        print("Error: Missing or invalid environment variables. Please check your configuration.")
+        print(f"Exception: {str(e)}")
+        sys.exit(1)
+
+
+
     if MEMORY_SNAPSHOT:
         backUpFilePath = utils.backUpFile(MEMORY_DB_PATH)
         print(">>> Memory snapshot saved at " + MEMORY_DB_PATH + ".bk")
-    speechInteractionMode()
+
+    speechInteractionMode(llm)
 
     if MEMORY_SNAPSHOT:
-        revertMemory = input("\n>>> Do you want to revert the memory, not save your conversation, and pretend this conversation ever took place? (y/N)")
+        revertMemory = input("\n>>> Do you want to revert the memory, not save your conversation, and pretend that this conversation has ever took place? (y/N)")
         if revertMemory == "y":
             utils.restoreFile(MEMORY_DB_PATH, backUpFilePath)
             print(">>> Memory reverted. This conversation never took place.")
