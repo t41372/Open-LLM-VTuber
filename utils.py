@@ -84,7 +84,7 @@ def backUpFile(targetFilePath, verbose=True):
     backup_path = os.path.join(directory, f"{filename}.bk")
     
     # Copy the memory database file to the backup file path
-    os.system("cp -v {} {}".format(targetFilePath, backup_path))
+    os.system("cp -r {} {}".format(targetFilePath, backup_path))
 
     if verbose:
         print("Backup file created at: {}".format(backup_path))
@@ -101,10 +101,10 @@ def restoreFile(targetFilePath, backupFilePath, verbose=True):
     return: str
         the path to the target file
     '''
-    os.system("cp -v {} {}".format(backupFilePath, targetFilePath))
+    os.system("cp -r {} {}".format(backupFilePath, targetFilePath))
     
     # Remove the backup file
-    os.system("rm -v {}".format(backupFilePath))
+    os.system("rm -r {}".format(backupFilePath))
 
     if verbose:
         print("File restored at: {}".format(targetFilePath))
