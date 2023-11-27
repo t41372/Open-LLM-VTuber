@@ -27,9 +27,9 @@ llm = Ollama(
 
 context = []
 while True:
-    responseBody = llm.generate(input(">> "), context)
-    response = responseBody[0]
-    context = responseBody[1]
+    response = llm.generateWithMemory(input(">> "))
+    print("\nreceived: \n" + response)
+    print("CONTEXT: \n" + str(len(llm.context)))
     
 
 
