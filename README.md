@@ -4,7 +4,7 @@
 
 This project is an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that **run completely offline on both macOS and Windows**. You don't want your chat history with your *digital pet* to be seen by OpenAI researchers right? And... you don't want your *digital pet* to care about something as *trivial* and *insignificant* as morality right?
 
-Written in Python with Langchain. Using Ollama as the LLM server. Support **macOS** (first-class citizen 🙌because I'm using Mac) and **Windows** **(not yet)**
+Written in Python ~~with Langchain~~. Using Ollama as the LLM server. Support **macOS** (first-class citizen 🙌because I'm using Mac) and **Windows** **(not yet)**
 
 
 https://github.com/t41372/LangChain-Lab-04-Ollama/assets/36402030/81d68b96-e3d8-4bd1-a46e-c3a3e823486e
@@ -14,11 +14,9 @@ https://github.com/t41372/LangChain-Lab-04-Ollama/assets/36402030/81d68b96-e3d8-
 
 This is my first Python and actual serious LLM project, and I have never dealt with Live2D things before. I still have a lot to learn. If you have a better understanding and want to make this project better, feel free to open a pull request.
 
-BTW, I don't like Langchain. I think it's a bit overcomplicated. I use it because I still have very limited knowledge about LLM, especially vector database and memory, and I want to be able to integrate more things in the future. Maybe it's because I'm a newbie, but that doesn't change my negative opinions about Langchain. I feel like I have spent more effort and enjoyed more frustration in getting Langchain to work properly than learning Python as a whole.
+> BTW, I don't like Langchain. I think it's a bit overcomplicated. I use it because I still have very limited knowledge about LLM, especially vector database and memory, and I want to be able to integrate more things in the future. Maybe it's because I'm a newbie, but that doesn't change my negative opinions about Langchain. I feel like I have spent more effort and enjoyed more frustration in getting Langchain to work properly than learning Python as a whole. Langchain is poorly documented with a steep learning curve in my opinion, and is causing more problem by itself than in my opinion, dealing with those tools directly. 
 
-Langchain is poorly documented with a steep learning curve in my opinion, and is causing more problem by itself than in my opinion, dealing with those tools directly. 
-
-
+*UPDATE*: Langchain has been completely removed! The project now manages the communication with the Ollama server directly. It's way easier. Ollama has memory and system prompting built-in, so the performance is awesome compare to the performance I was getting when using Langchain.
 
 ### Tech Stack & Current Project State
 
@@ -34,7 +32,6 @@ What's NOT working:
 LLM:
 
 - Long-term memory is not implemented.
-- The LLM will start talking to itself and generate the *user response* for you after talking for a while (mistral-7B instruction). I don't know why.
 - You cannot load *base models*, you can only load instruction fine-tuned models. Technically you can load base models, but the LLM will not answer you properly.
 
 Live2D
@@ -45,13 +42,13 @@ Live2D
 
 I want this project to be as modular as possible, so I tried modularizing most of the functionalities into different Python files, in the hope that one day I can swap them like swapping eggs.
 
-LLM Brain (running as a separate server taking HTTP API calls from Langchain in `llm.py`)
+Ollama Server (running as a separate server taking HTTP API calls from `Ollama.py`)
 
-- Ollama (run separately as a server). You can install and load any open-source LLM models into Ollama. I'm using `mistral 7B instruction`, tagged `mistral:latest` in Ollama package manager.
+- You can install and load any open-source LLM models into Ollama. I'm using `mistral 7B instruction`, tagged `mistral:latest` in Ollama package manager.
 
-Langchain (`llm.py`)
+Ollama Class (`Ollama.py`)
 
-- integrating all the LLM tools like talking to Ollama, holding memory, and formatting prompt
+- handling the communication with the Ollama Server
 
 Speech to Text, Speech Recognition (`speech2text.py`)
 
