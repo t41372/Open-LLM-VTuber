@@ -10,7 +10,20 @@ class Ollama:
     '''
 
 
-    def __init__(self, base_url, model, system, verbose=False):
+    def __init__(self, base_url: str, model: str, system: str, verbose=False):
+        '''
+        Initialize the Ollama class.
+        Parameters
+        ----------
+        base_url    :   str
+            the base url of the ollama server
+        model       :   str
+            the model name
+        system      :   str 
+            the system prompt.
+        verbose     :   bool
+            whether to print the debug information. default to False. I'm sorry but its currently useless.🥲
+        '''
         self.base_url = base_url # base url of the ollama server
         self.verbose = verbose
         self.model = model # model name
@@ -18,13 +31,13 @@ class Ollama:
         self.context = [] # context of the conversation. (list of vectors)
         '''
         context :   list of number
-            The context of the chat to send to the ollama server. 
-            Basically the chat history in vector returned from Ollama server last time. 
-            Size of the context is the token length of the chat history.
-            Check [Ollama API](https://github.com/jmorganca/ollama/blob/main/docs/api.md) for more details.
-            Also the article [Ollama context at generate API output](https://stephencowchau.medium.com/ollama-context-at-generate-api-output-what-are-those-numbers-b8cbff140d95)
-
+        The context of the chat to send to the ollama server. 
+        Basically the chat history in vector returned from Ollama server last time. 
+        Size of the context is the token length of the chat history.
+        Check [Ollama API](https://github.com/jmorganca/ollama/blob/main/docs/api.md) for more details.
+        Also the article [Ollama context at generate API output](https://stephencowchau.medium.com/ollama-context-at-generate-api-output-what-are-those-numbers-b8cbff140d95)
         '''
+        
 
 
 
