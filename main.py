@@ -61,7 +61,7 @@ def speechInteractionMode(llm:Ollama):
     
 
 
-def callLLM(text, llm:Ollama,verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, 
+def callLLM(text, llm:Ollama, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, 
             chatHistoryDir=CHAT_HISTORY_DIR, ttsOn=TTS_ON):
         '''
         Call the llm with text and print the result.
@@ -69,6 +69,8 @@ def callLLM(text, llm:Ollama,verbose=False, saveChatHistory=SAVE_CHAT_HISTORY,
             the text that is recognized
         '''
         result = llm.generateWithMemory(text)
+        print("\n\n>> Context: \n")
+        print(llm.context)
         if verbose:
             print(">> Results: \n")
             print(result)
@@ -105,14 +107,15 @@ if __name__ == "__main__":
         backUpFilePath = utils.backUpFile(MEMORY_DB_PATH)
         print(">>> Memory snapshot saved at " + MEMORY_DB_PATH + ".bk")
 
-    speechInteractionMode(llm)
+    # speechInteractionMode(llm)
+    textInteractionMode(llm)
 
     if MEMORY_SNAPSHOT:
         revertMemory = input("\n>>> Do you want to revert the memory, not save your conversation, and pretend that this conversation has ever took place? (y/N)")
         if revertMemory == "y":
             utils.restoreFile(MEMORY_DB_PATH, backUpFilePath)
             print(">>> Memory reverted. This conversation never took place.")
-            print(">>> But in case you need it, the message log is still saved at " + CHAT_HISTORY_DIR + "/" + CURRENT_SESSION_ID + ".txt")
+            print(">>> But in case you need it, the message log is still saved at " + CHAT_HISTORY_DIR + "" + CURRENT_SESSION_ID + ".txt")
         else:
             print(">>> LLM will remember this conversation.")
             print(">>> But if you change your mind, replace the memory file with " + backUpFilePath)
