@@ -26,6 +26,8 @@ MEMORY_DB_PATH = os.getenv("MEMORY_DB_PATH")
 
 TTS_ON = (os.getenv("TTS_ON") == "True")
 
+VOICE_INPUT_ON = (os.getenv("VOICE_INPUT_ON") == "True")
+
 def textInteractionMode(llm:Ollama):
     '''
     interact with the llm in text mode, but with speech output
@@ -88,7 +90,7 @@ def callLLM(text, llm:Ollama, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY,
 
 if __name__ == "__main__":
 
-    # instantiate the ollama
+    # load parameters and instantiate the ollama
     try:
         llm = Ollama(
             base_url=os.getenv("BASE_URL"),
@@ -102,17 +104,21 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
+    # save a snapshot of the memory
 
     if MEMORY_SNAPSHOT:
         backUpFilePath = utils.backUpFile(MEMORY_DB_PATH)
         print(">>> Memory snapshot saved at " + MEMORY_DB_PATH + ".bk")
 
     # speechInteractionMode(llm)
-    textInteractionMode(llm)
+    if VOICE_INPUT_ON:
+        speechInteractionMode(llm)
+    else:
+        textInteractionMode(llm)
 
     if MEMORY_SNAPSHOT:
-        revertMemory = input("\n>>> Do you want to revert the memory, not save your conversation, and pretend that this conversation has ever took place? (y/N)")
-        if revertMemory == "y":
+        revertMemory = input("\n------------\n\n>>> Save this conversation to long term memory? (Y/n)")
+        if revertMemory == "n":
             utils.restoreFile(MEMORY_DB_PATH, backUpFilePath)
             print(">>> Memory reverted. This conversation never took place.")
             print(">>> But in case you need it, the message log is still saved at " + CHAT_HISTORY_DIR + "" + CURRENT_SESSION_ID + ".txt")
