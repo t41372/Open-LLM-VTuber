@@ -8,3 +8,4 @@ knowledge_base/*
 api_keys.py
 memory.db
 memory.db.bk
+lab.py

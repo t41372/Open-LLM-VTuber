@@ -28,6 +28,12 @@ TTS_ON = (os.getenv("TTS_ON") == "True")
 
 VOICE_INPUT_ON = (os.getenv("VOICE_INPUT_ON") == "True")
 
+RAG_ON = (os.getenv("RAG_ON") == "True")
+
+EXTRA_SYSTEM_PROMPT_RAG = os.getenv("EXTRA_SYSTEM_PROMPT_RAG")
+
+LLMASSIST_RAG_ON = (os.getenv("LLMASSIST_RAG_ON") == "True")
+
 def textInteractionMode(llm:Ollama):
     '''
     interact with the llm in text mode, but with speech output
@@ -64,15 +70,21 @@ def speechInteractionMode(llm:Ollama):
 
 
 def callLLM(text, llm:Ollama, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY, 
-            chatHistoryDir=CHAT_HISTORY_DIR, ttsOn=TTS_ON):
+            chatHistoryDir=CHAT_HISTORY_DIR, ttsOn=TTS_ON, ragOn=RAG_ON, llmAssistRagOn=LLMASSIST_RAG_ON):
         '''
         Call the llm with text and print the result.
         text: str
             the text that is recognized
         '''
-        result = llm.generateWithMemory(text)
-        print("\n\n>> Context: \n")
-        print(llm.context)
+        if ragOn:
+            print(">> RAG is on. Generating response with RAG...")
+            result = llm.generateWithLongTermMemory(prompt=text, vector_db=MEMORY_DB_PATH, system=llm.system + EXTRA_SYSTEM_PROMPT_RAG, LLMAssist=llmAssistRagOn)
+        else: 
+            print(">> RAG is off. Generating response without RAG...")
+            result = llm.generateWithMemory(text)
+
+        print("\n\n>> Curent Token Count: {}".format(len(llm.context)))
+
         if verbose:
             print(">> Results: \n")
             print(result)
@@ -96,7 +108,8 @@ if __name__ == "__main__":
             base_url=os.getenv("BASE_URL"),
             verbose=(os.getenv("VERBOSE") == "True"),
             model=os.getenv("MODEL"),
-            system=os.getenv("SYSTEM_PROMPT"),
+            system= os.getenv("SYSTEM_PROMPT"),
+            vector_db_path=os.getenv("MEMORY_DB_PATH")
         )
     except Exception as e:
         print("Error: Missing or invalid environment variables. Please check your configuration.")
