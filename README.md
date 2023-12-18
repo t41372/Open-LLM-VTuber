@@ -68,13 +68,15 @@ Live2D puppet
 
 ### Install
 
+Clone this repository.
+
+Rename the `default.env` to `.env`, and/or adjust parameters as you wish.
+
 You need to have [Ollama](https://github.com/jmorganca/ollama) running either on a server or on your local computer. 
 
-Ollama has a package-manager-like tool to install and run open-source LLM with one command (like docker). You *don't* need to download the model. The model will be automatically downloaded (I think) when running the program. To be safe, you can run `ollama run mistral:latest` or `ollama pull mistral:latest` to download the model. If you want to change the LLM model, change the `.env` file in the project.
+Ollama has a package-manager-like tool to install and run open-source LLM with one command (like docker). Similar to docker, you don't actually need to pull the LLM before running. The model will be automatically downloaded when running the program. To be safe, you can run `ollama run mistral:latest` or `ollama pull mistral:latest` to download the model. If you want to change the LLM model, change the `.env` file in the project.
 
 
-
-Then, clone this repository.
 
 This project is developed in `Python 3.10.13`. If anything goes wrong, try checking if your Python version matches mine. I recommend using `conda` to create a virtual Python environment for this project. 
 

@@ -1,6 +1,7 @@
 legacy/
 __pycache__/
 .conda
+.env
 
 chat_history/
 knowledge_base/*
