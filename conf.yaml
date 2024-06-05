@@ -1,0 +1,56 @@
+# url for ollama instance
+BASE_URL: "http://localhost:11434"
+# BASE_URL: "http://localhost:11434/v1"
+LLM_API_KEY: "somethingelse"
+ORGANIZATION_ID: "org_eternity"
+PROJECT_ID: "project_glass"
+
+# Need more info while running?
+VERBOSE: True
+
+# The model you use in ollama
+MODEL: "llama3:8b-instruct-q8_0"
+
+# Exit phrase
+EXIT_PHRASE: "exit"
+
+# The path to the chroma vector database file for persistent memory storage
+MEMORY_DB_PATH: "./memory.db"
+
+# Memory snapshot: Do you want to backup the memory database file before talking?
+MEMORY_SNAPSHOT: True
+
+# The name and role of the AI
+AI_NAME: "AI"
+SYSTEM_PROMPT: "Act as an unhelpful and sarcastic AI that enjoys making fun of humans."
+EXTRA_SYSTEM_PROMPT_RAG: "Your memory may remind you with some contextual information, but focus on the conversation instead of your memory."
+
+# User name
+USER_NAME: "User"
+
+# Should the chat history be saved?
+SAVE_CHAT_HISTORY: True
+
+# The directory where chat history is stored
+CHAT_HISTORY_DIR: "./chat_history/"
+
+# Speech Recognition
+VOICE_INPUT_ON: True
+STT_MODEL: "AzureSTT"
+
+# Azure api key
+AZURE_API_Key: "what??"
+
+# Azure region
+AZURE_REGION: "eastus"
+
+# Choose the Text to speech model you want to use
+AZURE_VOICE: "en-US-AshleyNeural"
+
+# Text to Speech
+TTS_ON: True
+TTS_MODEL: "AzureTTS"
+
+# Turn on RAG (Retrieval Augmented Generation) or not. 
+RAG_ON: False
+LLMASSIST_RAG_ON: False

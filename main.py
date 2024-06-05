@@ -1,38 +1,44 @@
 
 from Ollama import Ollama
 import text2speech 
-import speech2text
-from dotenv import load_dotenv
+from speech2text.azureSTT import SpeechToTextService as speech2text
+# from dotenv import load_dotenv
 import utils
-import os
 import sys
+
+import yaml
+
+with open('conf.yaml', 'r') as f:
+    config = yaml.safe_load(f)
 
 from datetime import datetime
 now = datetime.now()
 
-load_dotenv()  # take environment variables from .
+# load_dotenv()  # take environment variables from .
 
 CURRENT_SESSION_ID = now.strftime("%Y-%m-%d-%H-%M-%S")
 
-SAVE_CHAT_HISTORY = (os.getenv("SAVE_CHAT_HISTORY") == "True")
+SAVE_CHAT_HISTORY = (config.get("SAVE_CHAT_HISTORY") == True)
 
-CHAT_HISTORY_DIR = os.getenv("CHAT_HISTORY_DIR")
+CHAT_HISTORY_DIR = config.get("CHAT_HISTORY_DIR")
 
-EXIT_PHRASE = os.getenv("EXIT_PHRASE")
+EXIT_PHRASE = config.get("EXIT_PHRASE")
 
-MEMORY_SNAPSHOT = (os.getenv("MEMORY_SNAPSHOT") == "True")
+MEMORY_SNAPSHOT = (config.get("MEMORY_SNAPSHOT") == True)
 
-MEMORY_DB_PATH = os.getenv("MEMORY_DB_PATH")
+MEMORY_DB_PATH = config.get("MEMORY_DB_PATH")
 
-TTS_ON = (os.getenv("TTS_ON") == "True")
+TTS_ON = (config.get("TTS_ON") == True)
 
-VOICE_INPUT_ON = (os.getenv("VOICE_INPUT_ON") == "True")
+VOICE_INPUT_ON = (config.get("VOICE_INPUT_ON") == True)
 
-RAG_ON = (os.getenv("RAG_ON") == "True")
+RAG_ON = (config.get("RAG_ON") == True)
 
-EXTRA_SYSTEM_PROMPT_RAG = os.getenv("EXTRA_SYSTEM_PROMPT_RAG")
+EXTRA_SYSTEM_PROMPT_RAG = config.get("EXTRA_SYSTEM_PROMPT_RAG")
 
-LLMASSIST_RAG_ON = (os.getenv("LLMASSIST_RAG_ON") == "True")
+LLMASSIST_RAG_ON = (config.get("LLMASSIST_RAG_ON") == True)
+
+speech2text = speech2text(subscription_key=config.get("AZURE_API_Key"), region=config.get("AZURE_REGION"))
 
 def textInteractionMode(llm:Ollama):
     '''
@@ -57,7 +63,7 @@ def speechInteractionMode(llm:Ollama):
     # recognitionResult = launchContinuousSpeech2TextService(callLLM)
 
     while True:
-        recognitionResult = speech2text.speech2TextOnce()
+        recognitionResult = speech2text.transcribe_once()
         if recognitionResult.strip().lower().replace(".", "") == EXIT_PHRASE.lower():
             print("Exiting...")
             
@@ -105,11 +111,11 @@ if __name__ == "__main__":
     # load parameters and instantiate the ollama
     try:
         llm = Ollama(
-            base_url=os.getenv("BASE_URL"),
-            verbose=(os.getenv("VERBOSE") == "True"),
-            model=os.getenv("MODEL"),
-            system= os.getenv("SYSTEM_PROMPT"),
-            vector_db_path=os.getenv("MEMORY_DB_PATH")
+            base_url=config.get("BASE_URL"),
+            verbose=(config.get("VERBOSE") == "True"),
+            model=config.get("MODEL"),
+            system= config.get("SYSTEM_PROMPT"),
+            vector_db_path=config.get("MEMORY_DB_PATH")
         )
     except Exception as e:
         print("Error: Missing or invalid environment variables. Please check your configuration.")
