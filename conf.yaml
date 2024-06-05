@@ -38,14 +38,14 @@ CHAT_HISTORY_DIR: "./chat_history/"
 VOICE_INPUT_ON: True
 STT_MODEL: "AzureSTT"
 
-# Azure api key
-AZURE_API_Key: "what??"
+# # Azure api key
+# AZURE_API_Key: ""
 
-# Azure region
-AZURE_REGION: "eastus"
+# # Azure region
+# AZURE_REGION: ""
 
-# Choose the Text to speech model you want to use
-AZURE_VOICE: "en-US-AshleyNeural"
+# # Choose the Text to speech model you want to use
+# AZURE_VOICE: "en-US-AshleyNeural"
 
 # Text to Speech
 TTS_ON: True

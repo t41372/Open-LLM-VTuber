@@ -2,10 +2,13 @@
 from Ollama import Ollama
 import text2speech 
 from speech2text.azureSTT import SpeechToTextService as speech2text
-# from dotenv import load_dotenv
 import utils
 import sys
 
+# import os
+# from dotenv import load_dotenv
+# load_dotenv()  # take environment variables from .
+import api_keys
 import yaml
 
 with open('conf.yaml', 'r') as f:
@@ -14,7 +17,6 @@ with open('conf.yaml', 'r') as f:
 from datetime import datetime
 now = datetime.now()
 
-# load_dotenv()  # take environment variables from .
 
 CURRENT_SESSION_ID = now.strftime("%Y-%m-%d-%H-%M-%S")
 
@@ -38,7 +40,7 @@ EXTRA_SYSTEM_PROMPT_RAG = config.get("EXTRA_SYSTEM_PROMPT_RAG")
 
 LLMASSIST_RAG_ON = (config.get("LLMASSIST_RAG_ON") == True)
 
-speech2text = speech2text(subscription_key=config.get("AZURE_API_Key"), region=config.get("AZURE_REGION"))
+speech2text = speech2text(subscription_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
 
 def textInteractionMode(llm:Ollama):
     '''
