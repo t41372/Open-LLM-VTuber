@@ -6,6 +6,7 @@
 # 
 #
 
+
 import queue
 from pathlib import Path
 from typing import Callable, List
@@ -14,11 +15,18 @@ import numpy as np
 import sounddevice as sd
 from loguru import logger
 
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+print(f"\nDIRRRR\n{current_dir}")
+
 import asr, vad
 
 # Using pathlib for OS-independent paths
 ASR_MODEL_NAME = "distil-medium.en"
-VAD_MODEL_PATH = Path("./models/silero_vad.onnx")
+VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
+print(f"\nVAD_MODEL_PATH\n{VAD_MODEL_PATH}")
 SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
 VAD_THRESHOLD = 0.7  # Threshold for VAD detection
@@ -29,7 +37,7 @@ SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 # Rest of the class remains unchanged
 ASR_MODEL_NAME = "distil-medium.en"
-VAD_MODEL_PATH = "./models/silero_vad.onnx"
+VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
 SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
 VAD_THRESHOLD = 0.7  # Threshold for VAD detection

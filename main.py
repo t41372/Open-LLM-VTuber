@@ -1,9 +1,11 @@
 
 from Ollama import Ollama
 import text2speech 
-from speech2text.azureSTT import SpeechToTextService as speech2text
+# from speech2text.azureSTT import SpeechToTextService as speech2text
 import utils
 import sys
+import importlib
+from rich import print
 
 # import os
 # from dotenv import load_dotenv
@@ -16,7 +18,6 @@ with open('conf.yaml', 'r') as f:
 
 from datetime import datetime
 now = datetime.now()
-
 
 CURRENT_SESSION_ID = now.strftime("%Y-%m-%d-%H-%M-%S")
 
@@ -40,7 +41,36 @@ EXTRA_SYSTEM_PROMPT_RAG = config.get("EXTRA_SYSTEM_PROMPT_RAG")
 
 LLMASSIST_RAG_ON = (config.get("LLMASSIST_RAG_ON") == True)
 
-speech2text = speech2text(subscription_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
+# init speech to text service
+
+STT_MODEL = config.get("STT_MODEL")
+
+def load_module(module_name):
+    try:
+        return importlib.import_module(module_name)
+    except ImportError:
+        print(f"Module {module_name} not found.")
+        print(ImportError.path)
+        return None
+
+stt_models_dict = {
+    "Faster-Whisper": "speech2text.faster-whisper.voice_recognition",
+    "AzureSTT": "speech2text.azureSTT"
+}
+
+
+print(f"Using speech to text model: {STT_MODEL}, {stt_models_dict.get(STT_MODEL)}")
+
+speech2text = load_module(stt_models_dict.get(STT_MODEL))
+if speech2text is None:
+    print(f"Error: Module \"{speech2text}\" not found. Turn off voice input.")
+    VOICE_INPUT_ON = False
+    
+if STT_MODEL == "AzureSTT":
+    speech2text = speech2text.VoiceRecognition(callbackFunction=print, subscription_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
+else:
+    speech2text = speech2text.VoiceRecognition()
+
 
 def textInteractionMode(llm:Ollama):
     '''

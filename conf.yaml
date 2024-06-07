@@ -36,6 +36,7 @@ CHAT_HISTORY_DIR: "./chat_history/"
 
 # Speech Recognition
 VOICE_INPUT_ON: True
+# STT_MODEL: "Faster-Whisper"
 STT_MODEL: "AzureSTT"
 
 # # Azure api key

@@ -7,7 +7,7 @@ import os
 
 load_dotenv("../.env")
 
-class SpeechToTextService:
+class VoiceRecognition:
     def __init__(self, callbackFunction: Callable = print ,subscription_key=os.getenv("AZURE_API_Key"), region=os.getenv("AZURE_REGION")):
         """
         Initializes an instance of the AzureSTT class.
@@ -104,5 +104,5 @@ class SpeechToTextService:
             #     print("======\n")
 
 if __name__ == "__main__":
-    service = SpeechToTextService()
+    service = VoiceRecognition()
     service.launch()
