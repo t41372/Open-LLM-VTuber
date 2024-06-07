@@ -2,3 +2,10 @@ python-dotenv==1.0.0
 transformers
 halo
 chromadb
+rich
+loguru
+numpy
+sounddevice
+faster_whisper
+scipy
+onnxruntime
