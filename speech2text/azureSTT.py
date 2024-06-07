@@ -2,10 +2,11 @@ import azure.cognitiveservices.speech as speechsdk
 from typing import Callable
 import time
 from halo import Halo
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
+from rich import print
+import api_keys
 
-load_dotenv("../.env")
 
 class VoiceRecognition:
     def __init__(self, callbackFunction: Callable = print ,subscription_key=os.getenv("AZURE_API_Key"), region=os.getenv("AZURE_REGION")):
@@ -20,7 +21,13 @@ class VoiceRecognition:
         """
         self.subscription_key = subscription_key
         self.region = region
+        if self.subscription_key is None or self.region is None:
+            print("Please provide a valid subscription key and region for Azure Speech Recognition or use faster-whisper local speech recognition by changing the STT model option in the conf.yaml.", style="bold red")
+            print("To provide the API keys, follow the instructions in the Readme.md documentation \"Azure API for Speech Recognition and Speech to Text\" to create api_keys.py. Alternatively, you may run the following command: \n`export AZURE_API_Key=<your-subscription-key>`\n`export AZURE_REGION=<your-azure-region-code>` with your API keys", style="red")
+
         self.callback = callbackFunction
+    
+
 
     def _create_speech_recognizer(self, uses_default_microphone: bool =True):
         print("Sub: ", self.subscription_key, "Reg: ", self.region)

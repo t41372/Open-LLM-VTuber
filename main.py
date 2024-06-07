@@ -1,24 +1,26 @@
+import sys
+import utils
+import importlib
+from rich import print
+import yaml
 
 from Ollama import Ollama
 import text2speech 
-# from speech2text.azureSTT import SpeechToTextService as speech2text
-import utils
-import sys
-import importlib
-from rich import print
 
 # import os
 # from dotenv import load_dotenv
 # load_dotenv()  # take environment variables from .
 import api_keys
-import yaml
+if api_keys is None:
+    api_keys.AZURE_API_Key = ""
+    api_keys.AZURE_REGION = ""
+    api_keys.AZURE_VOICE = ""
 
 with open('conf.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
 from datetime import datetime
 now = datetime.now()
-
 CURRENT_SESSION_ID = now.strftime("%Y-%m-%d-%H-%M-%S")
 
 SAVE_CHAT_HISTORY = (config.get("SAVE_CHAT_HISTORY") == True)
