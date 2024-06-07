@@ -4,8 +4,7 @@
 # Modifications by Yi-Ting Chiu as part of OpenLLM-VTuber, licensed under the MIT License
 # https://opensource.org/licenses/MIT
 # 
-
-
+#
 
 import queue
 from pathlib import Path
@@ -114,16 +113,35 @@ class VoiceRecognition:
         logger.info("Starting Listening...")
         self.input_stream.start()
         logger.info("Listening Running")
-        self._listen_and_respond()
+        return self._listen_and_respond()
+    
+    def transcribe_once(self):
+        """
+        Start listening for audio input and responds appropriately when active voice is detected.
+        This function will return the transcribed text once a pause is detected.
+        
+        Returns:
+            str: The transcribed text
+        """
+        self.input_stream.start()
+        logger.info("Starting Listening...")
+        logger.info("Listening Running")
+        return self._listen_and_respond(returnText=True)
 
-    def _listen_and_respond(self):
+    def _listen_and_respond(self, returnText=False):
         """
         Listens for audio input and responds appropriately when the wake word is detected.
         """
         logger.info("Listening...")
         while True:  # Loop forever, but is 'paused' when new samples are not available
             sample, vad_confidence = self.sample_queue.get()
-            self._handle_audio_sample(sample, vad_confidence)
+            result = self._handle_audio_sample(sample, vad_confidence)
+
+            if result:
+                self.reset()
+                if returnText:
+                    return result
+                self.input_stream.start()
 
     def _handle_audio_sample(self, sample, vad_confidence):
         """
@@ -132,7 +150,7 @@ class VoiceRecognition:
         if not self.recording_started:
             self._manage_pre_activation_buffer(sample, vad_confidence)
         else:
-            self._process_activated_audio(sample, vad_confidence)
+            return self._process_activated_audio(sample, vad_confidence)
 
     def _manage_pre_activation_buffer(self, sample, vad_confidence):
         """
@@ -159,7 +177,7 @@ class VoiceRecognition:
         if not vad_confidence:
             self.gap_counter += 1
             if self.gap_counter >= PAUSE_LIMIT // VAD_SIZE:
-                self._process_detected_audio()
+                return self._process_detected_audio()
         else:
             self.gap_counter = 0
 
@@ -189,6 +207,7 @@ class VoiceRecognition:
 
         if detected_text:
             logger.info(f"Detected: '{detected_text}'")
+            return detected_text
 
             # if self.wake_word is not None:
             #     if self._wakeword_detected(detected_text):
@@ -199,6 +218,8 @@ class VoiceRecognition:
             # else:
             #     self.func(detected_text)
 
+        # these two lines will never be reached because I made the function return the detected text
+        # so the reset function will be called in the _listen_and_respond function instead
         self.reset()
         self.input_stream.start()
 
@@ -223,6 +244,10 @@ class VoiceRecognition:
             self.buffer.queue.clear()
 
 
+
+
 if __name__ == "__main__":
     demo = VoiceRecognition()
     demo.start()
+    # text = demo.transcribe_once()
+    # print(text)
