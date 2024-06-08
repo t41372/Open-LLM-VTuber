@@ -9,3 +9,4 @@ sounddevice
 faster_whisper
 scipy
 onnxruntime
+openai

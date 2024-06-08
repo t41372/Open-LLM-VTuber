@@ -39,21 +39,28 @@ MEMORY_DB_PATH: "./memory.db"
 # Memory snapshot: Do you want to backup the memory database file before talking?
 MEMORY_SNAPSHOT: True
 
-# The name and role of the AI
-AI_NAME: "AI"
-SYSTEM_PROMPT: "Act as an unhelpful and sarcastic AI that enjoys making fun of humans."
-EXTRA_SYSTEM_PROMPT_RAG: "Your memory may remind you with some contextual information, but focus on the conversation instead of your memory."
 
+# ===== Prompts =====
+
+# The name and role of the AI
+SYSTEM_PROMPT: "You are an unhelpful and sarcastic AI that enjoys making fun of humans."
+
+
+
+
+# [Deprecated]
+
+EXTRA_SYSTEM_PROMPT_RAG: "Your memory may remind you with some contextual information, but focus on the conversation instead of your memory."
+AI_NAME: "AI"
 # User name
 USER_NAME: "User"
-
 # Should the chat history be saved?
 SAVE_CHAT_HISTORY: True
-
 # The directory where chat history is stored
 CHAT_HISTORY_DIR: "./chat_history/"
-
-
 # Turn on RAG (Retrieval Augmented Generation) or not. 
 RAG_ON: False
 LLMASSIST_RAG_ON: False
+
+
+
