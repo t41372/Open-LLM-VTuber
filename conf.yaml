@@ -12,15 +12,15 @@ MODEL: "llama3:latest"
 #  ===== Voice Interaction Settings =====
 
 # Automatic Speech Recognition
-VOICE_INPUT_ON: False
+VOICE_INPUT_ON: True
 # speech to text model options: "Faster-Whisper", "AzureSTT"
-STT_MODEL: "AzureSTT"
+STT_MODEL: "Faster-Whisper"
 
 
 # Text to Speech
 TTS_ON: True
-# text to speech model options: "AzureTTS"
-TTS_MODEL: "AzureTTS"
+# text to speech model options: "AzureTTS", "pyttsx3TTS"
+TTS_MODEL: "pyttsx3TTS"
 
 
 

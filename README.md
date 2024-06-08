@@ -62,8 +62,17 @@ This project, by default, launches the audio interaction mode, meaning you can t
 ### Change Speech Recognition and Text to Speech provider
 Edit the STT_MODEL and TTS MODEL settings in the `conf.yaml` to change the provider.
 
+### Use your system Text-to-Speech Engine, offline
+Run the following command to install `py3-tts` package.
+~~~sh
+pip install py3-tts
+~~~
+`py3-tts` is used instead of the more famous `pyttsx3` because I couldn't get the latest version of the latter working.
+In addition, `pyttsx3` is unmaintained.
 
-### Azure API for Speech Recognition and Speech to Text
+This library will use the appropriate TTS engine on your machine. It uses `sapi5` on Windows, `nsss` on mac, and `espeak` on other platforms.
+
+### Azure API for Speech Recognition and Speech to Text, API key needed
 
 Create a file named `api_keys.py` in the project directory, paste the following text into the file, and fill in the API keys and region you gathered from your Azure account.
 

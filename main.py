@@ -78,8 +78,13 @@ TTS_ON = (config.get("TTS_ON") == True)
 TTS_MODEL = config.get("TTS_MODEL")
 
 tts_models_dict = {
-    "AzureTTS": "tts.azureTTS"
+    "AzureTTS": "tts.azureTTS",
+    "pyttsx3TTS": "tts.pyttsx3TTS"
 }
+
+if TTS_ON and TTS_MODEL not in tts_models_dict:
+    print(f"Error: TTS model {TTS_MODEL} not found. Fallback to pyttsx3TTS.")
+    TTS_MODEL = "pyttsx3TTS"
 
 tts = load_module(tts_models_dict.get(TTS_MODEL))
 
@@ -88,7 +93,8 @@ if tts is None:
     TTS_ON = False
 if TTS_MODEL == "AzureTTS":
     tts = tts.AzureTTS(sub_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION, voice=api_keys.AZURE_VOICE)
-
+else:
+    tts = tts.TTSEngine()
 
 
 def textInteractionMode(llm:Ollama):
