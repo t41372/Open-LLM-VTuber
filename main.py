@@ -58,18 +58,17 @@ stt_models_dict = {
     "AzureSTT": "speech2text.azureSTT"
 }
 
-
-print(f"Using speech to text model: {STT_MODEL}, {stt_models_dict.get(STT_MODEL)}")
-
-speech2text = load_module(stt_models_dict.get(STT_MODEL))
-if speech2text is None:
-    print(f"Error: Module \"{speech2text}\" not found. Turn off voice input.")
-    VOICE_INPUT_ON = False
-    
-if STT_MODEL == "AzureSTT":
-    speech2text = speech2text.VoiceRecognition(callbackFunction=print, subscription_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
-else:
-    speech2text = speech2text.VoiceRecognition()
+if VOICE_INPUT_ON:
+    print(f"Using speech to text model: {STT_MODEL}, {stt_models_dict.get(STT_MODEL)}")
+    speech2text = load_module(stt_models_dict.get(STT_MODEL))
+    if speech2text is None:
+        print(f"Error: Module \"{speech2text}\" not found. Turn off voice input.")
+        VOICE_INPUT_ON = False
+        
+    if STT_MODEL == "AzureSTT":
+        speech2text = speech2text.VoiceRecognition(callbackFunction=print, subscription_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
+    else:
+        speech2text = speech2text.VoiceRecognition()
 
 
 
@@ -82,19 +81,21 @@ tts_models_dict = {
     "pyttsx3TTS": "tts.pyttsx3TTS"
 }
 
-if TTS_ON and TTS_MODEL not in tts_models_dict:
-    print(f"Error: TTS model {TTS_MODEL} not found. Fallback to pyttsx3TTS.")
-    TTS_MODEL = "pyttsx3TTS"
+if TTS_ON:
 
-tts = load_module(tts_models_dict.get(TTS_MODEL))
+    if TTS_ON and TTS_MODEL not in tts_models_dict:
+        print(f"Error: TTS model {TTS_MODEL} not found. Fallback to pyttsx3TTS.")
+        TTS_MODEL = "pyttsx3TTS"
 
-if tts is None:
-    print(f"Error: Module \"{tts}\" not found. Turn off voice output.")
-    TTS_ON = False
-if TTS_MODEL == "AzureTTS":
-    tts = tts.AzureTTS(sub_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION, voice=api_keys.AZURE_VOICE)
-else:
-    tts = tts.TTSEngine()
+    tts = load_module(tts_models_dict.get(TTS_MODEL))
+
+    if tts is None:
+        print(f"Error: Module \"{tts}\" not found. Turn off voice output.")
+        TTS_ON = False
+    if TTS_MODEL == "AzureTTS":
+        tts = tts.TTSEngine(sub_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION, voice=api_keys.AZURE_VOICE)
+    else:
+        tts = tts.TTSEngine()
 
 
 def textInteractionMode(llm:Ollama):

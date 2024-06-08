@@ -3,7 +3,7 @@ import azure.cognitiveservices.speech as speechsdk
 # import utils
 
 
-class AzureTTS:
+class TTSEngine:
 
     def __init__(self, sub_key, region, voice):
         '''
@@ -62,7 +62,7 @@ class AzureTTS:
 
 
 if __name__ == "__main__":
-    tts = AzureTTS(input("Enter the Azure API key: "), input("Enter the Azure region: "), input("Enter the voice: "))
+    tts = TTSEngine(input("Enter the Azure API key: "), input("Enter the Azure region: "), input("Enter the voice: "))
     tts.speak("Testing, testing...")
     tts.speak("I am fine, thank you.")
     tts.speak("Goodbye!")
