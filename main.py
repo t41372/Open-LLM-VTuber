@@ -5,7 +5,7 @@ from rich import print
 import yaml
 
 from Ollama import Ollama
-import text2speech 
+
 
 # import os
 # from dotenv import load_dotenv
@@ -32,8 +32,6 @@ EXIT_PHRASE = config.get("EXIT_PHRASE")
 MEMORY_SNAPSHOT = (config.get("MEMORY_SNAPSHOT") == True)
 
 MEMORY_DB_PATH = config.get("MEMORY_DB_PATH")
-
-TTS_ON = (config.get("TTS_ON") == True)
 
 VOICE_INPUT_ON = (config.get("VOICE_INPUT_ON") == True)
 
@@ -72,6 +70,19 @@ if STT_MODEL == "AzureSTT":
     speech2text = speech2text.VoiceRecognition(callbackFunction=print, subscription_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
 else:
     speech2text = speech2text.VoiceRecognition()
+
+
+
+
+TTS_ON = (config.get("TTS_ON") == True)
+TTS_MODEL = config.get("TTS_MODEL")
+
+tts_models_dict = {
+    "AzureTTS": "tts.azureTTS"
+}
+
+tts = load_module(tts_models_dict.get(TTS_MODEL))
+
 
 
 def textInteractionMode(llm:Ollama):
@@ -134,7 +145,7 @@ def callLLM(text, llm:Ollama, verbose=False, saveChatHistory=SAVE_CHAT_HISTORY,
             utils.messageLogger(message, chatHistoryDir, CURRENT_SESSION_ID + ".txt")
 
         if ttsOn:
-            text2speech.speak(result)
+            tts.speak(result)
         print("\n")
 
 

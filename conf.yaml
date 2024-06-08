@@ -1,3 +1,4 @@
+#  ===== LLM Backend Settings =====
 # url for ollama instance
 BASE_URL: "http://localhost:11434"
 # BASE_URL: "http://localhost:11434/v1"
@@ -5,11 +6,29 @@ LLM_API_KEY: "somethingelse"
 ORGANIZATION_ID: "org_eternity"
 PROJECT_ID: "project_glass"
 
-# Need more info while running?
-VERBOSE: True
+# LLM name
+MODEL: "llama3:latest"
 
-# The model you use in ollama
-MODEL: "llama3:8b-instruct-q8_0"
+#  ===== Voice Interaction Settings =====
+
+# Automatic Speech Recognition
+VOICE_INPUT_ON: False
+# speech to text model options: "Faster-Whisper", "AzureSTT"
+STT_MODEL: "AzureSTT"
+
+
+# Text to Speech
+TTS_ON: True
+# text to speech model options: "AzureTTS"
+TTS_MODEL: "AzureTTS"
+
+
+
+#  ===== Other Settings =====
+
+
+# Print debug info
+VERBOSE: True
 
 # Exit phrase
 EXIT_PHRASE: "exit"
@@ -34,23 +53,6 @@ SAVE_CHAT_HISTORY: True
 # The directory where chat history is stored
 CHAT_HISTORY_DIR: "./chat_history/"
 
-# Speech Recognition
-VOICE_INPUT_ON: True
-# STT_MODEL: "Faster-Whisper"
-STT_MODEL: "AzureSTT"
-
-# # Azure api key
-# AZURE_API_Key: ""
-
-# # Azure region
-# AZURE_REGION: ""
-
-# # Choose the Text to speech model you want to use
-# AZURE_VOICE: "en-US-AshleyNeural"
-
-# Text to Speech
-TTS_ON: True
-TTS_MODEL: "AzureTTS"
 
 # Turn on RAG (Retrieval Augmented Generation) or not. 
 RAG_ON: False

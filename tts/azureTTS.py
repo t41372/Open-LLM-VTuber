@@ -1,7 +1,5 @@
-import os
 import azure.cognitiveservices.speech as speechsdk
 import api_keys
-import traceback
 import utils
 
 # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
