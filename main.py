@@ -83,6 +83,12 @@ tts_models_dict = {
 
 tts = load_module(tts_models_dict.get(TTS_MODEL))
 
+if tts is None:
+    print(f"Error: Module \"{tts}\" not found. Turn off voice output.")
+    TTS_ON = False
+if TTS_MODEL == "AzureTTS":
+    tts = tts.AzureTTS(sub_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION, voice=api_keys.AZURE_VOICE)
+
 
 
 def textInteractionMode(llm:Ollama):
