@@ -20,20 +20,21 @@ https://github.com/t41372/LangChain-Lab-04-Ollama/assets/36402030/81d68b96-e3d8-
 
 
 
-### Current Features
+### Implemented Features
 
-- Talk to LLM with voice
+- Talk to LLM with voice, completely offline
 - RAG on chat history
 
 Currently supported LLM backend
 - Ollama (for now)
 
 Currently supported Speech recognition backend
-- Faster-Whisper
+- Faster-Whisper (Local)
 - Azure Speech Recognition (API required)
 
 Currently supported Text to Speech backend
-- Azure Text-to-Speech
+- py3-tts (Local, it uses your system default tts engine)
+- Azure Text-to-Speech (API required)
 
 No live2D yet. I am still trying to figure out how to make live2D work on Mac.
 
@@ -54,7 +55,8 @@ Run the following in the terminal to install the dependencies.
 
 ~~~shell
 pip install -r requirements.txt # run this in the project directory
-pip install azure-cognitiveservices-speech # install azure dependencies for speech recognition and text to speech.
+pip install azure-cognitiveservices-speech # If you want to use Azure for Speech Recognition or Text to Speech, install azure dependencies.
+pip install py3-tts # if you want to use py3-tts as your text to speech backend, install py3-tts
 ~~~
 
 This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice as well. You need to set up your Azure API key.
