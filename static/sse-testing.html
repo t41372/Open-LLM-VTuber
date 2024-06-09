@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Demo</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ws = new WebSocket("ws://127.0.0.1:8000/live2d-motion-ws");
+            ws.onmessage = function(event) {
+                const messages = document.getElementById("messages");
+                const message = document.createElement("li");
+                message.textContent = event.data;
+                messages.appendChild(message);
+            };
+        });
+    </script>
+</head>
+<body>
+    <ul id="messages"></ul>
+</body>
+</html>
