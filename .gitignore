@@ -10,3 +10,6 @@ api_keys.py
 memory.db
 memory.db.bk
 lab.py
+llm/user_credentials.json
+openapi_assistants.json
+openapi_memgpt.json
