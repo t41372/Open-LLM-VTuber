@@ -37,7 +37,7 @@ Currently supported Text to Speech backend
 - Azure Text-to-Speech (API required)
 
 No live2D yet. I am still trying to figure out how to make live2D work on Mac.
-
+> The biggest issue here is to run it on mac. Many existing solutions use VTube Studio to power the live2D puppet. They use some kind of plugin in VTuber Studio to capture all of the sound from the desktop to control the puppet's mouse. On macOS, however, it is very difficult to capture sound from the desktop. Hence, I'm still looking for ways to do it.
 
 
 ### Install
