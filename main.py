@@ -115,11 +115,6 @@ def speechInteractionMode(llm:Ollama):
     Lauch the speech to text service and interact with the llm in speech mode.
     The function callbackToLLM is the callback function when a sentence is recognized.
     '''
-    # The commented code below is for continuous speech to text service.
-    # The recognizer will listen to you even when the llm is talking (so it can hear itself...)
-    # Not recommended if you are using the speaker
-    # recognitionResult = launchContinuousSpeech2TextService(callLLM)
-
     while True:
         recognitionResult = speech2text.transcribe_once()
         if recognitionResult.strip().lower().replace(".", "") == EXIT_PHRASE.lower():
