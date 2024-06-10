@@ -8,7 +8,7 @@ from openai import OpenAI
 
 class LLM:
 
-    def __init__(self, base_url, model, system, callback=print, organization_id="", project_id="", llm_api_key="", verbose=False):
+    def __init__(self, base_url, model, system, callback=print, organization_id="z", project_id="z", llm_api_key="z", verbose=False):
         """
         Initializes an instance of the `ollama` class.
 
@@ -57,9 +57,14 @@ class LLM:
         Print the memory
         '''
         print("Memory:\n========\n")
-        for message in self.memory:
-            print(message)
+        # for message in self.memory:
+        print(self.memory)
         print("\n========\n")
+
+    def __printDebugInfo(self):
+        print(" -- Base URL: " + self.base_url)
+        print(" -- Model: " + self.model)
+        print(" -- System: " + self.system)
     
     def chat(self, prompt):
         """
@@ -82,11 +87,19 @@ class LLM:
             print(" -- System: " + self.system)
             print(" -- Prompt: " + prompt + "\n\n")
 
-        chat_completion = self.client.chat.completions.create(
-            messages=self.memory,
-            model=self.model,
-            stream=True,
-        )
+        chat_completion = []
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=self.memory,
+                model=self.model,
+                stream=True,
+            )
+        except Exception as e:
+            print("Error calling the chat endpoint: " + str(e))
+            self.__printDebugInfo()
+            return "Error calling the chat endpoint: " + str(e)
+
+        
 
         response = ""
         for chunk in chat_completion:
@@ -100,7 +113,7 @@ class LLM:
 
         self.memory.append(
             {
-                "role": "AI",
+                "role": "assistant",
                 "content": response,
             }
         )
@@ -119,6 +132,7 @@ if __name__ == "__main__":
         llm_api_key="llm_api_key",
         verbose=True,
     )
-    
-    llm.chat("Hey buddy hows it going?")
+    while True:
+        print("\n>> (Press Ctrl+C to exit.)")
+        llm.chat(input(">> "))
         
