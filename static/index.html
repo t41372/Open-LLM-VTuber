@@ -1,0 +1,38 @@
+
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script>
+
+<head>
+    <style>
+        body {
+            background-image: url('https://img.freepik.com/free-vector/japanese-wave-line-art-landscape-background-abstract-mountain-banner-design-pattern-vector-illustration-geometric-poster_90220-715.jpg?w=2000&t=st=1717966340~exp=1717966940~hmac=ee528da7b4f1df4e3420b4d3cae7923d3ec1fb545b8bf116b07bef5b4e852b92');
+            background-size: cover; /* 覆蓋整個頁面 */
+            background-position: center; /* 中心對齊圖片 */
+        }
+    </style>
+</head>
+    
+<body>
+    <canvas id=canvas></canvas>
+    <script src="./scripts/app.js"></script>
+    <ul id="messages"></ul>
+</body>
+        
+<!-- Path: index.js -->
+<!-- <script>main()</script> -->
+<script>
+      // handle ws
+  document.addEventListener("DOMContentLoaded", function () {
+    const ws = new WebSocket("ws://127.0.0.1:8000/live2d-motion-ws");
+    ws.onmessage = function (event) {
+      const messages = document.getElementById("messages");
+      const message = document.createElement("li");
+      message.textContent = event.data;
+      messages.appendChild(message);
+      model2.motion("shake");
+      console.log(event.data);
+    };
+  });
+</script>
