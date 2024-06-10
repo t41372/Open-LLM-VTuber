@@ -7,7 +7,8 @@ import sys
 import importlib
 # from rich import print
 import yaml
-from Ollama import Ollama
+from Ollama import Ollama as oldOllama
+from llm.ollama import LLM
 import api_keys
 import requests
 
@@ -76,7 +77,7 @@ def interaction_mode(llm, speech2text, tts):
 
 def callLLM(text, llm, tts):
     rag_on = get_config("RAG_ON", False)
-    result = llm.generateWithLongTermMemory(prompt=text) if rag_on else llm.generateWithMemory(text)
+    result = llm.generateWithLongTermMemory(prompt=text) if rag_on else llm.chat(text)
     # print(result)
     
     
@@ -117,11 +118,15 @@ if __name__ == "__main__":
             print("\n === System Prompt ===") 
             print(system_prompt)
 
-        llm = Ollama(base_url=get_config("BASE_URL"), verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt, vector_db_path=get_config("MEMORY_DB_PATH"))
+        if get_config("RAG_ON", False): 
+            llm = oldOllama(base_url=get_config("BASE_URL"), verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt, vector_db_path=get_config("MEMORY_DB_PATH"))
+        else:
+            llm = LLM(base_url=get_config("BASE_URL") + "/v1", verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt)
         speech2text, tts = init_speech_services()
         interaction_mode(llm, speech2text, tts)
     except Exception as e:
         print(f"Error initializing: {e}")
-        sys.exit(1)
+        raise
+        # sys.exit(1)
 
 
