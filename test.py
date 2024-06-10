@@ -1,8 +1,13 @@
 import requests
+import json as JSON
 
 def send_message_to_broadcast(message):
     url = "http://127.0.0.1:8000/broadcast"
-    data = {"message": message}
+
+    payload = {"type" : "full-text", "text": message}
+
+
+    data = {"message": JSON.dumps(payload)}
     response = requests.post(url, json=data)
     print(f"Response Status Code: {response.status_code}")
     if response.ok:

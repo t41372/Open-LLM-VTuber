@@ -2,6 +2,7 @@
 
 
 
+import json
 import sys
 import importlib
 # from rich import print
@@ -77,17 +78,23 @@ def callLLM(text, llm, tts):
     rag_on = get_config("RAG_ON", False)
     result = llm.generateWithLongTermMemory(prompt=text) if rag_on else llm.generateWithMemory(text)
     # print(result)
-    send_message_to_broadcast(result)
+    
+    
+    send_message_to_broadcast({"type": "full-text", "text": result})
     if get_config("TTS_ON", False):
+        send_message_to_broadcast({"type": "control", "text": "speaking-start"})
         tts.speak(result)
+        send_message_to_broadcast({"type": "control", "text": "speaking-stop"})
 
 
 
 
 def send_message_to_broadcast(message):
     url = "http://127.0.0.1:8000/broadcast"
-    data = {"message": message}
-    response = requests.post(url, json=data)
+    
+    payload = json.dumps(message)
+
+    response = requests.post(url, json={"message": payload})
     print(f"Response Status Code: {response.status_code}")
     if response.ok:
         print("Message successfully sent to the broadcast route.")

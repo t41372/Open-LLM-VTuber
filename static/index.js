@@ -85,22 +85,9 @@ function draggable(model) {
   model.on("pointerup", () => (model.dragging = false));
 }
 
-// function addFrame(model) {
-//   const foreground = PIXI.Sprite.from(PIXI.Texture.WHITE);
-//   foreground.width = model.internalModel.width;
-//   foreground.height = model.internalModel.height;
-//   foreground.alpha = 0.2;
 
-//   model.addChild(foreground);
 
-//   checkbox("Model Frames", (checked) => (foreground.visible = checked));
-// }
 
-// function addHitAreaFrames(model) {
-//   const hitAreaFrames = new live2d.HitAreaFrames();
 
-//   model.addChild(hitAreaFrames);
 
-//   checkbox("Hit Area Frames", (checked) => (hitAreaFrames.visible = checked));
-// }
 

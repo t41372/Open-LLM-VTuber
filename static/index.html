@@ -51,6 +51,10 @@
             this.runNextTask();
         }
 
+        clearQueue() {
+            this.queue = [];
+        }
+
         async runNextTask() {
             if (this.running || this.queue.length === 0) {
                 if (this.queue.length === 0) {
@@ -85,35 +89,62 @@
 </script>
 
 <script>
+    let dev;
     const wsUrl = "ws://127.0.0.1:8000/live2d-motion-ws"
     // handle ws
     document.addEventListener("DOMContentLoaded", function () {
         const ws = new WebSocket(wsUrl);
         ws.onopen = function () {
             console.log("Connected to WebSocket " + wsUrl);
-            // taskQueue.addTask(() => {
-            //     model2.motion("shake")
-            // })
-            // model2.motion("shake")
         };
 
         ws.onclose = function () {
             console.log("Disconnected from WebSocket " + wsUrl);
+            talk = false;
+            taskQueue.clearQueue();
         };
 
         ws.onmessage = function (event) {
-            const messages = document.getElementById("messages");
-            const message = document.createElement("li");
-            message.textContent = event.data;
-            messages.appendChild(message);
-            
-            // model2.setMotion(motion);
-            
-            //   model2.motion("shake");
-            console.log(event.data);
-            checkStringForExpression(event.data);
+            console.log("Received message: " + event.data);
+            console.log(event);
+            dev = event
+            handleMessage(JSON.parse(event.data));
         };
     });
+
+
+    function handleMessage(message) {
+        console.log("MessageOBJ is.. ", message)
+        switch (message.type) {
+            case "full-text":
+                console.log("full-text: ", message.text);
+                const html_messages = document.getElementById("messages");
+                const newElement = document.createElement("li");
+                newElement.textContent = message.text;
+                html_messages.appendChild(newElement);
+                checkStringForExpression(message.text);
+            case "control":
+                if (message.text === "speaking-start") {
+                    talk = true;
+                    stupidTalk();
+                } else if (message.text === "speaking-stop") {
+                    talk = false;
+                }
+                break;
+            case "expression": // not yet implemented
+                // setExpression(message.expression);
+                break;
+            case "listExpressions":
+                console.log(listSupportedExpressions());
+                break;
+            default:
+                console.error("Unknown message type: " + message.type);
+        }
+    }
+
+
+
+
 
 
     // set expression of the model2
@@ -148,5 +179,47 @@
         emoMap = model2.internalModel.motionManager.expressionManager.emotionMap;
         console.log(emoMap);
     }
+
+
+
+    let talk = false;
+
+    /**
+     * Toggles the state of talking. If currently talking, it stops talking. If not talking, it starts talking and initiates the `stupidTalk` function.
+     */
+    function setTalkState(state) {
+        talk = state;
+        if (talk) {
+            stupidTalk();
+        }
+    }
+
+    /**
+     * Initiates an animation that simulates talking by opening and closing the mouth randomly. This function uses a recursive timeout to continuously toggle the mouth's open state at random intervals, simulating random talking movements.
+     */
+    function stupidTalk() {
+        let isOpen = false; // track if mouth is open
+
+        function toggleMouth() {
+            if (!talk) {
+                model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', 0.1);
+                return;
+            }
+
+            if (isOpen) {
+                model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', 0.1);
+                isOpen = false;
+            } else {
+                model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', (Math.random() * (0.9 - 0.5) + 0.5) );
+                isOpen = true;
+            }
+
+            setTimeout(toggleMouth, (Math.random() * (0.2 - 0.1) + 0.1)*1000);
+        }
+
+        toggleMouth();
+    }
+
+
 
 </script>
