@@ -1,11 +1,14 @@
 
 var model2;
+const modelIndex = 0; // the index of the model to load
+// the model will be loaded from modelDict.js
+const modelInfo = modelDict[modelIndex];
+const emoMap = modelInfo["emotionMap"];
 
-
-const cubism2Model =
-  "https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/shizuku/shizuku.model.json";
-const cubism4Model =
-  "https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/VenusScramble/playerunits/player_unit_00003/live2d/model.json";
+// const cubism2Model =
+//   "https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/shizuku/shizuku.model.json";
+// const cubism4Model =
+//   "https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/VenusScramble/playerunits/player_unit_00003/live2d/model.json";
 
 const live2d = PIXI.live2d;
 
@@ -19,20 +22,21 @@ const live2d = PIXI.live2d;
   });
 
   const models = await Promise.all([
-    live2d.Live2DModel.from(cubism2Model),
-    live2d.Live2DModel.from(cubism4Model)
+    // live2d.Live2DModel.from(cubism2Model),
+    // live2d.Live2DModel.from(cubism4Model)
+    live2d.Live2DModel.from(modelInfo.url),
   ]);
 
   models.forEach((model) => {
     app.stage.addChild(model);
 
-    const scaleX = (innerWidth * 0.4) / model.width;
-    const scaleY = (innerHeight * 0.8) / model.height;
+    const scaleX = (innerWidth * modelInfo.kScale);
+    const scaleY = (innerHeight * modelInfo.kScale);
 
     // fit the window
     model.scale.set(Math.min(scaleX, scaleY));
 
-    model.y = innerHeight * 0.1;
+    model.y = innerHeight * 0.01;
 
     draggable(model);
     // addFrame(model);
@@ -40,10 +44,8 @@ const live2d = PIXI.live2d;
   });
 
   model2 = models[0];
-  const model4 = models[1];
 
-  model2.x = (innerWidth - model2.width - model4.width) / 2;
-  model4.x = model2.x + model2.width;
+  model2.x = app.view.width / 2 - model2.width / 2;
 
 
 
@@ -59,15 +61,7 @@ const live2d = PIXI.live2d;
     }
   });
 
-  model4.on("hit", (hitAreas) => {
-    if (hitAreas.includes("Body")) {
-      model4.motion("Tap");
-    }
-
-    if (hitAreas.includes("Head")) {
-      model4.expression();
-    }
-  });
+  
 })();
 
 /**

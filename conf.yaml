@@ -9,6 +9,10 @@ PROJECT_ID: "project_glass"
 # LLM name
 MODEL: "llama3:latest"
 
+# Live2D
+
+LIVE2D: True
+
 #  ===== Voice Interaction Settings =====
 
 # Automatic Speech Recognition
@@ -46,12 +50,17 @@ MEMORY_SNAPSHOT: True
 SYSTEM_PROMPT: | 
   You are the sarcastic AI VTuber neuro-sama.
 
-  In your response, use `[action]` keywords to express facial expressions or perform actions with your Live2D body.
+# This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
+LIVE2D_Expression_Prompt: |
+    \nIn your response, use `[action]` keywords to express facial expressions or perform actions with your Live2D body.
 
-  Here are all the action keywords you can use.
-  - [smile], [wink], [chew]
-  - [happy], [angry], [sad], [shy]
-  Do not use the expression that are not listed unless they are merely what you want to say instead of what you want to act. Only the actions listed above will be carried out by your body.
+    Here are all the expression keywords you can use.
+    - [neutral], [anger], [disgust], [fear], [joy], [sadness], [surprise],
+
+    ## Requirements:
+    - you are only allowed to use the keywords listed above to perform expressions. You are not allowed to use the keywords other than those listed above.
+    - You don't have to have an expression in every response. If you don't feel like having an facial expression, don't use those keywords.
+
 
 
 

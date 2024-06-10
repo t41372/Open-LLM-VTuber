@@ -4,7 +4,7 @@
 
 import sys
 import importlib
-from rich import print
+# from rich import print
 import yaml
 from Ollama import Ollama
 import api_keys
@@ -76,7 +76,7 @@ def interaction_mode(llm, speech2text, tts):
 def callLLM(text, llm, tts):
     rag_on = get_config("RAG_ON", False)
     result = llm.generateWithLongTermMemory(prompt=text) if rag_on else llm.generateWithMemory(text)
-    print(result)
+    # print(result)
     send_message_to_broadcast(result)
     if get_config("TTS_ON", False):
         tts.speak(result)
@@ -101,7 +101,16 @@ def send_message_to_broadcast(message):
 
 if __name__ == "__main__":
     try:
-        llm = Ollama(base_url=get_config("BASE_URL"), verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=get_config("SYSTEM_PROMPT"), vector_db_path=get_config("MEMORY_DB_PATH"))
+        
+        system_prompt = get_config("SYSTEM_PROMPT")
+        if get_config("LIVE2D"):
+            system_prompt += get_config("LIVE2D_Expression_Prompt")
+        
+        if get_config("VERBOSE", default=False):
+            print("\n === System Prompt ===") 
+            print(system_prompt)
+
+        llm = Ollama(base_url=get_config("BASE_URL"), verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt, vector_db_path=get_config("MEMORY_DB_PATH"))
         speech2text, tts = init_speech_services()
         interaction_mode(llm, speech2text, tts)
     except Exception as e:

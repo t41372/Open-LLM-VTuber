@@ -1,4 +1,3 @@
-
 <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script>
@@ -8,31 +7,146 @@
     <style>
         body {
             background-image: url('https://img.freepik.com/free-vector/japanese-wave-line-art-landscape-background-abstract-mountain-banner-design-pattern-vector-illustration-geometric-poster_90220-715.jpg?w=2000&t=st=1717966340~exp=1717966940~hmac=ee528da7b4f1df4e3420b4d3cae7923d3ec1fb545b8bf116b07bef5b4e852b92');
-            background-size: cover; /* 覆蓋整個頁面 */
-            background-position: center; /* 中心對齊圖片 */
+            background-size: cover;
+            background-position: center;
         }
+
+        .fixed-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0.5vw;
+            right: 0.5vw;
+            width: 100%;
+            background-color: rgba(33, 33, 33, 0.8);
+            color: white;
+            text-align: left;
+            text-wrap: wrap;
+            padding: 10px;
+            z-index: 1000; /* 确保元素在最前面 */
+        }
+
     </style>
 </head>
-    
-<body>
-    <canvas id=canvas></canvas>
-    <script src="./scripts/app.js"></script>
-    <ul id="messages"></ul>
+
+<body style="position: fixed; bottom: 0;">
+    <canvas id="canvas"></canvas>
+    <ul class="fixed-bottom" id="messages"></ul>
 </body>
-        
-<!-- Path: index.js -->
-<!-- <script>main()</script> -->
+
+<script src="./modelDict.js"></script>
+<script src="./index.js"></script>
+
 <script>
-      // handle ws
-  document.addEventListener("DOMContentLoaded", function () {
-    const ws = new WebSocket("ws://127.0.0.1:8000/live2d-motion-ws");
-    ws.onmessage = function (event) {
-      const messages = document.getElementById("messages");
-      const message = document.createElement("li");
-      message.textContent = event.data;
-      messages.appendChild(message);
-      model2.motion("shake");
-      console.log(event.data);
-    };
-  });
+    // task queue
+    // - store tasks in queue, and run them one by one if there are tasks in the queue
+    class TaskQueue {
+        constructor() {
+            this.queue = [];
+            this.running = false;
+            this.taskInterval = 3000;
+        }
+
+        addTask(task) {
+            this.queue.push(task);
+            this.runNextTask();
+        }
+
+        async runNextTask() {
+            if (this.running || this.queue.length === 0) {
+                if (this.queue.length === 0) {
+                    console.log("Queue is empty");
+                }
+                return;
+            }
+
+            this.running = true;
+            const task = this.queue.shift();
+            try {
+                await task();
+            } catch (error) {
+                console.error('Task failed', error);
+            }
+            this.running = false;
+            setTimeout(() => this.runNextTask(), this.taskInterval);
+            // this.runNextTask();
+        }
+    }
+
+    // 示例异步任务
+    // const asyncTask = (taskName, duration) => async () => {
+    //     console.log(`Starting task: ${taskName}`);
+    //     await new Promise((resolve) => setTimeout(resolve, duration));
+    //     console.log(`Completed task: ${taskName}`);
+    // };
+
+    const taskQueue = new TaskQueue();
+
+
+</script>
+
+<script>
+    const wsUrl = "ws://127.0.0.1:8000/live2d-motion-ws"
+    // handle ws
+    document.addEventListener("DOMContentLoaded", function () {
+        const ws = new WebSocket(wsUrl);
+        ws.onopen = function () {
+            console.log("Connected to WebSocket " + wsUrl);
+            // taskQueue.addTask(() => {
+            //     model2.motion("shake")
+            // })
+            // model2.motion("shake")
+        };
+
+        ws.onclose = function () {
+            console.log("Disconnected from WebSocket " + wsUrl);
+        };
+
+        ws.onmessage = function (event) {
+            const messages = document.getElementById("messages");
+            const message = document.createElement("li");
+            message.textContent = event.data;
+            messages.appendChild(message);
+            
+            // model2.setMotion(motion);
+            
+            //   model2.motion("shake");
+            console.log(event.data);
+            checkStringForExpression(event.data);
+        };
+    });
+
+
+    // set expression of the model2
+    // @param {int} expression - the expression name defined in the emotionMap in modelDict.js
+    async function setExpression(expression) {
+        model2.internalModel.motionManager.expressionManager.setExpression(emoMap[expression]);
+        console.info(`>> [x] -> Expression set to: (${emoMap[expression]}) [${expression}]`);
+
+        // Reset the expression after 3 seconds
+        // setTimeout(() => {
+        //     model2.internalModel.motionManager.expressionManager.setExpression(0);
+        //     console.info(">> Expression reset");
+        // }, 3000);
+    }
+
+    // Check if the string contains an expression. If it does, set the expression of the model2.
+    // @param {string} str - the string to check
+    // 
+    async function checkStringForExpression(str) {
+        console.log("emo map: ", emoMap);
+        for (const key of Object.keys(emoMap)) {
+            if (str.toLowerCase().includes("[" + key + "]")) {
+                console.info(">> [ ] <- add to exec queue: " + key + ", " + emoMap[key]);
+                taskQueue.addTask(() => {setExpression(key);});
+                taskQueue.addTask(() => {console.log("timing out...")});
+                // setExpression(emoMap[key]);
+            }
+        }
+    }
+
+    function listSupportedExpressions() {
+        emoMap = model2.internalModel.motionManager.expressionManager.emotionMap;
+        console.log(emoMap);
+    }
+
 </script>
