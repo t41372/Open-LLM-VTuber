@@ -81,10 +81,12 @@ def callLLM(text, llm, tts):
     # print(result)
     
     
-    send_message_to_broadcast({"type": "full-text", "text": result})
+    
     if get_config("TTS_ON", False):
-        send_message_to_broadcast({"type": "control", "text": "speaking-start"})
-        tts.speak(result)
+        
+        tts.speak(result, 
+                  on_speak_start_callback=(lambda: send_message_to_broadcast({"type": "control", "text": "speaking-start"})), 
+                  on_speak_end_callback=lambda: send_message_to_broadcast({"type": "full-text", "text": result}))
         send_message_to_broadcast({"type": "control", "text": "speaking-stop"})
 
 
