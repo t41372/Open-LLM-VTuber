@@ -36,9 +36,11 @@ Currently supported Text to Speech backend
 - py3-tts (Local, it uses your system default tts engine)
 - Azure Text-to-Speech (API required)
 
-No live2D yet. I am still trying to figure out how to make live2D work on Mac.
-> The biggest issue here is to run it on mac. Many existing solutions use VTube Studio to power the live2D puppet. They use some kind of plugin in VTuber Studio to capture all of the sound from the desktop to control the puppet's mouse. On macOS, however, it is very difficult to capture sound from the desktop. Hence, I'm still looking for ways to do it.
-
+The Live2D feature is currently under active development.
+- uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in browser
+- uses WebSocket to control facial expressions and talking state between the server and the front end
+- The live2d implementation in this project is currently in its early stages (and I'm not the most experienced front-end dev in this world). The front end currently requires an internet connection to load the live2d models and the required front-end packages, so it's not completely offline yet. Once the page is loaded, you can disconnect the internet.
+- Run the `server.js` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
 
 ### Install
 
@@ -93,6 +95,26 @@ AZURE_VOICE="en-US-AshleyNeural"
 
 If you're using macOS, you need to enable the microphone permission of your terminal emulator (you run this program inside your terminal, right? Enable the microphone permission for your terminal). If you fail to do so, the speech recognition will not be able to hear you because it does not have permission to use your microphone.
 
+
+
+
+
+# Development
+(this project is in the active prototyping stage, so many things will change)
+
+### How to add support for new TTS provider
+1. Create the new class `TTSEngine` in a new py file in the `./tts` directory
+2. In the class, expose a speak function: `speak(self, text, on_speak_start_callback=None, on_speak_end_callback=None)` that runs the tts synchronously.
+3. Add your new tts module into the `tts_module_name` dictionary, which is currently hard-coded in the `main.py` and `launch.py` (I plan to ditch the main.py in the future). The dictionary key is the name of the TTS provider. The value is the module path of your module.
+4. Now you should be able to switch to the tts provider of your choice by editing the `conf.yaml`
+5. Create a pull request
+
+### How to add support for new Speech Recognition (or speech-to-text, STT) provider
+1. Create the new class `VoiceRecognition` in a new py file in the `./speech2text` directory
+2. In the class, expose a function: `transcribe_once(self)` that starts the voice recognition service. This function should be able to keep listening in the background, and when the user speaks something and finishes, the function should return the recognized text.
+3. Add your new stt module into the `stt_module_name` dictionary, which is currently hard-coded in the `main.py` and `launch.py` (I plan to ditch the main.py in the future). The key of the dictionary is the name of the speech recognition provider. The value is the module path of your module.
+4. Now you should be able to switch to the stt provider of your choice by editing the `conf.yaml`
+5. Create a pull request
 
 
 
