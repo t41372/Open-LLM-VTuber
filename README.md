@@ -4,7 +4,13 @@
 
 This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that **run completely offline on macOS and Windows**.
 
-https://github.com/t41372/LangChain-Lab-04-Ollama/assets/36402030/81d68b96-e3d8-4bd1-a46e-c3a3e823486e
+
+
+<img width="500" alt="demo-image" src="https://github.com/t41372/Open-LLM-VTuber/assets/36402030/1c405655-c239-4e4d-bc70-45a5e6d52e0a">
+
+https://github.com/t41372/Open-LLM-VTuber/assets/36402030/63a905c3-7605-42c4-be36-ff375493c68d
+
+
 
 ### Goal
 - Chat with LLM by voice
