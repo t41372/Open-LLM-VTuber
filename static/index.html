@@ -114,20 +114,28 @@
 
 
     function handleMessage(message) {
-        console.log("MessageOBJ is.. ", message)
+        console.log("Received Request: \n", message)
         switch (message.type) {
             case "full-text":
                 console.log("full-text: ", message.text);
-                const html_messages = document.getElementById("messages");
-                const newElement = document.createElement("li");
-                newElement.textContent = message.text;
-                html_messages.appendChild(newElement);
+                // const html_messages = document.getElementById("messages");
+                // const newElement = document.createElement("li");
+                // newElement.textContent = message.text;
+                // html_messages.appendChild(newElement);
                 checkStringForExpression(message.text);
             case "control":
                 if (message.text === "speaking-start") {
+                    if (talk) {
+                        console.log("Already talking");
+                        return;
+                    }
                     talk = true;
                     stupidTalk();
                 } else if (message.text === "speaking-stop") {
+                    if (!talk) {
+                        console.log("Not talking");
+                        return;
+                    }
                     talk = false;
                 }
                 break;
@@ -149,7 +157,7 @@
 
     // set expression of the model2
     // @param {int} expression - the expression name defined in the emotionMap in modelDict.js
-    async function setExpression(expression) {
+    function setExpression(expression) {
         model2.internalModel.motionManager.expressionManager.setExpression(emoMap[expression]);
         console.info(`>> [x] -> Expression set to: (${emoMap[expression]}) [${expression}]`);
 
@@ -163,7 +171,7 @@
     // Check if the string contains an expression. If it does, set the expression of the model2.
     // @param {string} str - the string to check
     // 
-    async function checkStringForExpression(str) {
+    function checkStringForExpression(str) {
         console.log("emo map: ", emoMap);
         for (const key of Object.keys(emoMap)) {
             if (str.toLowerCase().includes("[" + key + "]")) {
@@ -183,16 +191,6 @@
 
 
     let talk = false;
-
-    /**
-     * Toggles the state of talking. If currently talking, it stops talking. If not talking, it starts talking and initiates the `stupidTalk` function.
-     */
-    function setTalkState(state) {
-        talk = state;
-        if (talk) {
-            stupidTalk();
-        }
-    }
 
     /**
      * Initiates an animation that simulates talking by opening and closing the mouth randomly. This function uses a recursive timeout to continuously toggle the mouth's open state at random intervals, simulating random talking movements.
