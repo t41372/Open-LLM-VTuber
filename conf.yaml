@@ -12,19 +12,20 @@ MODEL: "llama3:latest"
 # Live2D
 
 LIVE2D: True
+LIVE2D_MODEL: "shizuku"
 
 #  ===== Voice Interaction Settings =====
 
 # Automatic Speech Recognition
 VOICE_INPUT_ON: True
 # speech to text model options: "Faster-Whisper", "AzureSTT"
-STT_MODEL: "Faster-Whisper"
+STT_MODEL: "AzureSTT"
 
 
 # Text to Speech
 TTS_ON: True
 # text to speech model options: "AzureTTS", "pyttsx3TTS"
-TTS_MODEL: "pyttsx3TTS"
+TTS_MODEL: "AzureTTS"
 
 
 

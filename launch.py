@@ -11,6 +11,7 @@ from Ollama import Ollama as oldOllama
 from llm.ollama import LLM
 import api_keys
 import requests
+from live2d import Live2dController
 
 # Load configurations
 def load_config():
@@ -30,6 +31,19 @@ def load_module(module_name):
     except ImportError as e:
         print(f"Module {module_name} not found: {e}")
         return None
+
+
+# initialize live2d
+def init_live2d():
+    live2d_on = get_config("LIVE2D", False)
+    if live2d_on:
+        live2d_model = get_config("LIVE2D_MODEL")
+        live2d_controller = Live2dController(live2d_model)
+        return live2d_controller
+    return None
+
+live2d = init_live2d()
+
 
 # Initialize speech to text and text to speech
 def init_speech_services():
@@ -74,20 +88,31 @@ def interaction_mode(llm, speech2text, tts):
             print("Exiting...")
             break
         callLLM(user_input, llm, tts)
+    
+
 
 def callLLM(text, llm, tts):
     rag_on = get_config("RAG_ON", False)
     result = llm.generateWithLongTermMemory(prompt=text) if rag_on else llm.chat(text)
-    # print(result)
-    
-    
     
     if get_config("TTS_ON", False):
+
+        if live2d:
+            # construct on speak start and end callbacks
+            def on_speak_start():
+                live2d.startSpeaking()
+                # send_message_to_broadcast({"type": "control", "text": "speaking-start"})
+                live2d.check_string_for_expression(result)
+
+            def on_speak_end():
+                # send_message_to_broadcast({"type": "full-text", "text": result})
+                live2d.stopSpeaking()
+                live2d.send_text(result)
         
         tts.speak(result, 
-                  on_speak_start_callback=(lambda: send_message_to_broadcast({"type": "control", "text": "speaking-start"})), 
-                  on_speak_end_callback=lambda: send_message_to_broadcast({"type": "full-text", "text": result}))
-        send_message_to_broadcast({"type": "control", "text": "speaking-stop"})
+                  on_speak_start_callback=on_speak_start, 
+                  on_speak_end_callback=on_speak_end)
+
 
 
 

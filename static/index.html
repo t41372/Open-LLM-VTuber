@@ -117,12 +117,13 @@
         console.log("Received Request: \n", message)
         switch (message.type) {
             case "full-text":
+                console.log(message)
                 console.log("full-text: ", message.text);
                 // const html_messages = document.getElementById("messages");
                 // const newElement = document.createElement("li");
                 // newElement.textContent = message.text;
                 // html_messages.appendChild(newElement);
-                checkStringForExpression(message.text);
+                // checkStringForExpression(message.text);
             case "control":
                 if (message.text === "speaking-start") {
                     if (talk) {
@@ -140,13 +141,18 @@
                 }
                 break;
             case "expression": // not yet implemented
-                // setExpression(message.expression);
+                setExpression(message.text);
                 break;
+            case "model": // not yet implemented
+                //!!!!
+                break;
+
             case "listExpressions":
                 console.log(listSupportedExpressions());
                 break;
             default:
                 console.error("Unknown message type: " + message.type);
+                console.log(message)
         }
     }
 
@@ -156,10 +162,11 @@
 
 
     // set expression of the model2
-    // @param {int} expression - the expression name defined in the emotionMap in modelDict.js
-    function setExpression(expression) {
-        model2.internalModel.motionManager.expressionManager.setExpression(emoMap[expression]);
-        console.info(`>> [x] -> Expression set to: (${emoMap[expression]}) [${expression}]`);
+    // @param {int} expressionIndex - the expression index defined in the emotionMap in modelDict.js
+    function setExpression(expressionIndex) {
+        expressionIndex = parseInt(expressionIndex);
+        model2.internalModel.motionManager.expressionManager.setExpression(expressionIndex);
+        console.info(`>> [x] -> Expression set to: (${expressionIndex})`);
 
         // Reset the expression after 3 seconds
         // setTimeout(() => {
@@ -176,7 +183,7 @@
         for (const key of Object.keys(emoMap)) {
             if (str.toLowerCase().includes("[" + key + "]")) {
                 console.info(">> [ ] <- add to exec queue: " + key + ", " + emoMap[key]);
-                taskQueue.addTask(() => {setExpression(key);});
+                taskQueue.addTask(() => {setExpression(emoMap[key]);});
                 taskQueue.addTask(() => {console.log("timing out...")});
                 // setExpression(emoMap[key]);
             }
