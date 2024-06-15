@@ -101,17 +101,18 @@ def callLLM(text, llm, tts):
             # construct on speak start and end callbacks
             def on_speak_start():
                 live2d.startSpeaking()
-                # send_message_to_broadcast({"type": "control", "text": "speaking-start"})
                 live2d.check_string_for_expression(result)
 
             def on_speak_end():
-                # send_message_to_broadcast({"type": "full-text", "text": result})
                 live2d.stopSpeaking()
                 live2d.send_text(result)
-        
-        tts.speak(result, 
-                  on_speak_start_callback=on_speak_start, 
-                  on_speak_end_callback=on_speak_end)
+            
+        if live2d and callable(tts.speak_stream):
+            tts.speak_stream(result, on_speak_start_callback=lambda: live2d.check_string_for_expression(result))
+        else:
+            tts.speak(result, 
+                    on_speak_start_callback=on_speak_start, 
+                    on_speak_end_callback=on_speak_end)
 
 
 

@@ -89,7 +89,6 @@
 </script>
 
 <script>
-    let dev;
     const wsUrl = "ws://127.0.0.1:8000/live2d-motion-ws"
     // handle ws
     document.addEventListener("DOMContentLoaded", function () {
@@ -105,9 +104,8 @@
         };
 
         ws.onmessage = function (event) {
-            console.log("Received message: " + event.data);
-            console.log(event);
-            dev = event
+            // console.log("Received message: " + event.data);
+            // console.log(event);
             handleMessage(JSON.parse(event.data));
         };
     });
@@ -119,11 +117,6 @@
             case "full-text":
                 console.log(message)
                 console.log("full-text: ", message.text);
-                // const html_messages = document.getElementById("messages");
-                // const newElement = document.createElement("li");
-                // newElement.textContent = message.text;
-                // html_messages.appendChild(newElement);
-                // checkStringForExpression(message.text);
             case "control":
                 if (message.text === "speaking-start") {
                     if (talk) {
@@ -140,9 +133,18 @@
                     talk = false;
                 }
                 break;
-            case "expression": // not yet implemented
+            case "expression":
                 setExpression(message.text);
                 break;
+
+            case "mouth":
+                setMouth(Number(message.text));
+                break;
+
+            case "audio":
+                playAudioLipSync(message.audio, message.volumes, message.slice_length);
+                break;
+            
             case "model": // not yet implemented
                 //!!!!
                 break;
@@ -223,6 +225,29 @@
         }
 
         toggleMouth();
+    }
+
+    function setMouth(mouthY) {
+        model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', mouthY);
+    }
+
+
+
+    function playAudioLipSync(audio_base64, volumes, slice_length) {
+
+        const audio = new Audio("data:audio/wav;base64," + audio_base64);
+        audio.play();
+
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i >= volumes.length) {
+                clearInterval(interval);
+                return;
+            }
+            setMouth(volumes[i]);
+            i++;
+        }, slice_length);
+        
     }
 
 

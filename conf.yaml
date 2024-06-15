@@ -25,7 +25,7 @@ STT_MODEL: "AzureSTT"
 # Text to Speech
 TTS_ON: True
 # text to speech model options: "AzureTTS", "pyttsx3TTS"
-TTS_MODEL: "AzureTTS"
+TTS_MODEL: "pyttsx3TTS"
 
 
 
