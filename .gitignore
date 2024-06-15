@@ -14,3 +14,4 @@ llm/user_credentials.json
 openapi_assistants.json
 openapi_memgpt.json
 server.log
+temp.aiff

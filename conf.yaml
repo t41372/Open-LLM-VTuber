@@ -19,7 +19,7 @@ LIVE2D_MODEL: "shizuku"
 # Automatic Speech Recognition
 VOICE_INPUT_ON: True
 # speech to text model options: "Faster-Whisper", "AzureSTT"
-STT_MODEL: "AzureSTT"
+STT_MODEL: "Faster-Whisper"
 
 
 # Text to Speech
