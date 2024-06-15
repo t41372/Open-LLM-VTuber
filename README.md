@@ -8,7 +8,11 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 
 <img width="500" alt="demo-image" src="https://github.com/t41372/Open-LLM-VTuber/assets/36402030/1c405655-c239-4e4d-bc70-45a5e6d52e0a">
 
-https://github.com/t41372/Open-LLM-VTuber/assets/36402030/63a905c3-7605-42c4-be36-ff375493c68d
+
+
+https://github.com/t41372/Open-LLM-VTuber/assets/36402030/d5620d89-bea4-4bf9-be84-273faad07e4d
+
+
 
 
 
@@ -123,6 +127,15 @@ If you're using macOS, you need to enable the microphone permission of your term
 5. Create a pull request
 
 
+
+# Acknowledgement
+Some awesome projects I learned from
+
+- https://github.com/dnhkng/GlaDOS
+- https://github.com/SchwabischesBauernbrot/unsuperior-ai-waifu
+- https://codepen.io/guansss/pen/oNzoNoz
+- https://github.com/Ikaros-521/AI-Vtuber
+- https://github.com/zixiiu/Digital_Life_Server
 
 
 
