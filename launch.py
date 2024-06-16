@@ -119,8 +119,11 @@ def callLLM(text, llm, tts):
     if rag_on:
         result = llm.generateWithLongTermMemory(prompt=text)
         speak_sentence(result)
-    else:
+    elif get_config("SAY_SENTENCE_SEPARATELY", False):
         result = llm.chat(text, speak_sentence)
+    else:
+        result = llm.chat(text)
+        speak_sentence(result)
 
 
 

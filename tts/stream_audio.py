@@ -57,9 +57,9 @@ class StreamAudio:
 
         audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
 
+        self.send_audio_to_broadcast(audio_base64)
         if callable(on_speak_start_callback):
             threading.Thread(target=on_speak_start_callback).start()
-        self.send_audio_to_broadcast(audio_base64)
 
         if wait_for_audio:
             self.sleep_for_audio_length()

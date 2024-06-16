@@ -27,6 +27,9 @@ TTS_ON: True
 # text to speech model options: "AzureTTS", "pyttsx3TTS"
 TTS_MODEL: "pyttsx3TTS"
 
+# if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
+# if turned on, the timing and order of the facial expression will be more accurate
+SAY_SENTENCE_SEPARATELY: True
 
 
 #  ===== Other Settings =====
