@@ -90,31 +90,37 @@ def interaction_mode(llm, speech2text, tts):
         callLLM(user_input, llm, tts)
     
 
-
-def callLLM(text, llm, tts):
-    rag_on = get_config("RAG_ON", False)
-    result = llm.generateWithLongTermMemory(prompt=text) if rag_on else llm.chat(text)
-    
+def speak_sentence(sentence):
     if get_config("TTS_ON", False):
 
         if live2d:
             # construct on speak start and end callbacks
             def on_speak_start():
                 live2d.startSpeaking()
-                live2d.check_string_for_expression(result)
+                live2d.check_string_for_expression(sentence)
 
             def on_speak_end():
                 live2d.stopSpeaking()
-                live2d.send_text(result)
+                live2d.send_text(sentence)
             
         if live2d and callable(tts.speak_stream):
-            tts.speak_stream(result, on_speak_start_callback=lambda: live2d.check_string_for_expression(result))
+            tts.speak_stream(sentence, 
+            on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
         else:
-            tts.speak(result, 
+            tts.speak(sentence, 
                     on_speak_start_callback=on_speak_start, 
                     on_speak_end_callback=on_speak_end)
 
 
+
+def callLLM(text, llm, tts):
+    rag_on = get_config("RAG_ON", False)
+
+    if rag_on:
+        result = llm.generateWithLongTermMemory(prompt=text)
+        speak_sentence(result)
+    else:
+        result = llm.chat(text, speak_sentence)
 
 
 
@@ -149,7 +155,14 @@ if __name__ == "__main__":
         if get_config("RAG_ON", False): 
             llm = oldOllama(base_url=get_config("BASE_URL"), verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt, vector_db_path=get_config("MEMORY_DB_PATH"))
         else:
-            llm = LLM(base_url=get_config("BASE_URL") + "/v1", verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt)
+            llm = LLM(
+                base_url=get_config("BASE_URL") + "/v1", 
+                verbose=get_config("VERBOSE", False), 
+                model=get_config("MODEL"), 
+                system=system_prompt, 
+                llm_api_key=get_config("LLM_API_KEY"),
+                project_id=get_config("PROJECT_ID"),
+                organization_id=get_config("ORGANIZATION_ID"))
         speech2text, tts = init_speech_services()
         interaction_mode(llm, speech2text, tts)
     except Exception as e:

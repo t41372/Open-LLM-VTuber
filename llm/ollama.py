@@ -66,7 +66,15 @@ class LLM:
         print(" -- Model: " + self.model)
         print(" -- System: " + self.system)
     
-    def chat(self, prompt):
+    def __is_complete_sentence(self, text):
+        """
+        Check if the text is a complete sentence.
+        text: str
+            the text to check
+        """
+        return text.strip().endswith(".") or text.strip().endswith("?") or text.strip().endswith("!")
+    
+    def chat(self, prompt, sentence_finish_callback=None):
         """
         Call the llm with text and print the result.
         text: str
@@ -100,25 +108,32 @@ class LLM:
             return "Error calling the chat endpoint: " + str(e)
 
         
-
-        response = ""
+        sentence = ""
+        full_response = ""
         for chunk in chat_completion:
             if chunk.choices[0].delta.content is not None:
+                # print(chunk.choices[0].delta.content or "", end="")
                 print(chunk.choices[0].delta.content or "", end="")
-                response += chunk.choices[0].delta.content
+                sentence += chunk.choices[0].delta.content
+                full_response += chunk.choices[0].delta.content
+                if self.__is_complete_sentence(sentence):
+                    if callable(sentence_finish_callback):
+                        print("\n")
+                        sentence_finish_callback(sentence)
+                    sentence = ""
 
         print("\n ===== LLM response received ===== \n")
 
-        self.callback(response)
+        self.callback(full_response)
 
         self.memory.append(
             {
                 "role": "assistant",
-                "content": response,
+                "content": full_response,
             }
         )
 
-        return response
+        return full_response
     
 
 if __name__ == "__main__":
