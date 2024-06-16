@@ -23,6 +23,22 @@ class Live2dController:
 
 
 
+    def getEmoMapKeyAsString(self):
+        '''
+        Returns a string of the keys in the emoMap dictionary.
+        
+        Parameters:
+            None
+            
+            Returns:
+            str: A string of the keys in the emoMap dictionary. The keys are enclosed in square brackets.
+                example: `"[fear], [anger], [disgust], [sadness], [joy], [neutral], [surprise]"`
+            
+            Raises:
+            None
+        '''
+        return " ".join([f"[{key}]," for key in self.emoMap.keys()])
+
 
 
     def setModel(self, model_name: str):
@@ -51,9 +67,9 @@ class Live2dController:
             print(f"No model found for {model_name}. Exiting.")
             exit()
 
+        self.send_message_to_broadcast({"type": "set-model", "text": matched_model})
         return matched_model
 
-        # self.send_message_to_broadcast({"type": "model", "text": model_name})
 
     def setExpression(self, expression: str):
         """
@@ -169,11 +185,11 @@ if __name__ == "__main__":
     
     live2d = Live2dController("shizuku")
 
-
+    print(live2d.getEmoMapKeyAsString())
 
 
     # live2d.startSpeaking()
-    live2d.check_string_for_expression("Welrkvs rsv, [fear] [anger], [disgust],[sadness], , [joy], [neutral]  [surprise],")
+    # live2d.check_string_for_expression("Welrkvs rsv, [fear] [anger], [disgust],[sadness], , [joy], [neutral]  [surprise],")
 
     input()
 

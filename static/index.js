@@ -1,9 +1,9 @@
 
 var model2;
-const modelIndex = 0; // the index of the model to load
+var modelIndex = 0; // the index of the model to load
 // the model will be loaded from modelDict.js
-const modelInfo = modelDict[modelIndex];
-const emoMap = modelInfo["emotionMap"];
+var modelInfo = modelDict[modelIndex];
+var emoMap = modelInfo["emotionMap"];
 
 // const cubism2Model =
 //   "https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/shizuku/shizuku.model.json";

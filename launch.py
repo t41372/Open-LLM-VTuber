@@ -146,7 +146,7 @@ if __name__ == "__main__":
         
         system_prompt = get_config("SYSTEM_PROMPT")
         if get_config("LIVE2D"):
-            system_prompt += get_config("LIVE2D_Expression_Prompt")
+            system_prompt += get_config("LIVE2D_Expression_Prompt").replace("[<insert_emomap_keys>]", live2d.getEmoMapKeyAsString())
         
         if get_config("VERBOSE", default=False):
             print("\n === System Prompt ===") 

@@ -22,9 +22,9 @@
             text-align: left;
             text-wrap: wrap;
             padding: 10px;
-            z-index: 1000; /* 确保元素在最前面 */
+            z-index: 1000;
+            /* 确保元素在最前面 */
         }
-
     </style>
 </head>
 
@@ -34,7 +34,15 @@
 </body>
 
 <script src="./modelDict.js"></script>
-<script src="./index.js"></script>
+<!-- <script src="./index.js"></script> -->
+<script src="./live2d.js"></script>
+
+<script>
+    // Initialize the Live2D module with default model
+    live2dModule.init().then(() => {
+        live2dModule.loadModel(modelDict[0]);
+    });
+</script>
 
 <script>
     // task queue
@@ -144,9 +152,12 @@
             case "audio":
                 playAudioLipSync(message.audio, message.volumes, message.slice_length);
                 break;
-            
-            case "model": // not yet implemented
-                //!!!!
+
+            case "set-model": // not yet implemented
+                console.log("set-model: ", message.text);
+                live2dModule.init().then(() => {
+                    live2dModule.loadModel(message.text);
+                });
                 break;
 
             case "listExpressions":
@@ -185,8 +196,8 @@
         for (const key of Object.keys(emoMap)) {
             if (str.toLowerCase().includes("[" + key + "]")) {
                 console.info(">> [ ] <- add to exec queue: " + key + ", " + emoMap[key]);
-                taskQueue.addTask(() => {setExpression(emoMap[key]);});
-                taskQueue.addTask(() => {console.log("timing out...")});
+                taskQueue.addTask(() => { setExpression(emoMap[key]); });
+                taskQueue.addTask(() => { console.log("timing out...") });
                 // setExpression(emoMap[key]);
             }
         }
@@ -217,11 +228,11 @@
                 model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', 0.1);
                 isOpen = false;
             } else {
-                model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', (Math.random() * (0.9 - 0.5) + 0.5) );
+                model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', (Math.random() * (0.9 - 0.5) + 0.5));
                 isOpen = true;
             }
 
-            setTimeout(toggleMouth, (Math.random() * (0.2 - 0.1) + 0.1)*1000);
+            setTimeout(toggleMouth, (Math.random() * (0.2 - 0.1) + 0.1) * 1000);
         }
 
         toggleMouth();
@@ -247,7 +258,7 @@
             setMouth(volumes[i]);
             i++;
         }, slice_length);
-        
+
     }
 
 

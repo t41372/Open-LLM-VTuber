@@ -49,16 +49,12 @@
             "fear": 3,
             "joy": 5,
             "sadness": 3,
-            "surprise": 4,
-            "admiration": 4,
-            "amusement": 4,
+            "amusement": 7,
             "relief": 3,
             "remorse": 3,
             "caring": 5,
             "confusion": 3,
-            "curiosity": 4,
             "pride": 5,
-            "realization": 4,
             "optimism": 1,
             "excitement": 1
         }
