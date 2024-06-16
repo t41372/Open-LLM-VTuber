@@ -29,19 +29,14 @@ class TTSEngine:
             on_speak_end_callback()
 
 
-    def speak_file(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
+    def __speak_file(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
         '''
         speak the text by generate the audio file first and then play it, which is different from speak()
         text: str
             the text to speak
         '''
         self.engine.save_to_file(text=text, filename=self.temp_audio_file)
-
-        # if on_speak_start_callback is not None:
-        #     on_speak_start_callback()
         self.engine.runAndWait()
-
-        # self.fix_wav_header(filename, filename+"fixed.wav", 1, 2, 22050) 
 
     
     def speak_stream(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
@@ -52,7 +47,7 @@ class TTSEngine:
         '''
         self.engine.save_to_file(text=text, filename=self.temp_audio_file)
         self.engine.runAndWait()
-        
+
         stream_audio.StreamAudio(self.temp_audio_file).send_audio_with_volume(wait_for_audio=True, on_speak_start_callback=on_speak_start_callback, on_speak_end_callback=on_speak_end_callback)
         
         
@@ -63,4 +58,4 @@ class TTSEngine:
 
 if __name__ == "__main__": 
     TTSEngine = TTSEngine()
-    TTSEngine.speak_file("Hello, this is a test. But this is not a test. You are screwed bro. You only live once. YOLO.")
+    TTSEngine.__speak_file("Hello, this is a test. But this is not a test. You are screwed bro. You only live once. YOLO.")

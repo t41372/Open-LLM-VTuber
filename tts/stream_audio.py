@@ -97,10 +97,8 @@ class StreamAudio:
         data = {"message": JSON.dumps(payload)}
         response = requests.post(url, json=data)
 
-        print(f"Response Status Code: {response.status_code}")
-        if response.ok:
-            print("Audio successfully sent to the broadcast route.")
-        else:
+        # print(f"Response Status Code: {response.status_code}")
+        if not response.ok:
             print("Failed to send audio to the broadcast route.")
 
 
