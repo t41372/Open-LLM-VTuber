@@ -36,7 +36,8 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/d5620d89-bea4-4bf9-be8
 - RAG on chat history
 
 Currently supported LLM backend
-- Ollama (for now)
+- Ollama
+- Any OpenAI API compatible backend, such as groq, LM Studio, OpenAI and more. (only works if you turn off Rag and use `launch.py`)
 
 Currently supported Speech recognition backend
 - Faster-Whisper (Local)
@@ -61,7 +62,7 @@ You need to have [Ollama](https://github.com/jmorganca/ollama) running on a serv
 Download the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
 
 
-This project was developed using Python 3.10.13. I recommend creating a virtual Python environment like conda for this project. 
+This project was developed using Python 3.10.13. I strongly recommend creating a virtual Python environment like conda for this project. 
 
 Run the following in the terminal to install the dependencies.
 
@@ -71,12 +72,23 @@ pip install azure-cognitiveservices-speech # If you want to use Azure for Speech
 pip install py3-tts # if you want to use py3-tts as your text to speech backend, install py3-tts
 ~~~
 
-This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice as well. You need to set up your Azure API key.
+This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice as well.
+
+Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text to speech to pyttsx3, live2d to on, rag to off to achieve similar effect of the demo.
+
+If you want to use live2d, run `server.py` to launch the websocket communcation server and open the `index.html` in the `static` folder with your browser.
+
+Run `launch.py` with python. Some models will be downloaded in your first launch, so it may take a while.
+
+Also, the live2D models have to be fetched through internet, so you'll have to keep your internet connected before the `index.html` is fully loaded with your desired live2d model.
+
+
+
 
 ### Change Speech Recognition and Text to Speech provider
 Edit the STT_MODEL and TTS MODEL settings in the `conf.yaml` to change the provider.
 
-### Use your system Text-to-Speech Engine, offline
+### Use your system default Text-to-Speech Engine, offline
 Run the following command to install `py3-tts` package.
 ~~~sh
 pip install py3-tts
@@ -114,7 +126,7 @@ If you're using macOS, you need to enable the microphone permission of your term
 
 ### How to add support for new TTS provider
 1. Create the new class `TTSEngine` in a new py file in the `./tts` directory
-2. In the class, expose a speak function: `speak(self, text, on_speak_start_callback=None, on_speak_end_callback=None)` that runs the tts synchronously.
+2. In the class, expose a speak function: `speak` and `speak_stream` functions. Read the `pyttsx3TTS.py` for reference.
 3. Add your new tts module into the `tts_module_name` dictionary, which is currently hard-coded in the `main.py` and `launch.py` (I plan to ditch the main.py in the future). The dictionary key is the name of the TTS provider. The value is the module path of your module.
 4. Now you should be able to switch to the tts provider of your choice by editing the `conf.yaml`
 5. Create a pull request
