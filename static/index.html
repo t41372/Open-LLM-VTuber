@@ -30,7 +30,7 @@
 
 <body style="position: fixed; bottom: 0;">
     <canvas id="canvas"></canvas>
-    <ul class="fixed-bottom" id="messages"></ul>
+    <h1 class="fixed-bottom" id="message"></h1>
 </body>
 
 <script src="./modelDict.js"></script>
@@ -123,6 +123,7 @@
         console.log("Received Request: \n", message)
         switch (message.type) {
             case "full-text":
+                document.getElementById("message").textContent = message.text;
                 console.log(message)
                 console.log("full-text: ", message.text);
             case "control":

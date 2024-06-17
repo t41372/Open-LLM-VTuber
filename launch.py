@@ -91,6 +91,10 @@ def interaction_mode(llm, speech2text, tts):
     
 
 def speak_sentence(sentence):
+
+    if live2d:
+        live2d.send_text(sentence)
+
     if get_config("TTS_ON", False):
         sentence_without_expression = live2d.remove_expression_from_string(sentence)
 
