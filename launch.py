@@ -90,43 +90,80 @@ def interaction_mode(llm, speech2text, tts):
         callLLM(user_input, llm, tts)
     
 
+def generate_audio_file(sentence, file_name_no_ext):
+    print("generate...")
+
+    if not get_config("TTS_ON", False):
+        return "TTS is not enabled."
+    
+    sentence_without_expression = live2d.remove_expression_from_string(sentence)
+
+    return tts.generate_audio(sentence_without_expression, 
+                       file_name_no_ext=file_name_no_ext
+                       )
+
+def stream_audio_file(sentence, filename):
+    print("stream...")
+    # sentence_without_expression = live2d.remove_expression_from_string(sentence)
+
+    if live2d:
+        live2d.send_text(sentence)
+        # construct on speak start and end callbacks
+        def on_speak_start():
+            live2d.startSpeaking()
+            live2d.check_string_for_expression(sentence)
+        def on_speak_end():
+            live2d.stopSpeaking()
+            live2d.send_text(sentence)
+    else: # if no live2d, just use the default callbacks
+        tts.speak(live2d.remove_expression_from_string(sentence), 
+                on_speak_start_callback=on_speak_start, 
+                on_speak_end_callback=on_speak_end)
+        
+    if tts.stream_audio_file and callable(tts.stream_audio_file):
+        tts.stream_audio_file(filename, 
+        on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
+
 def speak_sentence(sentence):
 
     if live2d:
         live2d.send_text(sentence)
 
-    if get_config("TTS_ON", False):
-        sentence_without_expression = live2d.remove_expression_from_string(sentence)
-
-        if live2d:
-            # construct on speak start and end callbacks
-            def on_speak_start():
-                live2d.startSpeaking()
-                live2d.check_string_for_expression(sentence)
-
-            def on_speak_end():
-                live2d.stopSpeaking()
-                live2d.send_text(sentence)
-            
-        if live2d and callable(tts.speak_stream):
-            
-            tts.speak_stream(sentence_without_expression, 
-            on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
-        else:
-            tts.speak(sentence_without_expression, 
-                    on_speak_start_callback=on_speak_start, 
-                    on_speak_end_callback=on_speak_end)
+    
+    sentence_without_expression = live2d.remove_expression_from_string(sentence)
+    if live2d:
+        # construct on speak start and end callbacks
+        def on_speak_start():
+            live2d.startSpeaking()
+            live2d.check_string_for_expression(sentence)
+        def on_speak_end():
+            live2d.stopSpeaking()
+            live2d.send_text(sentence)
+        
+    if live2d and callable(tts.speak_stream):
+        
+        tts.speak_stream(sentence_without_expression, 
+        on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
+    else:
+        tts.speak(sentence_without_expression, 
+                on_speak_start_callback=on_speak_start, 
+                on_speak_end_callback=on_speak_end)
 
 
 
 def callLLM(text, llm, tts):
     rag_on = get_config("RAG_ON", False)
 
+    if not get_config("TTS_ON", False):
+        llm.chat(text)
+        return
+
     if rag_on:
         result = llm.generateWithLongTermMemory(prompt=text)
         speak_sentence(result)
     elif get_config("SAY_SENTENCE_SEPARATELY", False):
-        result = llm.chat(text, speak_sentence)
+        result = llm.chat(text, 
+                          generate_audio_file=generate_audio_file, stream_audio_file=stream_audio_file)
     else:
         result = llm.chat(text)
         speak_sentence(result)

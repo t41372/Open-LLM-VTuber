@@ -14,6 +14,7 @@ class TTSEngine:
     def __init__(self):
         self.engine = pyttsx3.init()
         self.temp_audio_file = "temp.aiff"
+        self.file_extension = "aiff"
 
     def speak(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
         '''
@@ -29,15 +30,37 @@ class TTSEngine:
             on_speak_end_callback()
 
 
-    def __speak_file(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
+    def generate_audio(self, text, file_name_no_ext=None, on_file_generated_callback=None):
         '''
-        speak the text by generate the audio file first and then play it, which is different from speak()
+        Generate the voice audio file using TTS.
+        text: str
+            the text to speak
+        file_name_no_ext: str
+            name of the file without extension
+
+        
+        Returns:
+        str: the path to the generated audio file
+        
+        '''
+        file_name = "temp.aiff"
+        if file_name_no_ext is None:
+            file_name = f"{file_name_no_ext}{self.file_extension}"
+        else:
+            file_name = self.temp_audio_file
+
+        self.engine.save_to_file(text=text, filename=file_name)
+        self.engine.runAndWait()
+        return file_name
+
+    def stream_audio_file(self, file_path, on_speak_start_callback=None, on_speak_end_callback=None):
+        '''
+        Speak the text at the frontend. The audio and the data to control the mouth movement will be sent to the frontend.
         text: str
             the text to speak
         '''
-        self.engine.save_to_file(text=text, filename=self.temp_audio_file)
-        self.engine.runAndWait()
 
+        stream_audio.StreamAudio(file_path).send_audio_with_volume(wait_for_audio=True, on_speak_start_callback=on_speak_start_callback, on_speak_end_callback=on_speak_end_callback)
     
     def speak_stream(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
         '''
@@ -58,4 +81,4 @@ class TTSEngine:
 
 if __name__ == "__main__": 
     TTSEngine = TTSEngine()
-    TTSEngine.__speak_file("Hello, this is a test. But this is not a test. You are screwed bro. You only live once. YOLO.")
+    TTSEngine.generate_audio("Hello, this is a test. But this is not a test. You are screwed bro. You only live once. YOLO.")

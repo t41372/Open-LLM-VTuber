@@ -2,7 +2,7 @@
 # This class is responsible for handling the interaction with the OpenAI API for language generation.
 # And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
 
-
+import asyncio
 from openai import OpenAI
 # import rich as print
 
@@ -78,7 +78,7 @@ class LLM:
 
         return text.strip().endswith(".") or text.strip().endswith("?") or text.strip().endswith("!")
     
-    def chat(self, prompt, sentence_finish_callback=None):
+    def chat(self, prompt, generate_audio_file=None, stream_audio_file=None, speak_finish_callback=None):
         """
         Call the llm with text and print the result.
         text: str
@@ -111,7 +111,10 @@ class LLM:
             self.__printDebugInfo()
             return "Error calling the chat endpoint: " + str(e)
 
+        result_queue = asyncio.Queue()
+        tasks = []
         
+        index = 0
         sentence = ""
         full_response = ""
         for chunk in chat_completion:
@@ -121,9 +124,13 @@ class LLM:
                 sentence += chunk.choices[0].delta.content
                 full_response += chunk.choices[0].delta.content
                 if self.__is_complete_sentence(sentence):
-                    if callable(sentence_finish_callback):
+                    if callable(generate_audio_file):
                         print("\n")
-                        sentence_finish_callback(sentence)
+                        # task = asyncio.create_task(generate_audio_file(sentence))
+                        # sentence_finish_callback(sentence)
+                        file_path = generate_audio_file(sentence, f"temp-{index}")
+                        stream_audio_file(sentence, file_path)
+                        # tasks.append(task)
                     sentence = ""
 
         print("\n ===== LLM response received ===== \n")
@@ -136,6 +143,8 @@ class LLM:
                 "content": full_response,
             }
         )
+
+
 
         return full_response
     
