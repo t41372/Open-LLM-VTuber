@@ -72,6 +72,10 @@ class LLM:
         text: str
             the text to check
         """
+
+        if text.strip().endswith("..."):
+            return False
+
         return text.strip().endswith(".") or text.strip().endswith("?") or text.strip().endswith("!")
     
     def chat(self, prompt, sentence_finish_callback=None):
