@@ -146,6 +146,25 @@ class Live2dController:
                     self.setExpression(num)
                     time.sleep(3)
                 self.task_queue.add_task(new_task(key))
+        
+    def remove_expression_from_string(self, str):
+        """
+        Checks if the given string contains any expressions defined in the emoMap dictionary,
+        and return a string without those expression keywords.
+        
+        Parameters:
+            str (str): The string to check for expressions.
+            
+        Returns:
+            str: The string without the expression keywords.
+            
+        Raises:
+            None
+        """
+        for key, value in self.emoMap.items():
+            if f"[{key}]" in str.lower():
+                str = str.replace(f"[{key}]", "")
+        return str
 
 
 

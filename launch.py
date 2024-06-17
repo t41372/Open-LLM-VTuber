@@ -92,6 +92,7 @@ def interaction_mode(llm, speech2text, tts):
 
 def speak_sentence(sentence):
     if get_config("TTS_ON", False):
+        sentence_without_expression = live2d.remove_expression_from_string(sentence)
 
         if live2d:
             # construct on speak start and end callbacks
@@ -104,10 +105,11 @@ def speak_sentence(sentence):
                 live2d.send_text(sentence)
             
         if live2d and callable(tts.speak_stream):
-            tts.speak_stream(sentence, 
+            
+            tts.speak_stream(sentence_without_expression, 
             on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
         else:
-            tts.speak(sentence, 
+            tts.speak(sentence_without_expression, 
                     on_speak_start_callback=on_speak_start, 
                     on_speak_end_callback=on_speak_end)
 
