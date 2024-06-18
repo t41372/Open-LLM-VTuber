@@ -44,7 +44,8 @@ Currently supported Speech recognition backend
 - Azure Speech Recognition (API required)
 
 Currently supported Text to Speech backend
-- py3-tts (Local, it uses your system's default TTS engine)
+- [Edge TTS](https://github.com/rany2/edge-tts) (online, no api key required)
+- [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
 - Azure Text-to-Speech (API required)
 
 Fast Text Synthesis
