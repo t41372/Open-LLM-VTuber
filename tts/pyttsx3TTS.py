@@ -1,12 +1,11 @@
-import pyttsx3
-import sys
-
 import os
+import sys
+import pyttsx3
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
 import stream_audio
-import os
 from pathlib import Path
 
 # using https://github.com/thevickypedia/py3-tts because pyttsx3 is unmaintained and not working

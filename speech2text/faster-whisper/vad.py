@@ -1,3 +1,10 @@
+# Original code by David Ng in [GlaDOS](https://github.com/dnhkng/GlaDOS), licensed under the MIT License
+# https://opensource.org/licenses/MIT# 
+# Modifications by Yi-Ting Chiu as part of OpenLLM-VTuber, licensed under the MIT License
+# https://opensource.org/licenses/MIT
+# 
+#
+
 import numpy as np
 import onnxruntime as ort
 
