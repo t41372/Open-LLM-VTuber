@@ -1,4 +1,4 @@
-## Open-LLM-VTuber
+# Open-LLM-VTuber
 
 > :warning: This project is in the **prototyping stage**. Most of the features and promises still need to be implemented. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
@@ -21,7 +21,7 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/d5620d89-bea4-4bf9-be8
 - Choose your own LLM backend
 - Choose your own Speech Recognition & Text to Speech provider
 - Long-term memory
-- Add live2D frontend
+- Live2D frontend
 
 ### Target Platform
 - macOS
@@ -30,34 +30,42 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/d5620d89-bea4-4bf9-be8
 
 
 
-### Implemented Features
+## Implemented Features
 
-- Talk to LLM with voice, completely offline
-- RAG on chat history
+- Talk to LLM with voice. Offline.
+- RAG on chat history *(needs to be rewritten to be compatible with many other features, so turn this off for now)*
 
 Currently supported LLM backend
 - Ollama
-- Any OpenAI API compatible backend, such as groq, LM Studio, OpenAI and more. (only works if you turn off Rag and use `launch.py`)
+- Any OpenAI-API-compatible backend, such as Groq, LM Studio, OpenAI, and more. (only works if you turn off Rag and launch the program using `launch.py`)
 
 Currently supported Speech recognition backend
 - Faster-Whisper (Local)
 - Azure Speech Recognition (API required)
 
 Currently supported Text to Speech backend
-- py3-tts (Local, it uses your system default tts engine)
+- py3-tts (Local, it uses your system's default TTS engine)
 - Azure Text-to-Speech (API required)
 
-The Live2D feature is currently under active development.
-- uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in browser
-- uses WebSocket to control facial expressions and talking state between the server and the front end
-- The live2d implementation in this project is currently in its early stages (and I'm not the most experienced front-end dev in this world). The front end currently requires an internet connection to load the live2d models and the required front-end packages, so it's not completely offline yet. Once the page is loaded, you can disconnect the internet.
+Fast Text Synthesis
+- Synthesize sentences as soon as they arrive, so there is no need to wait for the entire LLM response.
+- Synthesize text during audio playback. It's synthesizing new lines while speaking.
+
+Live2D Talking face
+- Switch model using `config.yaml` (needs to be listed in model_dict.json)
+- Uses expression keywords in LLM response to control facial expression, so there is no additional model for emotion detection. The expression keywords are automatically loaded into the system prompt and excluded from the speech synthesis output.
+
+live2d technical details
+- Uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in *browser*
+- Uses WebSocket to control facial expressions and talking state between the server and the front end
+- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the Live2D models and the required frontend packages. Once the page is loaded, you can disconnect the internet.
 - Run the `server.js` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
 
-### Install
+## Install & Usage
 
 Clone this repository.
 
-You need to have [Ollama](https://github.com/jmorganca/ollama) running on a server or your local computer.
+You need to have [Ollama](https://github.com/jmorganca/ollama) or any other OpenAI-API-Compatible backend ready and running.
 
 Download the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
 
@@ -67,20 +75,20 @@ This project was developed using Python 3.10.13. I strongly recommend creating a
 Run the following in the terminal to install the dependencies.
 
 ~~~shell
-pip install -r requirements.txt # run this in the project directory
+pip install -r requirements.txt # Run this in the project directory
 pip install azure-cognitiveservices-speech # If you want to use Azure for Speech Recognition or Text to Speech, install azure dependencies.
 pip install py3-tts # if you want to use py3-tts as your text to speech backend, install py3-tts
 ~~~
 
-This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice as well.
+This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice.
 
-Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text to speech to pyttsx3, live2d to on, rag to off to achieve similar effect of the demo.
+Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to pyttsx3, live2d to on, and Rag to off to achieve a similar effect to the demo. I recommend turning Rag off because it's incompatible with many new features at the moment.
 
-If you want to use live2d, run `server.py` to launch the websocket communcation server and open the `index.html` in the `static` folder with your browser.
+If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the `index.html` in the `static` folder with your browser.
 
-Run `launch.py` with python. Some models will be downloaded in your first launch, so it may take a while.
+Run `launch.py` with python. Some models will be downloaded during your first launch, which may take a while.
 
-Also, the live2D models have to be fetched through internet, so you'll have to keep your internet connected before the `index.html` is fully loaded with your desired live2d model.
+Also, the live2D models have to be fetched through the internet, so you'll have to keep your internet connected before the `index.html` is fully loaded with your desired live2D model.
 
 
 
@@ -93,8 +101,8 @@ Run the following command to install `py3-tts` package.
 ~~~sh
 pip install py3-tts
 ~~~
-`py3-tts` is used instead of the more famous `pyttsx3` because I couldn't get the latest version of the latter working.
-In addition, `pyttsx3` is unmaintained.
+`py3-tts` is used instead of the more famous `pyttsx3` because I couldn't get the latest version working.
+In addition, `pyttsx3` seems unmaintained.
 
 This library will use the appropriate TTS engine on your machine. It uses `sapi5` on Windows, `nsss` on mac, and `espeak` on other platforms.
 
@@ -141,7 +149,7 @@ If you're using macOS, you need to enable the microphone permission of your term
 
 
 # Acknowledgement
-Some awesome projects I learned from
+Awesome projects I learned from
 
 - https://github.com/dnhkng/GlaDOS
 - https://github.com/SchwabischesBauernbrot/unsuperior-ai-waifu
