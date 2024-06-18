@@ -1,8 +1,10 @@
 # Open-LLM-VTuber
 
-> :warning: This project is in the **prototyping stage**. Most of the features and promises still need to be implemented. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
+> :warning: This project is in its early stages and is currently under **active development**. Features are unstable, and breaking changes may occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that **run completely offline on macOS and Windows**.
+Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline (with a minor exception...) on macOS, Linux, and Windows.
+
+This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run completely offline on platforms other than Windows.
 
 
 
