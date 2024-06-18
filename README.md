@@ -44,9 +44,10 @@ Currently supported Speech recognition backend
 - Azure Speech Recognition (API required)
 
 Currently supported Text to Speech backend
-- [Edge TTS](https://github.com/rany2/edge-tts) (online, no api key required)
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
-- Azure Text-to-Speech (API required)
+- [bark](https://github.com/suno-ai/bark) (Local, very resource consuming)
+- [Edge TTS](https://github.com/rany2/edge-tts) (online, no api key required)
+- Azure Text-to-Speech (online, API required)
 
 Fast Text Synthesis
 - Synthesize sentences as soon as they arrive, so there is no need to wait for the entire LLM response.
@@ -94,7 +95,7 @@ Also, the live2D models have to be fetched through the internet, so you'll have 
 
 
 
-### Change Speech Recognition and Text to Speech provider
+## Change Speech Recognition and Text to Speech provider
 Edit the STT_MODEL and TTS MODEL settings in the `conf.yaml` to change the provider.
 
 ### Use your system default Text-to-Speech Engine, offline
@@ -106,6 +107,20 @@ pip install py3-tts
 In addition, `pyttsx3` seems unmaintained.
 
 This library will use the appropriate TTS engine on your machine. It uses `sapi5` on Windows, `nsss` on mac, and `espeak` on other platforms.
+
+### barkTTS
+Install the pip package and turn it on in `conf.yaml`.
+~~~sh
+pip install git+https://github.com/suno-ai/bark.git
+~~~
+The required models will be downloaded on the first launch.
+
+### Edge TTS
+Install the pip package and turn it on in `conf.yaml`.
+~~~sh
+pip install edge-tts
+~~~
+Remember to connect to the internet when using edge tts.
 
 ### Azure API for Speech Recognition and Speech to Text, API key needed
 

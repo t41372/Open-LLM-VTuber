@@ -24,7 +24,7 @@ STT_MODEL: "Faster-Whisper"
 
 # Text to Speech
 TTS_ON: True
-# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS"
+# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS"
 TTS_MODEL: "edgeTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
@@ -36,7 +36,7 @@ SAY_SENTENCE_SEPARATELY: True
 
 
 # Print debug info
-VERBOSE: True
+VERBOSE: False
 
 # Exit phrase
 EXIT_PHRASE: "exit"

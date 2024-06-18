@@ -68,7 +68,8 @@ def init_speech_services():
         tts_module_name = {
             "AzureTTS": "tts.azureTTS",
             "pyttsx3TTS": "tts.pyttsx3TTS",
-            "edgeTTS": "tts.edgeTTS"
+            "edgeTTS": "tts.edgeTTS",
+            "barkTTS": "tts.barkTTS",
         }.get(tts_model, "tts.pyttsx3TTS")
         tts = load_module(tts_module_name)
         if tts and tts_model == "AzureTTS":
