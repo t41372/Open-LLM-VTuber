@@ -74,16 +74,26 @@ class LLM:
             the text to check
         """
 
-        if text.strip().endswith("..."):
-            return False
+        white_list = ["...", "Dr.", "Mr.", "Ms.", "Mrs.", "Jr.", "Sr.", "St.", "Ave.", "Rd.", "Blvd.", "Dept.", "Univ.", "Prof.", "Ph.D.", "M.D.", "U.S.", "U.K.", "U.N.", "E.U.", "U.S.A.", "U.K.", "U.S.S.R.", "U.A.E."]
+
+        for item in white_list:
+            if text.strip().endswith(item):
+                return False
 
         return text.strip().endswith(".") or text.strip().endswith("?") or text.strip().endswith("!")
     
-    def chat(self, prompt, generate_audio_file=None, stream_audio_file=None, speak_finish_callback=None):
+    def chat_stream_audio(self, prompt, generate_audio_file=None, stream_audio_file=None):
         """
-        Call the llm with text and print the result.
-        text: str
-            the text that is recognized
+        Call the llm with text, print the result, and stream the audio to the frontend if the generate_audio_file and stream_audio_file functions are provided.
+        prompt: str
+            the text to send to the llm
+        generate_audio_file: function
+            the function to generate audio file from text. The function should take the text as input and return the path to the generated audio file. Defaults to None.
+        stream_audio_file: function
+            the function to stream the audio file to the frontend. The function should take the path to the audio file as input. Defaults to None.
+
+        Returns:
+        str: the full response from the llm
         """
 
         self.memory.append(
@@ -170,5 +180,5 @@ if __name__ == "__main__":
     )
     while True:
         print("\n>> (Press Ctrl+C to exit.)")
-        llm.chat(input(">> "))
+        llm.chat_stream_audio(input(">> "))
         

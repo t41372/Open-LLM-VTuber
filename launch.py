@@ -157,17 +157,17 @@ def callLLM(text, llm, tts):
     rag_on = get_config("RAG_ON", False)
 
     if not get_config("TTS_ON", False):
-        llm.chat(text)
+        llm.chat_stream_audio(text)
         return
 
     if rag_on:
         result = llm.generateWithLongTermMemory(prompt=text)
         speak_sentence(result)
     elif get_config("SAY_SENTENCE_SEPARATELY", False):
-        result = llm.chat(text, 
+        result = llm.chat_stream_audio(text, 
                           generate_audio_file=generate_audio_file, stream_audio_file=stream_audio_file)
     else:
-        result = llm.chat(text)
+        result = llm.chat_stream_audio(text)
         speak_sentence(result)
 
 
