@@ -2,9 +2,9 @@
 # This class is responsible for handling the interaction with the OpenAI API for language generation.
 # And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
 
-import asyncio
 from openai import OpenAI
 # import rich as print
+import concurrent.futures
 
 class LLM:
 
@@ -37,6 +37,7 @@ class LLM:
         )
 
         self.setSystem(system)
+
             
     def setSystem(self, system):
         '''
@@ -111,27 +112,36 @@ class LLM:
             self.__printDebugInfo()
             return "Error calling the chat endpoint: " + str(e)
 
-        result_queue = asyncio.Queue()
-        tasks = []
+        
         
         index = 0
         sentence = ""
         full_response = ""
-        for chunk in chat_completion:
-            if chunk.choices[0].delta.content is not None:
-                # print(chunk.choices[0].delta.content or "", end="")
-                print(chunk.choices[0].delta.content or "", end="")
-                sentence += chunk.choices[0].delta.content
-                full_response += chunk.choices[0].delta.content
-                if self.__is_complete_sentence(sentence):
-                    if callable(generate_audio_file):
-                        print("\n")
-                        # task = asyncio.create_task(generate_audio_file(sentence))
-                        # sentence_finish_callback(sentence)
-                        file_path = generate_audio_file(sentence, f"temp-{index}")
-                        stream_audio_file(sentence, file_path)
-                        # tasks.append(task)
-                    sentence = ""
+        
+
+        # Initialize ThreadPoolExecutor
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            last_stream_future = None
+            for chunk in chat_completion:
+                if chunk.choices[0].delta.content is not None:
+                    print(chunk.choices[0].delta.content or "", end="")
+                    sentence += chunk.choices[0].delta.content
+                    full_response += chunk.choices[0].delta.content
+                    if self.__is_complete_sentence(sentence):
+                        if callable(generate_audio_file):
+                            print("\n")
+                            file_path = generate_audio_file(sentence, file_name_no_ext=f"temp-{index}")
+                            
+                            # wait for the audio to finish playing
+                            if last_stream_future:
+                                last_stream_future.result()
+                            # stream the audio file to the frontend
+                            last_stream_future = executor.submit(stream_audio_file, sentence, filename=file_path)
+                            index += 1
+                        sentence = ""
+            # wait for the last audio to finish playing
+            if last_stream_future:
+                last_stream_future.result()
 
         print("\n ===== LLM response received ===== \n")
 
@@ -143,8 +153,6 @@ class LLM:
                 "content": full_response,
             }
         )
-
-
 
         return full_response
     

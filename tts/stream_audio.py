@@ -32,8 +32,7 @@ class StreamAudio:
 
     def __getVolumeByChunks(self):
         """
-        Private method to divide the audio into chunks, calculate the volume (RMS) for each chunk,
-        and normalize these volumes.
+        Private method to divide the audio into chunks, calculate the volume (RMS) for each chunk, and normalize these volumes.
         """
         
         chunks = make_chunks(self.audio, self.chunk_length_ms)
@@ -48,10 +47,12 @@ class StreamAudio:
         Sends the audio data along with volume information to a broadcast endpoint. Optionally triggers callbacks
         at the start and end of the speaking.
 
-        Parameters:
-            wait_for_audio (bool): If True, waits for the length of the audio before proceeding. Default is True.
-            on_speak_start_callback (callable, optional): A callback function to be called at the start of the audio playback.
-            on_speak_end_callback (callable, optional): A callback function to be called at the end of the audio playback.
+        wait_for_audio (bool): 
+            If True, waits for the length of the audio before proceeding. Default is True.
+        on_speak_start_callback (callable, optional): 
+            A callback function to be called at the start of the audio playback.
+        on_speak_end_callback (callable, optional): 
+            A callback function to be called at the end of the audio playback.
         """
         audio_bytes = self.audio.export(format='wav').read()
 
