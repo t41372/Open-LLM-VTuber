@@ -6,11 +6,14 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 
 
 
-<img width="500" alt="demo-image" src="https://github.com/t41372/Open-LLM-VTuber/assets/36402030/1c405655-c239-4e4d-bc70-45a5e6d52e0a">
+<img width="500" alt="demo-image" src="https://github.com/t41372/Open-LLM-VTuber/assets/36402030/32378562-c9ca-4130-bf4e-92ac8928b27d">
 
 
 
-https://github.com/t41372/Open-LLM-VTuber/assets/36402030/d5620d89-bea4-4bf9-be84-273faad07e4d
+
+https://github.com/t41372/Open-LLM-VTuber/assets/36402030/9ededf92-e6f4-48e7-a309-994f3dbd884d
+
+
 
 
 
