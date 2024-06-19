@@ -36,10 +36,10 @@ class LLM:
             api_key=llm_api_key,
         )
 
-        self.setSystem(system)
+        self.__set_system(system)
 
-            
-    def setSystem(self, system):
+    
+    def __set_system(self, system):
         '''
         Set the system prompt
         system: str
