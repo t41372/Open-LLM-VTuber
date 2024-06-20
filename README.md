@@ -19,6 +19,14 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/9ededf92-e6f4-48e7-a30
 
 
 
+### Why this project and not other similar projects on GitHub?
+- It works on macOS
+  - Many existing solutions display Live2D models using VTube Studio and achieve lip sync by routing desktop audio into VTube Studio. They let VTuber Studio listen to the desktop's internal audio and control the lips with that. On macOS, however, there is no easy way to let VTuber Studio listen to internal audio on the desktop.
+- It supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers you and what you've said.
+- No data leaves your computer if you wish to
+  - Once the live2D model is loaded, you can unplug the cable and enjoy total privacy. You can choose local solutions for LLM/voice recognition/speech synthesis. In addition, everything works on macOS.
+
+
 
 
 
