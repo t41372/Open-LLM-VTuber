@@ -5,8 +5,13 @@ chromadb
 rich
 loguru
 numpy
+pydub
 sounddevice
+soundfile
 faster_whisper
 scipy
 onnxruntime
 openai
+fastapi
+uvicorn
+pysbd
