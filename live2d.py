@@ -162,10 +162,17 @@ class Live2dController:
         Raises:
             None
         """
-        for key, value in self.emoMap.items():
-            if f"[{key}]" in str.lower():
-                str = str.replace(f"[{key}]", "")
+        lower_str = str.lower()
+
+        for key in self.emoMap.keys():
+            lower_key = f"[{key}]".lower()
+            while lower_key in lower_str:
+                start_index = lower_str.find(lower_key)
+                end_index = start_index + len(lower_key)
+                str = str[:start_index] + str[end_index:]
+                lower_str = lower_str[:start_index] + lower_str[end_index:]
         return str
+        
 
 
 
@@ -205,12 +212,12 @@ if __name__ == "__main__":
     
     live2d = Live2dController("shizuku")
 
-    print(live2d.getEmoMapKeyAsString())
+    # print(live2d.getEmoMapKeyAsString())
 
-
+    text = "*joins hands and smiles* * [SmIrK]: HEHE, YOU THINK YOU CAN HANDLE THE TRUTH?"
+    print(text)
     # live2d.startSpeaking()
-    # live2d.check_string_for_expression("Welrkvs rsv, [fear] [anger], [disgust],[sadness], , [joy], [neutral]  [surprise],")
+    print(live2d.remove_expression_from_string(text))
 
-    input()
 
 
