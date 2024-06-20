@@ -97,7 +97,19 @@
 </script>
 
 <script>
-    const wsUrl = "ws://127.0.0.1:8000/live2d-motion-ws"
+    // browserHost = window.location.hostname;
+    // port = window.location.port;
+
+    var wsUrl = "ws://127.0.0.1:8000/live2d-motion-ws";
+    // if running on server
+    if (window.location.protocol.startsWith("http")) {
+        console.log("Running on server")
+        wsUrl = "/live2d-motion-ws";
+    } else { // if running on local using file://
+        console.log("Running on local")
+    }
+
+    
     // handle ws
     document.addEventListener("DOMContentLoaded", function () {
         const ws = new WebSocket(wsUrl);

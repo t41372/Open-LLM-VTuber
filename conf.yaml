@@ -1,3 +1,10 @@
+
+# Server
+
+HOST: "localhost"
+PORT: 8000
+
+
 #  ===== LLM Backend Settings =====
 
 # Provider of LLM. You can only choose either "ollama" or "memgpt"

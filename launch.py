@@ -6,13 +6,13 @@ import json
 import sys
 import importlib
 # from rich import print
-import yaml
 from Ollama import Ollama as oldOllama
 from llm.ollama import LLM
 import api_keys
 import requests
 from live2d import Live2dController
 
+import yaml
 # Load configurations
 def load_config():
     with open('conf.yaml', 'r') as f:
