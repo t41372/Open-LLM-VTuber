@@ -2,7 +2,9 @@
 
 > :warning: This project is in its early stages and is currently under **active development**. Features are unstable, and breaking changes may occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline (with a minor exception...) on macOS, Linux, and Windows.
+Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline (with a minor exception...) on macOS, Linux, and Windows. 
+
+Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
 This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run completely offline on platforms other than Windows.
 
@@ -22,11 +24,11 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/9ededf92-e6f4-48e7-a30
 
 
 ### Goal
-- Chat with LLM by voice
-- Choose your own LLM backend
-- Choose your own Speech Recognition & Text to Speech provider
-- Long-term memory
-- Live2D frontend
+- [x] Chat with LLM by voice
+- [x] Choose your own LLM backend
+- [x] Choose your own Speech Recognition & Text to Speech provider
+- [x] Long-term memory
+- [x] Live2D frontend
 
 ### Target Platform
 - macOS
@@ -43,6 +45,7 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/9ededf92-e6f4-48e7-a30
 Currently supported LLM backend
 - Ollama
 - Any OpenAI-API-compatible backend, such as Groq, LM Studio, OpenAI, and more. (only works if you turn off Rag and launch the program using `launch.py`)
+- MemGPT (setup required)
 
 Currently supported Speech recognition backend
 - Faster-Whisper (Local)
@@ -72,12 +75,12 @@ live2d technical details
 
 Clone this repository.
 
-You need to have [Ollama](https://github.com/jmorganca/ollama) or any other OpenAI-API-Compatible backend ready and running.
+You need to have [Ollama](https://github.com/jmorganca/ollama) or any other OpenAI-API-Compatible backend ready and running. If you want to use MemGPT as your backend, scroll down to MemGPT section.
 
-Download the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
+Prepare the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
 
 
-This project was developed using Python 3.10.13. I strongly recommend creating a virtual Python environment like conda for this project. 
+This project was developed using Python `3.10.13`. I strongly recommend creating a virtual Python environment like conda for this project. 
 
 Run the following in the terminal to install the dependencies.
 
