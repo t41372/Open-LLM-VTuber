@@ -6,7 +6,7 @@
 # 
 #
 
-
+import threading
 import queue
 from pathlib import Path
 from typing import Callable, List
@@ -144,9 +144,12 @@ class VoiceRecognition:
             result = self._handle_audio_sample(sample, vad_confidence)
 
             if result:
-                self.reset()
                 if returnText:
+                    # if we return the text and are not starting the listening again, we can reset the recorder without blocking
+                    threading.Thread(target=self.reset).start()
+                    # self.reset()
                     return result
+                self.reset()
                 self.input_stream.start()
 
     def _handle_audio_sample(self, sample, vad_confidence):
@@ -226,8 +229,8 @@ class VoiceRecognition:
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead
-        self.reset()
-        self.input_stream.start()
+        # self.reset()
+        # self.input_stream.start()
 
     def asr(self, samples: List[np.ndarray]) -> str:
         """
