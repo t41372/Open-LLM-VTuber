@@ -94,7 +94,7 @@ This project, by default, launches the audio interaction mode, meaning you can t
 
 Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to pyttsx3, live2d to on, and Rag to off to achieve a similar effect to the demo. I recommend turning Rag off because it's incompatible with many new features at the moment.
 
-If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the `index.html` in the `static` folder with your browser.
+If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the url you set in `conf.yaml` (`http://HOST:PORT`). By default, go `http://localhost:8000`.
 
 Run `launch.py` with python. Some models will be downloaded during your first launch, which may take a while.
 
