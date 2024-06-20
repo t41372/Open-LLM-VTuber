@@ -45,6 +45,40 @@ def init_live2d():
 live2d = init_live2d()
 
 
+def init_llm():
+
+    if get_config("RAG_ON", False): 
+        llm = oldOllama(base_url=get_config("BASE_URL"), verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt, vector_db_path=get_config("MEMORY_DB_PATH"))
+        return llm
+
+    llm_provider = get_config("LLM_PROVIDER")
+    llm_module_name = {
+        "ollama": "llm.ollama",
+        "memgpt": "llm.memGPT",
+    }.get(llm_provider)
+    llm = load_module(llm_module_name)
+
+    if llm_provider == "ollama":
+        llm = LLM(
+            base_url=get_config("BASE_URL") + "/v1", 
+            verbose=get_config("VERBOSE", False), 
+            model=get_config("MODEL"), 
+            system=system_prompt, 
+            llm_api_key=get_config("LLM_API_KEY"),
+            project_id=get_config("PROJECT_ID"),
+            organization_id=get_config("ORGANIZATION_ID"))
+    elif llm_provider == "memgpt":
+        llm = llm.LLM()
+
+    return llm
+
+
+
+
+
+    return llm
+
+
 # Initialize speech to text and text to speech
 def init_speech_services():
     voice_input_on = get_config("VOICE_INPUT_ON", False)
@@ -93,12 +127,27 @@ def interaction_mode(llm, speech2text, tts):
     
 
 def generate_audio_file(sentence, file_name_no_ext):
+    '''
+    Generate audio file from the given sentence.
+    sentence: str
+        the sentence to generate audio from
+    file_name_no_ext: str
+        name of the file without extension
+        
+        Returns:
+        str: the path to the generated audio file. 
+        None if TTS is off or the sentence is empty.
+        
+    '''
+
     print("generate...")
 
     if not get_config("TTS_ON", False):
-        return "TTS is not enabled."
+        return None
     
     sentence_without_expression = live2d.remove_expression_from_string(sentence)
+    if sentence_without_expression.strip() == "":
+        return None
 
     return tts.generate_audio(sentence_without_expression, 
                        file_name_no_ext=file_name_no_ext
@@ -106,7 +155,11 @@ def generate_audio_file(sentence, file_name_no_ext):
 
 def stream_audio_file(sentence, filename):
     print("stream...")
-    # sentence_without_expression = live2d.remove_expression_from_string(sentence)
+    
+    if live2d.remove_expression_from_string(sentence).strip() == "":
+        live2d.check_string_for_expression(sentence, send_delay=0)
+        live2d.send_text(sentence)
+        return
 
     if live2d:
         live2d.send_text(sentence)
@@ -190,6 +243,8 @@ def send_message_to_broadcast(message):
 
 
 if __name__ == "__main__":
+
+
     try:
         
         system_prompt = get_config("SYSTEM_PROMPT")
@@ -200,17 +255,10 @@ if __name__ == "__main__":
             print("\n === System Prompt ===") 
             print(system_prompt)
 
-        if get_config("RAG_ON", False): 
-            llm = oldOllama(base_url=get_config("BASE_URL"), verbose=get_config("VERBOSE", False), model=get_config("MODEL"), system=system_prompt, vector_db_path=get_config("MEMORY_DB_PATH"))
-        else:
-            llm = LLM(
-                base_url=get_config("BASE_URL") + "/v1", 
-                verbose=get_config("VERBOSE", False), 
-                model=get_config("MODEL"), 
-                system=system_prompt, 
-                llm_api_key=get_config("LLM_API_KEY"),
-                project_id=get_config("PROJECT_ID"),
-                organization_id=get_config("ORGANIZATION_ID"))
+        
+        llm = init_llm()
+
+
         speech2text, tts = init_speech_services()
         interaction_mode(llm, speech2text, tts)
     except Exception as e:

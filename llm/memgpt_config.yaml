@@ -1,0 +1,15 @@
+
+# Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)
+# In addition, please set up an agent using the webui launched in the memGPT base_url
+
+BASE_URL: "http://localhost:8283"
+
+VERBOSE: True
+
+# You will find admin server password in memGPT console output. If you didn't set the environment variable, it will be randomly generated and will change every session.
+ADMIN_TOKEN: ""
+
+# The ID of the agent to send the message to.
+AGENT_ID: ""
+
+

@@ -1,4 +1,10 @@
 #  ===== LLM Backend Settings =====
+
+# Provider of LLM. You can only choose either "ollama" or "memgpt"
+# "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
+LLM_PROVIDER: "ollama"
+
+
 # url for ollama instance
 BASE_URL: "http://localhost:11434"
 # BASE_URL: "http://localhost:11434/v1"
@@ -8,6 +14,9 @@ PROJECT_ID: "project_glass"
 
 # LLM name
 MODEL: "llama3:latest"
+
+
+
 
 # Live2D
 

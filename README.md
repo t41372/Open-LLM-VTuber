@@ -147,6 +147,22 @@ AZURE_VOICE="en-US-AshleyNeural"
 If you're using macOS, you need to enable the microphone permission of your terminal emulator (you run this program inside your terminal, right? Enable the microphone permission for your terminal). If you fail to do so, the speech recognition will not be able to hear you because it does not have permission to use your microphone.
 
 
+## MemGPT
+> MemGPT integration is very experimental and requires quite a lot of setup. In addition, MemGPT requires a powerful LLM (larger than 7b and quantization above Q5) with a lot of token footprint, which means it's a lot slower.
+> MemGPT does have its own LLM endpoint for free, though. You can test things with it. Check their docs.
+
+This project can use [MemGPT](https://github.com/cpacker/MemGPT) as its LLM backend. MemGPT enables LLM with long-term memory.
+
+To use MemGPT, you need to have the MemGPT server configured and running. You can install it using `pip` or `docker` or run it on a different machine. Check their [GitHub repo](https://github.com/cpacker/MemGPT) and [official documentation](https://memgpt.readme.io/docs/index).
+
+Here is a checklist:
+- Install memgpt
+- Configure memgpt
+- Run `memgpt` using `memgpt server` command. Remember to have the server running before launching Open-LLM-VTuber.
+- Set up an agent either through its cli or web UI. Add your system prompt with the Live2D Expression Prompt and the expression keywords you want to use (find them in `model_dict.json`) into MemGPT
+- Copy the `server admin password` and the `Agent id` into `./llm/memgpt_config.yaml`
+- Set the `LLM_PROVIDER` to `memgpt` in `conf.yaml`. 
+- Remember, if you use `memgpt`, all LLM-related configurations in `conf.yaml` will be ignored because `memgpt` doesn't work that way.
 
 
 
