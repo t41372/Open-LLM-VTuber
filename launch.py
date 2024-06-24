@@ -38,7 +38,7 @@ def init_live2d():
     live2d_on = get_config("LIVE2D", False)
     if live2d_on:
         live2d_model = get_config("LIVE2D_MODEL")
-        live2d_controller = Live2dController(live2d_model)
+        live2d_controller = Live2dController(live2d_model, base_url=f"{get_config("BASE_URL")}:{get_config("PORT")}")
         return live2d_controller
     return None
 
@@ -69,12 +69,6 @@ def init_llm():
             organization_id=get_config("ORGANIZATION_ID"))
     elif llm_provider == "memgpt":
         llm = llm.LLM()
-
-    return llm
-
-
-
-
 
     return llm
 
