@@ -1,4 +1,5 @@
 from fastapi import FastAPI, WebSocket, APIRouter, Body
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from typing import List
@@ -48,6 +49,7 @@ async def broadcast_message(message: str = Body(..., embed=True)):
 
 app.include_router(router)
 
+app.mount("/live2d-models", StaticFiles(directory="live2d-models"), name="live2d-models")
 app.mount("/", StaticFiles(directory="./static", html=True), name="static")
 
 # 如果直接運行此文件，則啟動伺服器

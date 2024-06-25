@@ -19,7 +19,7 @@ const live2dModule = (function() {
     emoMap = modelInfo["emotionMap"];
 
     if (model2) {
-      app.stage.removeChild(model2); // 移除舊模型
+      app.stage.removeChild(model2); // Remove old model
     }
 
     const models = await Promise.all([

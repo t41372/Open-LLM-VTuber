@@ -1,6 +1,6 @@
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script>
 <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script>
 
 <head>
@@ -252,7 +252,12 @@
     }
 
     function setMouth(mouthY) {
-        model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', mouthY);
+        if (typeof model2.internalModel.coreModel.setParameterValueById === 'function') {
+            model2.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', mouthY);
+        } else {
+            model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', mouthY);
+        }
+        // model2.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', mouthY);
     }
 
 

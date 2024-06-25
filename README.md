@@ -6,7 +6,7 @@ Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D tal
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
-This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run completely offline on platforms other than Windows.
+This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run offline on platforms other than Windows.
 
 
 
@@ -61,8 +61,8 @@ Currently supported Speech recognition backend
 
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
-- [bark](https://github.com/suno-ai/bark) (Local, very resource consuming)
-- [Edge TTS](https://github.com/rany2/edge-tts) (online, no api key required)
+- [bark](https://github.com/suno-ai/bark) (Local, very resource-consuming)
+- [Edge TTS](https://github.com/rany2/edge-tts) (online, no API key required)
 - Azure Text-to-Speech (online, API required)
 
 Fast Text Synthesis
@@ -71,24 +71,26 @@ Fast Text Synthesis
 
 Live2D Talking face
 - Switch model using `config.yaml` (needs to be listed in model_dict.json)
+- Load local Live2D models. Check `doc/live2d.md` for documentation.
 - Uses expression keywords in LLM response to control facial expression, so there is no additional model for emotion detection. The expression keywords are automatically loaded into the system prompt and excluded from the speech synthesis output.
 
 live2d technical details
 - Uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in *browser*
 - Uses WebSocket to control facial expressions and talking state between the server and the front end
-- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the Live2D models and the required frontend packages. Once the page is loaded, you can disconnect the internet.
+- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the required frontend packages from CDN. Once the page is loaded, you can disconnect the internet. Some Live2D models need to be fetched from CDN; some don't. Read `doc/live2d.md` for documentation on loading your live2D model from local.
 - Run the `server.js` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
 
 ## Install & Usage
 
 Clone this repository.
 
-You need to have [Ollama](https://github.com/jmorganca/ollama) or any other OpenAI-API-Compatible backend ready and running. If you want to use MemGPT as your backend, scroll down to MemGPT section.
+You need to have [Ollama](https://github.com/jmorganca/ollama) or any other OpenAI-API-Compatible backend ready and running. If you want to use MemGPT as your backend, scroll down to the MemGPT section.
 
 Prepare the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
 
 
 This project was developed using Python `3.10.13`. I strongly recommend creating a virtual Python environment like conda for this project. 
+Running through docker is not yet supported because the microphone is currently being listened to on the back end. I will dockerize this project once I move the microphone to the front end. Mac GPU acceleration will definitely not work inside docker, though.
 
 Run the following in the terminal to install the dependencies.
 
@@ -102,7 +104,7 @@ This project, by default, launches the audio interaction mode, meaning you can t
 
 Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to pyttsx3, live2d to on, and Rag to off to achieve a similar effect to the demo. I recommend turning Rag off because it's incompatible with many new features at the moment.
 
-If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the url you set in `conf.yaml` (`http://HOST:PORT`). By default, go `http://localhost:8000`.
+If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the URL you set in `conf.yaml` (`http://HOST:PORT`). By default, go to `http://localhost:8000`.
 
 Run `launch.py` with python. Some models will be downloaded during your first launch, which may take a while.
 
@@ -122,7 +124,7 @@ pip install py3-tts
 `py3-tts` is used instead of the more famous `pyttsx3` because I couldn't get the latest version working.
 In addition, `pyttsx3` seems unmaintained.
 
-This library will use the appropriate TTS engine on your machine. It uses `sapi5` on Windows, `nsss` on mac, and `espeak` on other platforms.
+This library will use the appropriate TTS engine on your machine. It uses `sapi5` on Windows, `nsss` on Mac, and `espeak` on other platforms.
 
 ### barkTTS
 Install the pip package and turn it on in `conf.yaml`.

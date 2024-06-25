@@ -1,6 +1,6 @@
 
 # Server
-
+PROTOCAL: "http://"
 HOST: "localhost"
 PORT: 8000
 
@@ -28,7 +28,7 @@ MODEL: "llama3:latest"
 # Live2D
 
 LIVE2D: True
-LIVE2D_MODEL: "shizuku"
+LIVE2D_MODEL: "shizuku-local"
 
 #  ===== Voice Interaction Settings =====
 
@@ -80,7 +80,7 @@ LIVE2D_Expression_Prompt: |
     Here are all the expression keywords you can use. Use them regularly.
     - [<insert_emomap_keys>]
 
-    Note: you are only allowed to use the keywords explicity listed above. Don't use keywords unlisted above.
+    Note: you are only allowed to use the keywords explicity listed above. Don't use keywords unlisted above. Remember to include the brackets `[]`.
 
 
 

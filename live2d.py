@@ -66,6 +66,10 @@ class Live2dController:
         if matched_model is None:
             print(f"No model found for {model_name}. Exiting.")
             exit()
+        
+        
+        print(f"Model set to: {matched_model['name']}")
+        print(f"URL set to: {matched_model['url']}")
 
         self.send_message_to_broadcast({"type": "set-model", "text": matched_model})
         return matched_model

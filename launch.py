@@ -38,7 +38,9 @@ def init_live2d():
     live2d_on = get_config("LIVE2D", False)
     if live2d_on:
         live2d_model = get_config("LIVE2D_MODEL")
-        live2d_controller = Live2dController(live2d_model, base_url=f"{get_config("BASE_URL")}:{get_config("PORT")}")
+        
+        url = f"{get_config('PROTOCOL', 'http://')}{get_config('HOST', 'localhost')}:{get_config('PORT', 8000)}"
+        live2d_controller = Live2dController(live2d_model, base_url=url)
         return live2d_controller
     return None
 

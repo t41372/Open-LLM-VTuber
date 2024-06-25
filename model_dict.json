@@ -1,7 +1,25 @@
 [
     {
+        "name": "shizuku-local",
+        "description": "Orange-Haired Girl, locally available. no internet required.",
+        "url": "/live2d-models/shizuku/shizuku.model.json",
+        "kScale": 0.000625,
+        "kXOffset": 1150,
+        "idleMotionGroupName": "Idle",
+        "emotionMap": {
+            "neutral": 0,
+            "anger": 2,
+            "disgust": 2,
+            "fear": 1,
+            "joy": 3,
+            "smirk": 3,
+            "sadness": 1,
+            "surprise": 3
+        }
+    },
+    {
         "name": "shizuku",
-        "description": "Orange-Haired Girl",
+        "description": "Orange-Haired Girl. Will fetch from CDN.",
         "url": "https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/shizuku/shizuku.model.json",
         "kScale": 0.000625,
         "kXOffset": 1150,
