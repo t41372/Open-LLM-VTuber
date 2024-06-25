@@ -56,14 +56,14 @@ Currently supported LLM backend
 - MemGPT (setup required)
 
 Currently supported Speech recognition backend
-- Faster-Whisper (Local)
-- Azure Speech Recognition (API required)
+- [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
+- [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
 
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
 - [bark](https://github.com/suno-ai/bark) (Local, very resource-consuming)
 - [Edge TTS](https://github.com/rany2/edge-tts) (online, no API key required)
-- Azure Text-to-Speech (online, API required)
+- [Azure Text-to-Speech](https://azure.microsoft.com/en-us/products/ai-services/text-to-speech) (online, API Key required)
 
 Fast Text Synthesis
 - Synthesize sentences as soon as they arrive, so there is no need to wait for the entire LLM response.
@@ -109,6 +109,12 @@ If you want to use live2d, run `server.py` to launch the WebSocket communication
 Run `launch.py` with python. Some models will be downloaded during your first launch, which may take a while.
 
 Also, the live2D models have to be fetched through the internet, so you'll have to keep your internet connected before the `index.html` is fully loaded with your desired live2D model.
+
+
+
+### Update
+Backup the configuration files `conf.yaml` and `memgpt_config.yaml` if you've edited them and do `git fetch` `git pull`.
+Or just clone the repo again and make sure to either transfer your config files or set those configuration again.
 
 
 
