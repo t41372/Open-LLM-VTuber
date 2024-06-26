@@ -12,13 +12,19 @@ class StreamAudio:
     A class to handle streaming audio files, including sending audio data to a broadcast endpoint.
     """
 
-    def __init__(self, audio_path):
+    def __init__(self, audio_path, display_text=None, expression_list=None):
         """
         Initializes the StreamAudio object with the specified audio file path.
 
         Parameters:
             audio_path (str): The path to the audio file to be streamed.
         """
+        if not audio_path:
+            raise ValueError("audio_path cannot be None or empty.")
+        
+        self.display_text = display_text
+        self.expression_list = expression_list
+
         self.audio_path = audio_path
         self.previous_time = 0
         self.wf = None
@@ -92,7 +98,9 @@ class StreamAudio:
             "type" : "audio", 
             "audio": audio_base64,
             "volumes": self.volumes,
-            "slice_length": self.chunk_length_ms}
+            "slice_length": self.chunk_length_ms,
+            "text": self.display_text,
+            "expressions": self.expression_list}
 
 
         data = {"message": JSON.dumps(payload)}
@@ -104,8 +112,6 @@ class StreamAudio:
 
 
 if __name__ == "__main__":
-    audio_path = "temp2.aiff"
-    stream_audio = StreamAudio(audio_path)
-    stream_audio.getVolumeByChunks()
-    stream_audio.send_audio_with_volume(audio_path)
+    audio_path = "../cache/temp-8.mp3"
+    stream_audio = StreamAudio(audio_path, display_text="YEESSSSS[fun!]", expression_list=[0,2,3,2]).send_audio_with_volume()
     input("end")

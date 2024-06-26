@@ -129,7 +129,7 @@ class Live2dController:
         self.send_message_to_broadcast({"type": "full-text", "text": text})
 
 
-    def check_string_for_expression(self, str, send_delay=3):
+    def send_expressions_str(self, str, send_delay=3):
         """
         Checks if the given string contains any expressions defined in the emoMap dictionary,
         and send the corresponding expressions one-by-one every 3 sec to the Live2D model.
@@ -151,6 +151,27 @@ class Live2dController:
                     self.setExpression(num)
                     time.sleep(send_delay)
                 self.task_queue.add_task(new_task(key))
+    
+    def get_expression_list(self, str):
+        """
+        Checks if the given string contains any expressions defined in the emoMap dictionary,
+        and return a list of index of expressions found in the string.
+        
+        Parameters:
+            str (str): The string to check for expressions.
+            
+        Returns:
+            list: A list of the index of expressions found in the string.
+            
+        Raises:
+            None
+        """
+        expression_list = []
+        for key in self.emoMap.keys():
+            if f"[{key}]" in str.lower():
+                expression_list.append(self.emoMap[key])
+        return expression_list
+        
         
     def remove_expression_from_string(self, str):
         """

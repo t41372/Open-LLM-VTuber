@@ -5,7 +5,6 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-import stream_audio
 import os
 from pathlib import Path
 
@@ -80,37 +79,7 @@ class TTSEngine:
 
         return file_name
 
-    def stream_audio_file(self, file_path, on_speak_start_callback=None, on_speak_end_callback=None):
-        '''
-        Stream the audio file to the frontend and wait for the audio to finish. The audio and the data to control the mouth movement will be sent to the live2d frontend.
-        
-        file_path: str
-            the path of the audio file to stream
-        on_speak_start_callback: function
-            A callback function to be called at the start of the audio playback.
-        on_speak_end_callback: function
-            A callback function to be called at the end of the audio playback.
-        '''
-
-        stream_audio.StreamAudio(file_path).send_audio_with_volume(wait_for_audio=True, on_speak_start_callback=on_speak_start_callback, on_speak_end_callback=on_speak_end_callback)
-
-        self.__remove_file(file_path)
-
-    def __remove_file(self, file_path):
-        '''
-        Remove the file at the specified file path.
-        file_path: str
-            the path of the file to be removed
-        '''
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            print(f"File {file_path} removed successfully.")
-        else:
-            print(f"File {file_path} does not exist.")
-
-
-
-
+    
 
 if __name__ == "__main__":
     tts = TTSEngine()

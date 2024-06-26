@@ -1,6 +1,6 @@
 # new version of main.py
 
-
+import os
 
 import json
 import importlib
@@ -9,6 +9,7 @@ from llm.ollama import LLM
 import api_keys
 import requests
 from live2d import Live2dController
+from tts import stream_audio
 
 import yaml
 # Load configurations
@@ -164,17 +165,26 @@ def stream_audio_file(sentence, filename):
         tts.speak(sentence)
         return
     
+    expression_list = live2d.get_expression_list(sentence)
+
     if live2d.remove_expression_from_string(sentence).strip() == "":
-        live2d.check_string_for_expression(sentence, send_delay=0)
+        live2d.send_expressions_str(sentence, send_delay=0)
         live2d.send_text(sentence)
         return
 
     
-    live2d.send_text(sentence)
+    # live2d.send_text(sentence)
     
-    # if tts.stream_audio_file and callable(tts.stream_audio_file):
-    tts.stream_audio_file(filename, 
-        on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
+    stream_audio.StreamAudio(filename, display_text=sentence, expression_list=expression_list).send_audio_with_volume(wait_for_audio=True)
+
+    if os.path.exists(filename):
+        os.remove(filename)
+        print(f"File {filename} removed successfully.")
+    else:
+        print(f"File {filename} does not exist.")
+
+    
+        
 
 
 

@@ -25,7 +25,7 @@ router = APIRouter()
 # 存儲已連接的WebSocket客戶端
 connected_clients: List[WebSocket] = []
 
-@router.websocket("/live2d-motion-ws")
+@router.websocket("/client-ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     connected_clients.append(websocket)

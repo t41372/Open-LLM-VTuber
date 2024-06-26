@@ -100,11 +100,11 @@
     // browserHost = window.location.hostname;
     // port = window.location.port;
 
-    var wsUrl = "ws://127.0.0.1:8000/live2d-motion-ws";
+    var wsUrl = "ws://127.0.0.1:8000/client-ws";
     // if running on server
     if (window.location.protocol.startsWith("http")) {
         console.log("Running on server")
-        wsUrl = "/live2d-motion-ws";
+        wsUrl = "/client-ws";
     } else { // if running on local using file://
         console.log("Running on local")
     }
@@ -119,7 +119,7 @@
 
         ws.onclose = function () {
             console.log("Disconnected from WebSocket " + wsUrl);
-            talk = false;
+            talkState = false;
             taskQueue.clearQueue();
         };
 
@@ -140,18 +140,18 @@
                 console.log("full-text: ", message.text);
             case "control":
                 if (message.text === "speaking-start") {
-                    if (talk) {
+                    if (talkState) {
                         console.log("Already talking");
                         return;
                     }
-                    talk = true;
+                    talkState = true;
                     stupidTalk();
                 } else if (message.text === "speaking-stop") {
-                    if (!talk) {
+                    if (!talkState) {
                         console.log("Not talking");
                         return;
                     }
-                    talk = false;
+                    talkState = false;
                 }
                 break;
             case "expression":
@@ -163,10 +163,10 @@
                 break;
 
             case "audio":
-                playAudioLipSync(message.audio, message.volumes, message.slice_length);
+                playAudioLipSync(message.audio, message.volumes, message.slice_length, test=message.text, expression_list=message.expressions);
                 break;
 
-            case "set-model": // not yet implemented
+            case "set-model":
                 console.log("set-model: ", message.text);
                 live2dModule.init().then(() => {
                     live2dModule.loadModel(message.text);
@@ -223,7 +223,7 @@
 
 
 
-    let talk = false;
+    let talkState = false;
 
     /**
      * Initiates an animation that simulates talking by opening and closing the mouth randomly. This function uses a recursive timeout to continuously toggle the mouth's open state at random intervals, simulating random talking movements.
@@ -232,7 +232,7 @@
         let isOpen = false; // track if mouth is open
 
         function toggleMouth() {
-            if (!talk) {
+            if (!talkState) {
                 model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', 0.1);
                 return;
             }
@@ -262,7 +262,11 @@
 
 
 
-    function playAudioLipSync(audio_base64, volumes, slice_length) {
+    function playAudioLipSync(audio_base64, volumes, slice_length, text=null, expression_list=null) {
+        
+        if (text) {
+            document.getElementById("message").textContent = text;
+        }
 
         const audio = new Audio("data:audio/wav;base64," + audio_base64);
         audio.play();
@@ -276,6 +280,13 @@
             setMouth(volumes[i]);
             i++;
         }, slice_length);
+
+        if (expression_list) {
+            for (const expression of expression_list) {
+                taskQueue.addTask(() => { setExpression(expression); });
+            }
+        }
+
 
     }
 
