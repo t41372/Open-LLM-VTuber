@@ -3,9 +3,7 @@
 
 
 import json
-import sys
 import importlib
-# from rich import print
 from Ollama import Ollama as oldOllama
 from llm.ollama import LLM
 import api_keys
@@ -141,64 +139,43 @@ def generate_audio_file(sentence, file_name_no_ext):
     if not get_config("TTS_ON", False):
         return None
     
-    sentence_without_expression = live2d.remove_expression_from_string(sentence)
-    if sentence_without_expression.strip() == "":
+    if live2d:
+        sentence = live2d.remove_expression_from_string(sentence)
+
+    if sentence.strip() == "":
         return None
 
-    return tts.generate_audio(sentence_without_expression, 
+    return tts.generate_audio(sentence, 
                        file_name_no_ext=file_name_no_ext
                        )
 
 def stream_audio_file(sentence, filename):
+    '''
+    Stream the audio file to the frontend and wait for the audio to finish. The audio and the data to control the mouth movement will be sent to the live2d frontend.
+    
+    sentence: str
+        the sentence to speak
+    filename: str
+        the path of the audio file to stream
+    '''
     print("stream...")
+
+    if not live2d:
+        tts.speak(sentence)
+        return
     
     if live2d.remove_expression_from_string(sentence).strip() == "":
         live2d.check_string_for_expression(sentence, send_delay=0)
         live2d.send_text(sentence)
         return
 
-    if live2d:
-        live2d.send_text(sentence)
-        # construct on speak start and end callbacks
-        def on_speak_start():
-            live2d.startSpeaking()
-            live2d.check_string_for_expression(sentence)
-        def on_speak_end():
-            live2d.stopSpeaking()
-            live2d.send_text(sentence)
-    else: # if no live2d, just use the default callbacks
-        tts.speak(live2d.remove_expression_from_string(sentence), 
-                on_speak_start_callback=on_speak_start, 
-                on_speak_end_callback=on_speak_end)
-        
-    if tts.stream_audio_file and callable(tts.stream_audio_file):
-        tts.stream_audio_file(filename, 
-        on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
-
-def speak_sentence(sentence):
-
-    if live2d:
-        live2d.send_text(sentence)
-
     
-    sentence_without_expression = live2d.remove_expression_from_string(sentence)
-    if live2d:
-        # construct on speak start and end callbacks
-        def on_speak_start():
-            live2d.startSpeaking()
-            live2d.check_string_for_expression(sentence)
-        def on_speak_end():
-            live2d.stopSpeaking()
-            live2d.send_text(sentence)
-        
-    if live2d and callable(tts.speak_stream):
-        
-        tts.speak_stream(sentence_without_expression, 
+    live2d.send_text(sentence)
+    
+    # if tts.stream_audio_file and callable(tts.stream_audio_file):
+    tts.stream_audio_file(filename, 
         on_speak_start_callback=lambda: live2d.check_string_for_expression(sentence))
-    else:
-        tts.speak(sentence_without_expression, 
-                on_speak_start_callback=on_speak_start, 
-                on_speak_end_callback=on_speak_end)
+
 
 
 
@@ -211,13 +188,13 @@ def callLLM(text, llm, tts):
 
     if rag_on:
         result = llm.generateWithLongTermMemory(prompt=text)
-        speak_sentence(result)
+        stream_audio_file(result, generate_audio_file(result, "temp"))
     elif get_config("SAY_SENTENCE_SEPARATELY", False):
         result = llm.chat_stream_audio(text, 
                           generate_audio_file=generate_audio_file, stream_audio_file=stream_audio_file)
     else:
         result = llm.chat_stream_audio(text)
-        speak_sentence(result)
+        stream_audio_file(result, generate_audio_file(result, "temp"))
 
 
 

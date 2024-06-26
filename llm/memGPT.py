@@ -68,7 +68,7 @@ class LLM:
         str: the full response from the llm
         """
         
-        full_response = self.send_message_to_agent(prompt, callback_function=None)
+        full_response = self._send_message_to_agent(prompt, callback_function=None)
 
         sentences = self.__split_into_sentences(full_response)
 
@@ -119,7 +119,7 @@ class LLM:
         return pysbd.Segmenter(language="en", clean=False).segment(text)
 
 
-    def send_message_to_agent(self, message, callback_function=print):
+    def _send_message_to_agent(self, message, callback_function=print):
         """
         Sends a message to the specified agent, invokes the callback with the assistant's full message if given, and return the assistant's full response. The response will NOT be streamed back word by word.
 

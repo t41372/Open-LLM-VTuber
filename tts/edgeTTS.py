@@ -42,13 +42,15 @@ class TTSEngine:
             the callback function to call when synthesis ends
         '''
         filepath = self.generate_audio(text)
-        on_speak_start_callback()
+        if on_speak_start_callback is not None:
+            on_speak_start_callback()
         data, fs = sf.read(filepath, dtype='float32')  
         # 使用 sounddevice 播放音頻數據
         sd.play(data, fs)
         # 等待音頻播放完成
         sd.wait()
-        on_speak_end_callback()
+        if on_speak_end_callback is not None:
+            on_speak_end_callback()
         self.__remove_file(filepath)
 
 
