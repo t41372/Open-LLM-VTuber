@@ -12,7 +12,7 @@ class StreamAudio:
     A class to handle streaming audio files, including sending audio data to a broadcast endpoint.
     """
 
-    def __init__(self, audio_path, display_text=None, expression_list=None):
+    def __init__(self, audio_path, display_text=None, expression_list=None, base_url="http://127.0.0.1:8000/broadcast"):
         """
         Initializes the StreamAudio object with the specified audio file path.
 
@@ -24,6 +24,7 @@ class StreamAudio:
         
         self.display_text = display_text
         self.expression_list = expression_list
+        self.url = base_url
 
         self.audio_path = audio_path
         self.previous_time = 0
@@ -92,8 +93,6 @@ class StreamAudio:
             audio_base64 (str): The base64 encoded string of the audio data.
         """
 
-        url = "http://127.0.0.1:8000/broadcast"
-
         payload = {
             "type" : "audio", 
             "audio": audio_base64,
@@ -102,6 +101,7 @@ class StreamAudio:
             "text": self.display_text,
             "expressions": self.expression_list}
 
+        url = self.url + "/broadcast"
 
         data = {"message": JSON.dumps(payload)}
         response = requests.post(url, json=data)

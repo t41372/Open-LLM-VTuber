@@ -114,12 +114,21 @@ def interaction_mode(llm, speech2text, tts):
     voice_input_on = get_config("VOICE_INPUT_ON", False)
 
     while True:
+        if live2d: # to be implemented
+            #   start mic on front end
+            #   get audio from front end
+            #   send audio to transcribe (as numpy array)
+            pass 
+
         user_input = speech2text.transcribe_once() if voice_input_on else input(">> ")
         if user_input.strip().lower() == exit_phrase:
             print("Exiting...")
             break
         callLLM(user_input, llm, tts)
+
     
+
+
 
 def generate_audio_file(sentence, file_name_no_ext):
     '''
@@ -175,7 +184,7 @@ def stream_audio_file(sentence, filename):
     
     # live2d.send_text(sentence)
     
-    stream_audio.StreamAudio(filename, display_text=sentence, expression_list=expression_list).send_audio_with_volume(wait_for_audio=True)
+    stream_audio.StreamAudio(filename, display_text=sentence, expression_list=expression_list, base_url=live2d.base_url).send_audio_with_volume(wait_for_audio=True)
 
     if os.path.exists(filename):
         os.remove(filename)
@@ -209,7 +218,7 @@ def callLLM(text, llm, tts):
 
 
 def send_message_to_broadcast(message):
-    url = "http://127.0.0.1:8000/broadcast"
+    url = live2d.base_url + "/broadcast"
     
     payload = json.dumps(message)
 
