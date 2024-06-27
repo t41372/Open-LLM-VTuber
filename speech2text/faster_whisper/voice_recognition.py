@@ -20,7 +20,7 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-import asr, vad
+import speech2text.faster_whisper.faster_whisper_asr as faster_whisper_asr, vad
 
 # Using pathlib for OS-independent paths
 ASR_MODEL_NAME = "distil-medium.en"
@@ -101,7 +101,7 @@ class VoiceRecognition:
         self.vad_model = vad.VAD(model_path=VAD_MODEL_PATH)
 
     def _setup_asr_model(self):
-        self.asr_model = asr.ASR(model=ASR_MODEL_NAME)
+        self.asr_model = faster_whisper_asr.ASR(model=ASR_MODEL_NAME)
 
     def audio_callback(self, indata, frames, time, status):
         """

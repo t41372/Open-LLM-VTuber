@@ -83,7 +83,7 @@ def init_speech_services():
     if voice_input_on:
         stt_model = get_config("STT_MODEL")
         stt_module_name = {
-            "Faster-Whisper": "speech2text.faster-whisper.voice_recognition",
+            "Faster-Whisper": "speech2text.faster_whisper.voice_recognition",
             "AzureSTT": "speech2text.azureSTT"
         }.get(stt_model)
         speech2text = load_module(stt_module_name)
