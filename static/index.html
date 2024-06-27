@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,11 @@
     <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script>
     <script src="TaskQueue.js"></script>
+
+    <!-- Voice Activation Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.7/dist/bundle.min.js"></script>
+
     <style>
         body {
             background-image: url('./bg/cityscape.jpeg');
@@ -69,8 +75,10 @@
             box-sizing: border-box;
             max-height: 30vh;
             overflow-y: auto;
-            font-size: 2em; /* Larger font size for the message */
-            line-height: 1.4; /* Improved line spacing */
+            font-size: 2em;
+            /* Larger font size for the message */
+            line-height: 1.4;
+            /* Improved line spacing */
         }
 
         .control-buttons {
@@ -107,6 +115,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="top-left">
         <button id="wsStatus">Disconnected</button>
@@ -138,7 +147,7 @@
         const wsUrl = document.getElementById('wsUrl');
         const interruptBtn = document.getElementById('interruptBtn');
         const micToggle = document.getElementById('micToggle');
-        
+
         wsUrl.value = "ws://127.0.0.1:8000/client-ws";
         // if running on server
         if (window.location.protocol.startsWith("http")) {
@@ -172,7 +181,7 @@
 
         wsStatus.addEventListener('click', connectWebSocket);
 
-        
+
 
 
 
@@ -184,20 +193,28 @@
                     console.log(message)
                     console.log("full-text: ", message.text);
                 case "control":
-                    if (message.text === "speaking-start") {
-                        if (talkState) {
-                            console.log("Already talking");
-                            return;
-                        }
-                        talkState = true;
-                        stupidTalk();
-                    } else if (message.text === "speaking-stop") {
-                        if (!talkState) {
-                            console.log("Not talking");
-                            return;
-                        }
-                        talkState = false;
+                    switch (message.text) {
+                        case "start-mic":
+                            start_mic();
+                            break;
+
+                        case "speaking-start":
+                            if (talkState) {
+                                console.log("Already talking");
+                                return;
+                            }
+                            talkState = true;
+                            stupidTalk();
+                            break;
+                        case "speaking-stop":
+                            if (!talkState) {
+                                console.log("Not talking");
+                                return;
+                            }
+                            talkState = false;
+                            break;
                     }
+                    
                     break;
                 case "expression":
                     setExpression(message.text);
@@ -329,6 +346,28 @@
 
 
         }
+
+        async function start_mic() {
+            console.log("Mic start ")
+            const myvad = await vad.MicVAD.new({
+                onSpeechStart: () => {
+                    console.log("Speech start detected")
+                },
+                onSpeechEnd: (audio) => {
+                    // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
+                    console.log(audio)
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
+                    }
+                }
+            })
+            myvad.start()
+
+        }
+
+
+
+
 
         interruptBtn.addEventListener('click', function () {
             if (ws && ws.readyState === WebSocket.OPEN) {
