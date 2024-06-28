@@ -391,6 +391,13 @@
         micToggle.addEventListener('click', function () {
             micOn = !micOn;
             micToggle.textContent = micOn ? "Mic on" : "Mic off";
+
+            if (micOn) {
+                init_vad();
+            } else {
+                myvad = null;
+            }
+
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: "mic_toggle", state: micOn }));
             }
