@@ -74,7 +74,7 @@ def init_llm():
     return llm
 
 
-# Initialize speech to text and text to speech
+# Initialize speech recognition and speech synthesis services
 def init_speech_services():
     voice_input_on = get_config("VOICE_INPUT_ON", False)
     tts_on = get_config("TTS_ON", False)
@@ -83,8 +83,8 @@ def init_speech_services():
     if voice_input_on:
         stt_model = get_config("STT_MODEL")
         stt_module_name = {
-            "Faster-Whisper": "speech2text.faster_whisper.voice_recognition",
-            "AzureSTT": "speech2text.azureSTT"
+            "Faster-Whisper": "speech2text.faster_whisper_asr",
+            "AzureSTT": "speech2text.azure_asr"
         }.get(stt_model)
         speech2text = load_module(stt_module_name)
         if speech2text and stt_model == "AzureSTT":
@@ -114,16 +114,24 @@ def interaction_mode(llm, speech2text, tts):
     voice_input_on = get_config("VOICE_INPUT_ON", False)
 
     while True:
+
+        user_input = ""
         if live2d: # to be implemented
             #   start mic on front end
             #   get audio from front end
             #   send audio to transcribe (as numpy array)
-            pass 
-
-        user_input = speech2text.transcribe_once() if voice_input_on else input(">> ")
+            audio = live2d.get_mic_audio()
+            
+            user_input = speech2text.transcribe_np()
+        elif voice_input_on: 
+            user_input = speech2text.transcribe_with_vad()
+        else:
+            user_input = input(">> ")
+        
         if user_input.strip().lower() == exit_phrase:
             print("Exiting...")
             break
+        print(f"User input: {user_input}")
         callLLM(user_input, llm, tts)
 
     

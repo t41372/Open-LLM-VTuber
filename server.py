@@ -25,16 +25,42 @@ router = APIRouter()
 # 存儲已連接的WebSocket客戶端
 connected_clients: List[WebSocket] = []
 
+server_ws_clients = []
+
+@router.websocket("/server-ws")
+async def server_websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    server_ws_clients.append(websocket)
+    # 當與客戶端建立連接時，向所有連接到 "/client-ws" 的客戶端發送特定的 payload
+    control_message = {"type": "control", "text": "start-mic"}
+    for client in connected_clients:  # 假設 connected_clients 是連接到 "/client-ws" 的客戶端列表
+        await client.send_json(control_message)
+    try:
+        while True:
+            # 接收來自 "/server-ws" 客戶端的消息
+            message = await websocket.receive_text()
+            # 將接收到的消息轉發給所有連接到 "/client-ws" 的客戶端
+            for client in connected_clients:
+                await client.send_text(message)
+    except WebSocketDisconnect:
+        server_ws_clients.remove(websocket)
+
+# 修改原有的 websocket_endpoint 函數，使其能夠接收消息並轉發給 "/server-ws" 的客戶端
 @router.websocket("/client-ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     connected_clients.append(websocket)
     try:
         while True:
-            # 保持連接開啟，直到客戶端斷開連接
-            await websocket.receive_text()
+            # 接收來自 "/client-ws" 客戶端的消息
+            message = await websocket.receive_text()
+            # 將接收到的消息轉發給所有連接到 "/server-ws" 的客戶端
+            for server_client in server_ws_clients:
+                await server_client.send_text(message)
     except WebSocketDisconnect:
         connected_clients.remove(websocket)
+
+
 
 @router.post("/broadcast")
 async def broadcast_message(message: str = Body(..., embed=True)):

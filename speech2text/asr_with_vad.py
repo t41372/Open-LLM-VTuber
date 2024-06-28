@@ -1,7 +1,7 @@
 
 # Original code by David Ng in [GlaDOS](https://github.com/dnhkng/GlaDOS), licensed under the MIT License
 # https://opensource.org/licenses/MIT# 
-# Modifications by Yi-Ting Chiu as part of OpenLLM-VTuber, licensed under the MIT License
+# Modifications by Yi-Ting Chiu as part of Open-LLM-VTuber, licensed under the MIT License
 # https://opensource.org/licenses/MIT
 # 
 #
@@ -20,10 +20,9 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-import speech2text.faster_whisper.faster_whisper_asr as faster_whisper_asr, vad
+import vad
 
 # Using pathlib for OS-independent paths
-ASR_MODEL_NAME = "distil-medium.en"
 VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
 SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
@@ -34,7 +33,6 @@ WAKE_WORD = "computer"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 # Rest of the class remains unchanged
-ASR_MODEL_NAME = "distil-medium.en"
 VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
 SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
@@ -45,9 +43,9 @@ WAKE_WORD = "computer"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 
-class VoiceRecognition:
+class VoiceRecognitionVAD:
     def __init__(
-        self, wake_word: str | None = None, function: Callable = print
+        self, asr_transcribe_func: Callable, wake_word: str | None = None, function: Callable = print
     ) -> None:
         """
         Initializes the VoiceRecognition class, setting up necessary models, streams, and queues.
@@ -66,13 +64,14 @@ class VoiceRecognition:
         7. The audio stream is reset (buffers cleared), and listening continues.
 
         Args:
+            asr_transcribe_func (Callable): The function to use for automatic speech recognition.
             wake_word (str, optional): The wake word to use for activation. Defaults to None.
             func (Callable, optional): The function to call when the wake word is detected. Defaults to print.
         """
 
         self._setup_audio_stream()
         self._setup_vad_model()
-        self._setup_asr_model()
+        self.transcribe = asr_transcribe_func
 
         # Initialize sample queues and state flags
         self.samples = []
@@ -81,7 +80,6 @@ class VoiceRecognition:
         self.recording_started = False
         self.gap_counter = 0
         self.wake_word = wake_word
-        self.func = function
 
     def _setup_audio_stream(self):
         """
@@ -99,9 +97,7 @@ class VoiceRecognition:
         Loads the Voice Activity Detection (VAD) model.
         """
         self.vad_model = vad.VAD(model_path=VAD_MODEL_PATH)
-
-    def _setup_asr_model(self):
-        self.asr_model = faster_whisper_asr.ASR(model=ASR_MODEL_NAME)
+        
 
     def audio_callback(self, indata, frames, time, status):
         """
@@ -121,10 +117,11 @@ class VoiceRecognition:
         logger.info("Listening Running")
         return self._listen_and_respond()
     
-    def transcribe_once(self):
+    def start_listening(self) -> str:
         """
         Start listening for audio input and responds appropriately when active voice is detected.
         This function will return the transcribed text once a pause is detected.
+        It uses the `transcribe` function provided in the constructor to transcribe the audio.
         
         Returns:
             str: The transcribed text
@@ -218,15 +215,6 @@ class VoiceRecognition:
             logger.info(f"Detected: '{detected_text}'")
             return detected_text
 
-            # if self.wake_word is not None:
-            #     if self._wakeword_detected(detected_text):
-            #         logger.info("Wake word detected!")
-            #         self.func(detected_text)
-            #     else:
-            #         logger.info("No wake word detected. Ignoring...")
-            # else:
-            #     self.func(detected_text)
-
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead
         # self.reset()
@@ -238,7 +226,7 @@ class VoiceRecognition:
         """
         audio = np.concatenate(samples)
 
-        detected_text = self.asr_model.transcribe(audio)
+        detected_text = self.transcribe(audio)
         return detected_text
 
     def reset(self):

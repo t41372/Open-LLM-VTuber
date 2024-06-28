@@ -141,6 +141,27 @@
             live2dModule.loadModel(modelDict[0]);
         });
 
+        // initialize vad
+
+        let myvad;
+        async function init_vad(){    
+            myvad = await vad.MicVAD.new({
+                onSpeechStart: () => {
+                    console.log("Speech start detected")
+                },
+                onSpeechEnd: (audio) => {
+                    // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
+                    console.log(audio)
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
+                    }
+                    myvad.pause();
+                }
+            })
+        }
+        window.addEventListener('load', init_vad);
+
+
         // WebSocket connection
         let ws;
         const wsStatus = document.getElementById('wsStatus');
@@ -158,7 +179,7 @@
         }
 
         function connectWebSocket() {
-            ws = new WebSocket(wsUrl.value || "ws://127.0.0.1:8000/client-ws");
+            ws = new WebSocket(wsUrl.value);
 
             ws.onopen = function () {
                 console.log("Connected to WebSocket");
@@ -214,7 +235,7 @@
                             talkState = false;
                             break;
                     }
-                    
+
                     break;
                 case "expression":
                     setExpression(message.text);
@@ -347,22 +368,12 @@
 
         }
 
+
+        // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
+        // Once speech ends, the mic will pause.
         async function start_mic() {
             console.log("Mic start ")
-            const myvad = await vad.MicVAD.new({
-                onSpeechStart: () => {
-                    console.log("Speech start detected")
-                },
-                onSpeechEnd: (audio) => {
-                    // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
-                    console.log(audio)
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
-                    }
-                }
-            })
-            myvad.start()
-
+            myvad.start();
         }
 
 

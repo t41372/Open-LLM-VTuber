@@ -3,6 +3,9 @@ import json
 import requests
 import TaskQueue
 
+import websocket
+import json
+import numpy as np
 
 ModelDictPath = "model_dict.json"
 
@@ -18,6 +21,8 @@ class Live2dController:
         self.model_info = self.setModel(live2d_model_name)
 
         self.emoMap = self.model_info["emotionMap"]
+
+        self.received_data_buffer = None 
 
         self.task_queue = TaskQueue.TaskQueue()
 
@@ -115,6 +120,44 @@ class Live2dController:
             None
         """
         self.send_message_to_broadcast({"type": "control", "text": "speaking-stop"})
+
+    
+    def get_mic_audio(self):
+        '''
+        Get microphone audio from the front end.
+
+        Parameters:
+            None
+
+        Returns:
+            np.array: The audio samples in Float32Array at sample rate 16000.
+        '''
+        def on_message(ws, message):
+            data = json.loads(message)
+            if data.get('type') == 'mic-audio':
+                self.received_data_buffer = np.array(list(data.get('audio').values()), dtype=np.float32)
+                print("Received audio data from front end.")
+                ws.close()
+
+        def on_error(ws, error):
+            print("Error:", error)
+
+        def on_close(ws, close_status_code, close_msg):
+            print("### closed ###")
+
+        def on_open(ws):
+            print("Start waiting for audio data from front end...")
+
+        ws = websocket.WebSocketApp(f"ws://{self.base_url.split('//')[1]}/server-ws",
+                                    on_open=on_open,
+                                    on_message=on_message,
+                                    on_error=on_error,
+                                    on_close=on_close)
+        ws.run_forever()
+        # data in Float32Array of audio samples at sample rate 16000
+        return self.received_data_buffer
+        
+
 
     def send_text(self, text):
         """
@@ -235,7 +278,24 @@ class Live2dController:
 
 if __name__ == "__main__":
     
-    live2d = Live2dController("shizuku")
+    live2d = Live2dController("shizuku-local")
+
+    aud = live2d.get_mic_audio()
+
+    from speech2text.faster_whisper_asr import ASR
+    text = ASR().transcribe(aud)
+
+    print(text)
+
+    input("Press Enter to continue...")
+
+    # with open("cache.txt", "w") as file:
+    #     file.write(str(aud))
+
+    print("done")
+
+    print(aud)
+
 
     # print(live2d.getEmoMapKeyAsString())
 
