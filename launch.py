@@ -120,9 +120,10 @@ def interaction_mode(llm, speech2text, tts):
             #   start mic on front end
             #   get audio from front end
             #   send audio to transcribe (as numpy array)
+            print("waiting for audio from the front end...")
             audio = live2d.get_mic_audio()
-            
-            user_input = speech2text.transcribe_np()
+            print("transcribing...")
+            user_input = speech2text.transcribe_np(audio)
         elif voice_input_on: 
             user_input = speech2text.transcribe_with_vad()
         else:
