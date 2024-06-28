@@ -7,14 +7,13 @@ import websocket
 import json
 import numpy as np
 
-ModelDictPath = "model_dict.json"
-
 
 
 class Live2dController:
 
     def __init__(self, live2d_model_name: str, base_url: str = "http://127.0.0.1:8000"):
 
+        self.modelDictPath = "model_dict.json"
         self.base_url = base_url
         self.live2d_model_name = live2d_model_name
 
@@ -25,6 +24,7 @@ class Live2dController:
         self.received_data_buffer = None 
 
         self.task_queue = TaskQueue.TaskQueue()
+
 
 
 
@@ -62,7 +62,7 @@ class Live2dController:
         '''
         self.live2d_model_name = model_name
 
-        with open(ModelDictPath, 'r') as file:
+        with open(self.modelDictPath, 'r') as file:
             model_dict = json.load(file)
 
         # Find the model in the model_dict
@@ -72,6 +72,9 @@ class Live2dController:
             print(f"No model found for {model_name}. Exiting.")
             exit()
         
+        if matched_model["url"].startswith("/"):
+            matched_model["url"] = self.base_url + matched_model["url"]
+            
         
         print(f"Model set to: {matched_model['name']}")
         print(f"URL set to: {matched_model['url']}")
