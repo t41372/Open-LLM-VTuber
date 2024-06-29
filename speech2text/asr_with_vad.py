@@ -21,31 +21,18 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
 import vad
+import ws_input_stream
 
-# Using pathlib for OS-independent paths
-VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
-SAMPLE_RATE = 16000  # Sample rate for input stream
-VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
-VAD_THRESHOLD = 0.7  # Threshold for VAD detection
-BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
-PAUSE_LIMIT = 1300  # Milliseconds of pause allowed before processing
-WAKE_WORD = "computer"  # Wake word for activation
-SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
-# Rest of the class remains unchanged
-VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
-SAMPLE_RATE = 16000  # Sample rate for input stream
-VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
-VAD_THRESHOLD = 0.7  # Threshold for VAD detection
-BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
-PAUSE_LIMIT = 1300  # Milliseconds of pause allowed before processing
-WAKE_WORD = "computer"  # Wake word for activation
-SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 
 class VoiceRecognitionVAD:
     def __init__(
-        self, asr_transcribe_func: Callable, wake_word: str | None = None, function: Callable = print
+        self, 
+        asr_transcribe_func: Callable, 
+        ws_url: str = None,
+        wake_word: str | None = None, 
+        
     ) -> None:
         """
         Initializes the VoiceRecognition class, setting up necessary models, streams, and queues.
@@ -65,57 +52,100 @@ class VoiceRecognitionVAD:
 
         Args:
             asr_transcribe_func (Callable): The function to use for automatic speech recognition.
+            ws_url (str, optional): The WebSocket URL to use for audio input. Defaults to None. If provided, the audio input stream will use WebSockets instead of sounddevice. For example: `ws://localhost:8000/server-ws`.
             wake_word (str, optional): The wake word to use for activation. Defaults to None.
-            func (Callable, optional): The function to call when the wake word is detected. Defaults to print.
+            
         """
 
-        self._setup_audio_stream()
+        # Set up some constants
+        # Using pathlib for OS-independent paths
+        self.VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
+        self.SAMPLE_RATE = 16000  # Sample rate for input stream
+        self.VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
+        self.VAD_SIZE = 32  # Milliseconds of sample for Voice Activity Detection (VAD)
+        self.VAD_THRESHOLD = 0.7  # Threshold for VAD detection
+        self.BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
+        self.PAUSE_LIMIT = 1300  # Milliseconds of pause allowed before processing
+        self.WAKE_WORD = "computer"  # Wake word for activation
+        self.SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
+
+
+        # Set up the audio input stream
+        if isinstance(ws_url, str):
+            self.input_stream = self._setup_ws_audio_stream(ws_url)
+        else:
+            self.input_stream = self._setup_sd_audio_stream()
+
+        # self.input_stream = self._setup_sd_audio_stream()
+
         self._setup_vad_model()
         self.transcribe = asr_transcribe_func
 
         # Initialize sample queues and state flags
         self.samples = []
         self.sample_queue = queue.Queue()
-        self.buffer = queue.Queue(maxsize=BUFFER_SIZE // VAD_SIZE)
+        self.buffer = queue.Queue(maxsize=self.BUFFER_SIZE // self.VAD_SIZE)
         self.recording_started = False
         self.gap_counter = 0
         self.wake_word = wake_word
 
-    def _setup_audio_stream(self):
+    def _setup_sd_audio_stream(self):
         """
         Sets up the audio input stream with sounddevice.
         """
-        self.input_stream = sd.InputStream(
-            samplerate=SAMPLE_RATE,
+        return sd.InputStream(
+            samplerate=self.SAMPLE_RATE,
             channels=1,
             callback=self.audio_callback,
-            blocksize=int(SAMPLE_RATE * VAD_SIZE / 1000),
+            blocksize=int(self.SAMPLE_RATE * self.VAD_SIZE / 1000),
+        ) # samplerate * VAD_SIZE / 1000
+          # 16000 * 50 / 1000 = 800
+          # 512 = 16000 * 32 / 1000
+    
+    def _setup_ws_audio_stream(self, ws_url: str):
+        """
+        Sets up the audio input stream with websockets.
+        """
+        return ws_input_stream.InputStream(
+            ws_url=ws_url,
+            samplerate=self.SAMPLE_RATE,
+            channels=1,
+            callback=self.audio_callback,
+            buffersize=int(self.SAMPLE_RATE * self.VAD_SIZE / 1000),
         )
 
     def _setup_vad_model(self):
         """
         Loads the Voice Activity Detection (VAD) model.
         """
-        self.vad_model = vad.VAD(model_path=VAD_MODEL_PATH)
+        self.vad_model = vad.VAD(model_path=self.VAD_MODEL_PATH)
         
 
-    def audio_callback(self, indata, frames, time, status):
+    def audio_callback(self, indata, frames=None, time=None, status=None):
         """
         Callback function for the audio stream, processing incoming data.
+
+        Args:
+            indata (np.ndarray): The incoming audio data.
+            frames (int): The number of frames in the audio data.
+            time (sounddevice.CallbackTimeInfo): Timestamps for the audio data.
+            status (sounddevice.CallbackFlags): Flags for the audio data.
         """
+        print("audio callback" + str(indata))
+        # input("audio callback")
         data = indata.copy()
         data = data.squeeze()  # Reduce to single channel if necessary
-        vad_confidence = self.vad_model.process_chunk(data) > VAD_THRESHOLD
+        vad_confidence = self.vad_model.process_chunk(data) > self.VAD_THRESHOLD
         self.sample_queue.put((data, vad_confidence))
 
-    def start(self):
-        """
-        Starts the Glados voice assistant, continuously listening for input and responding.
-        """
-        logger.info("Starting Listening...")
-        self.input_stream.start()
-        logger.info("Listening Running")
-        return self._listen_and_respond()
+    # def start(self):
+    #     """
+    #     [DEPRECATED] Starts the Glados voice assistant, continuously listening for input and responding.
+    #     """
+    #     logger.info("Starting Listening...")
+    #     self.input_stream.start()
+    #     logger.info("Listening Running")
+    #     return self._listen_and_respond()
     
     def start_listening(self) -> str:
         """
@@ -126,8 +156,8 @@ class VoiceRecognitionVAD:
         Returns:
             str: The transcribed text
         """
-        self.input_stream.start()
         logger.info("Starting Listening...")
+        self.input_stream.start()
         logger.info("Listening Running")
         return self._listen_and_respond(returnText=True)
 
@@ -182,7 +212,7 @@ class VoiceRecognitionVAD:
 
         if not vad_confidence:
             self.gap_counter += 1
-            if self.gap_counter >= PAUSE_LIMIT // VAD_SIZE:
+            if self.gap_counter >= self.PAUSE_LIMIT // self.VAD_SIZE:
                 return self._process_detected_audio()
         else:
             self.gap_counter = 0
@@ -243,8 +273,8 @@ class VoiceRecognitionVAD:
 
 
 
-if __name__ == "__main__":
-    demo = VoiceRecognition()
-    demo.start()
+# if __name__ == "__main__":
+    # demo = VoiceRecognition()
+    # demo.start()
     # text = demo.transcribe_once()
     # print(text)

@@ -124,41 +124,6 @@ class Live2dController:
         """
         self.send_message_to_broadcast({"type": "control", "text": "speaking-stop"})
 
-    
-    def get_mic_audio(self):
-        '''
-        Get microphone audio from the front end.
-
-        Parameters:
-            None
-
-        Returns:
-            np.array: The audio samples in Float32Array at sample rate 16000.
-        '''
-        def on_message(ws, message):
-            data = json.loads(message)
-            if data.get('type') == 'mic-audio':
-                self.received_data_buffer = np.array(list(data.get('audio').values()), dtype=np.float32)
-                print("Received audio data from front end.")
-                ws.close()
-
-        def on_error(ws, error):
-            print("Error:", error)
-
-        def on_close(ws, close_status_code, close_msg):
-            print("### closed ###")
-
-        def on_open(ws):
-            print("Start waiting for audio data from front end...")
-
-        ws = websocket.WebSocketApp(f"ws://{self.base_url.split('//')[1]}/server-ws",
-                                    on_open=on_open,
-                                    on_message=on_message,
-                                    on_error=on_error,
-                                    on_close=on_close)
-        ws.run_forever()
-        # data in Float32Array of audio samples at sample rate 16000
-        return self.received_data_buffer
         
 
 

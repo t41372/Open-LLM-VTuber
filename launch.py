@@ -90,7 +90,11 @@ def init_speech_services():
         if speech2text and stt_model == "AzureSTT":
             speech2text = speech2text.VoiceRecognition(callbackFunction=print, subscription_key=api_keys.AZURE_API_Key, region=api_keys.AZURE_REGION)
         else:
-            speech2text = speech2text.VoiceRecognition()
+            if live2d:
+                ws_audio_stream_url = f"ws://{get_config('HOST', 'localhost')}:{get_config('PORT', 8000)}/server-ws"
+                speech2text = speech2text.VoiceRecognition(ws_audio_stream_url=ws_audio_stream_url)
+            else:
+                speech2text = speech2text.VoiceRecognition()
 
     if tts_on:
         tts_model = get_config("TTS_MODEL", "pyttsx3TTS")
@@ -116,15 +120,13 @@ def interaction_mode(llm, speech2text, tts):
     while True:
 
         user_input = ""
-        if live2d: # to be implemented
+        if voice_input_on: 
             #   start mic on front end
             #   get audio from front end
             #   send audio to transcribe (as numpy array)
-            audio = live2d.get_mic_audio()
-            
-            user_input = speech2text.transcribe_np()
-        elif voice_input_on: 
+            print("start transcribing...")
             user_input = speech2text.transcribe_with_vad()
+            print("transcribed.")
         else:
             user_input = input(">> ")
         

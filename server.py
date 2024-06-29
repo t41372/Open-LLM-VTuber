@@ -31,19 +31,21 @@ server_ws_clients = []
 async def server_websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     server_ws_clients.append(websocket)
-    # 當與客戶端建立連接時，向所有連接到 "/client-ws" 的客戶端發送特定的 payload
-    control_message = {"type": "control", "text": "start-mic"}
-    for client in connected_clients:  # 假設 connected_clients 是連接到 "/client-ws" 的客戶端列表
-        await client.send_json(control_message)
+    
     try:
         while True:
             # 接收來自 "/server-ws" 客戶端的消息
             message = await websocket.receive_text()
             # 將接收到的消息轉發給所有連接到 "/client-ws" 的客戶端
             for client in connected_clients:
+                print("Sending message to client")
+                print(message)
                 await client.send_text(message)
     except WebSocketDisconnect:
         server_ws_clients.remove(websocket)
+        # tell all clients to close their mics
+        for client in connected_clients:
+            await client.send_text('{"type": "close-mic"}')
 
 # 修改原有的 websocket_endpoint 函數，使其能夠接收消息並轉發給 "/server-ws" 的客戶端
 @router.websocket("/client-ws")
