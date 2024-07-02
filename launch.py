@@ -116,11 +116,8 @@ def interaction_mode(llm, speech2text, tts):
     while True:
 
         user_input = ""
-        if live2d: # to be implemented
-            #   start mic on front end
-            #   get audio from front end
-            #   send audio to transcribe (as numpy array)
-            print("waiting for audio from the front end...")
+        if live2d and get_config("MIC_IN_BROWSER", False):
+            print("Listening from the front end...")
             audio = live2d.get_mic_audio()
             print("transcribing...")
             user_input = speech2text.transcribe_np(audio)

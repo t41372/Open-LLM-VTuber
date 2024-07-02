@@ -21,7 +21,7 @@ class Live2dController:
 
         self.emoMap = self.model_info["emotionMap"]
 
-        self.received_data_buffer = None 
+        self.received_data_buffer = np.array([]) 
 
         self.task_queue = TaskQueue.TaskQueue()
 
@@ -138,8 +138,11 @@ class Live2dController:
         def on_message(ws, message):
             data = json.loads(message)
             if data.get('type') == 'mic-audio':
-                self.received_data_buffer = np.array(list(data.get('audio').values()), dtype=np.float32)
-                print("Received audio data from front end.")
+                self.received_data_buffer = np.append(self.received_data_buffer, np.array(list(data.get('audio').values()), dtype=np.float32))
+                print(".", end="")
+                # ws.close()
+            if data.get('type') == 'mic-audio-end':
+                print("Received audio data end from front end.")
                 ws.close()
 
         def on_error(ws, error):
@@ -158,8 +161,9 @@ class Live2dController:
                                     on_close=on_close)
         ws.run_forever()
         # data in Float32Array of audio samples at sample rate 16000
-        return self.received_data_buffer
-        
+        result = self.received_data_buffer
+        self.received_data_buffer = np.array([])
+        return result
 
 
     def send_text(self, text):
@@ -285,8 +289,8 @@ if __name__ == "__main__":
 
     aud = live2d.get_mic_audio()
 
-    from speech2text.faster_whisper_asr import ASR
-    text = ASR().transcribe(aud)
+    from speech2text.faster_whisper_asr import VoiceRecognition
+    text = VoiceRecognition().transcribe_np(aud)
 
     print(text)
 

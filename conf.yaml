@@ -36,7 +36,8 @@ LIVE2D_MODEL: "shizuku-local"
 VOICE_INPUT_ON: True
 # speech to text model options: "Faster-Whisper", "AzureSTT"
 STT_MODEL: "Faster-Whisper"
-
+# Put your mic in the browser or in the terminal? (would increase latency)
+MIC_IN_BROWSER: False
 
 # Text to Speech
 TTS_ON: True

@@ -128,7 +128,7 @@
         <div class="fixed-bottom" id="message"></div>
         <div class="control-buttons">
             <button id="micToggle">Mic On</button>
-            <button id="interruptBtn">Interrupt LLM for a sec</button>
+            <button id="interruptBtn">Interrupt LLM [not implemented]</button>
         </div>
     </div>
 
@@ -144,21 +144,39 @@
         // initialize vad
 
         let myvad;
-        async function init_vad(){    
+        async function init_vad() {
             myvad = await vad.MicVAD.new({
+                preSpeechPadFrames: 10,
                 onSpeechStart: () => {
                     console.log("Speech start detected")
+                },
+                onFrameProcessed: (probs) => {
+                    // console.log(`Prob:`)
+                    // console.log(probs)
                 },
                 onSpeechEnd: (audio) => {
                     // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
                     console.log(audio)
                     if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
+                        // ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
+                        sendAudioPartition(audio);
                     }
                     myvad.pause();
                 }
             })
         }
+        const chunkSize = 4096;
+        async function sendAudioPartition(audio) {
+            // semd the audio, a Float32Array of audio, to the back end by chunks
+            for (let index = 0; index < audio.length; index += chunkSize) {
+                const endIndex = Math.min(index + chunkSize, audio.length);
+                const chunk = audio.slice(index, endIndex);
+                ws.send(JSON.stringify({ type: "mic-audio", audio: chunk }));
+            }
+            ws.send(JSON.stringify({ type: "mic-audio-end" }));
+        }
+
+
         window.addEventListener('load', init_vad);
 
 
