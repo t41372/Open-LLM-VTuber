@@ -1,4 +1,5 @@
 import edge_tts
+from .tts_interface import TTSInterface
 
 import sys
 import os
@@ -16,7 +17,7 @@ import soundfile as sf
 
 DEFAULT_VOICE = "en-US-AvaMultilingualNeural"
 
-class TTSEngine:
+class TTSEngine(TTSInterface):
 
     def __init__(self, voice=DEFAULT_VOICE):
         self.voice = voice
@@ -29,9 +30,9 @@ class TTSEngine:
             os.makedirs(self.new_audio_dir)
 
     
-    def speak(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
+    def speak_local(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
         '''
-        Speak the text on the speaker.
+        Speak the text locally on this device (not stream to some kind of live2d front end).
 
         text: str
             the text to speak
@@ -44,9 +45,9 @@ class TTSEngine:
         if on_speak_start_callback is not None:
             on_speak_start_callback()
         data, fs = sf.read(filepath, dtype='float32')  
-        # 使用 sounddevice 播放音頻數據
+        # Play audio locally with sounddevice
         sd.play(data, fs)
-        # 等待音頻播放完成
+        # Wait for audio to finish playing
         sd.wait()
         if on_speak_end_callback is not None:
             on_speak_end_callback()

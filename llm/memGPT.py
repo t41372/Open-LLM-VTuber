@@ -10,6 +10,7 @@ console = Console()
 
 import yaml
 
+
 # load configurations
 def load_config():
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -50,7 +51,22 @@ class LLM:
         }
         self.verbose = verbose
 
+    def chat(self, prompt):
+        """
+        Sends a chat prompt to an agent, print the result, and returns the full response.
 
+        Parameters:
+        - prompt (str): The message or question to send to the agent.
+
+        Returns:
+        - str: The full response from the agent.
+        """
+
+        full_response = self._send_message_to_agent(
+            prompt, callback_function=print
+        )
+
+        return full_response
 
     def chat_stream_audio(
         self, prompt, generate_audio_file=None, stream_audio_file=None
@@ -67,11 +83,10 @@ class LLM:
         Returns:
         str: the full response from the llm
         """
-        
+
         full_response = self._send_message_to_agent(prompt, callback_function=None)
 
         sentences = self.__split_into_sentences(full_response)
-
 
         index = 0
 
@@ -80,18 +95,22 @@ class LLM:
             last_stream_future = None
             for sentence in sentences:
                 print(f">> {sentence}")
-                
+
                 if callable(generate_audio_file):
                     print("\n")
-                    file_path = generate_audio_file(sentence, file_name_no_ext=f"temp-{index}")
-                    
+                    file_path = generate_audio_file(
+                        sentence, file_name_no_ext=f"temp-{index}"
+                    )
+
                     # wait for the audio to finish playing
                     if last_stream_future:
                         last_stream_future.result()
                     # stream the audio file to the frontend
-                    last_stream_future = executor.submit(stream_audio_file, sentence, filename=file_path)
+                    last_stream_future = executor.submit(
+                        stream_audio_file, sentence, filename=file_path
+                    )
                     index += 1
-                
+
             # wait for the last audio to finish playing
             if last_stream_future:
                 last_stream_future.result()
@@ -99,11 +118,6 @@ class LLM:
         print("\n ===== LLM response received ===== \n")
 
         return full_response
-
-
-
-
-
 
     def __split_into_sentences(self, text):
         """
@@ -117,7 +131,6 @@ class LLM:
         """
 
         return pysbd.Segmenter(language="en", clean=False).segment(text)
-
 
     def _send_message_to_agent(self, message, callback_function=print):
         """
@@ -175,18 +188,22 @@ class LLM:
         return result
 
 
-
-
 if __name__ == "__main__":
-
-
 
     llm = LLM(
         verbose=True,
     )
 
-    print(llm.__split_into_sentences("Hello, Mr. Smith. How are you? I am fine. Thank you."))
-    print(llm.__split_into_sentences("Mr. John Johnson Jr. was born in the U.S.A but earned his Ph.D. in Israel before joining Nike Inc. as an engineer. He also worked at craigslist.org as a business analyst... but he is now retired and living in the U.K.!"))
+    print(
+        llm.__split_into_sentences(
+            "Hello, Mr. Smith. How are you? I am fine. Thank you."
+        )
+    )
+    print(
+        llm.__split_into_sentences(
+            "Mr. John Johnson Jr. was born in the U.S.A but earned his Ph.D. in Israel before joining Nike Inc. as an engineer. He also worked at craigslist.org as a business analyst... but he is now retired and living in the U.K.!"
+        )
+    )
     # while True:
-        # llm.send_message_to_agent(message=input(">> "))
-        # print(llm.split_sentences(input(">> ")))
+    # llm.send_message_to_agent(message=input(">> "))
+    # print(llm.split_sentences(input(">> ")))

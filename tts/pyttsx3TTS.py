@@ -1,6 +1,7 @@
 import os
 import sys
 import pyttsx3
+from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
@@ -9,7 +10,7 @@ from pathlib import Path
 
 # using https://github.com/thevickypedia/py3-tts because pyttsx3 is unmaintained and not working
 
-class TTSEngine:
+class TTSEngine(TTSInterface):
 
     def __init__(self):
         self.engine = pyttsx3.init()
@@ -20,7 +21,7 @@ class TTSEngine:
         if not os.path.exists(self.new_audio_dir):
             os.makedirs(self.new_audio_dir)
 
-    def speak(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
+    def speak_local(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
         '''
         Speak the text on the speaker.
 

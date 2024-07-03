@@ -1,5 +1,5 @@
 import azure.cognitiveservices.speech as speechsdk
-
+from .tts_interface import TTSInterface
 import sys
 import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -8,7 +8,11 @@ sys.path.append(current_dir)
 from pathlib import Path
 
 
-class TTSEngine:
+class TTSEngine(TTSInterface):
+
+    temp_audio_file = "temp"
+    file_extension = "wav"
+    new_audio_dir = "./cache"
 
     def __init__(self, sub_key, region, voice):
         '''
@@ -25,21 +29,15 @@ class TTSEngine:
         # The language of the voice that speaks.
         self.speech_config.speech_synthesis_voice_name=voice
 
-        self.temp_audio_file = "temp"
-        self.file_extension = "wav"
-        self.new_audio_dir = "./cache"
+        
         if not os.path.exists(self.new_audio_dir):
             os.makedirs(self.new_audio_dir)
 
         self.speakerAudioConfig = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
         
-        
+          
 
-        
-
-        
-
-    def speak(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
+    def speak_local(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
         '''
         speak the text to the speaker
         text: str

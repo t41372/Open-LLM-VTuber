@@ -1,3 +1,4 @@
+from .tts_interface import TTSInterface
 from bark import SAMPLE_RATE, generate_audio, preload_models
 from scipy.io.wavfile import write as write_wav
 import sounddevice as sd
@@ -22,7 +23,7 @@ if platform.system() == "Darwin":
     os.environ["SUNO_OFFLOAD_CPU"] = "False"
 
 
-class TTSEngine:
+class TTSEngine(TTSInterface):
 
     def __init__(self):
         # download and load all models
@@ -37,7 +38,7 @@ class TTSEngine:
             os.makedirs(self.new_audio_dir)
 
 
-    def speak(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
+    def speak_local(self, text, on_speak_start_callback=None, on_speak_end_callback=None):
         '''
         Speak the text on the speaker.
 

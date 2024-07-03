@@ -82,6 +82,55 @@ class LLM:
 
         return text.strip().endswith(".") or text.strip().endswith("?") or text.strip().endswith("!")
     
+    def chat(self, prompt):
+
+        self.memory.append(
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        )
+
+        if self.verbose:
+            self.__printMemory()
+            print(" -- Base URL: " + self.base_url)
+            print(" -- Model: " + self.model)
+            print(" -- System: " + self.system)
+            print(" -- Prompt: " + prompt + "\n\n")
+
+        chat_completion = []
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=self.memory,
+                model=self.model,
+                stream=True,
+            )
+        except Exception as e:
+            print("Error calling the chat endpoint: " + str(e))
+            self.__printDebugInfo()
+            return "Error calling the chat endpoint: " + str(e)
+
+        full_response = ""
+        for chunk in chat_completion:
+            if chunk.choices[0].delta.content is not None:
+                print(chunk.choices[0].delta.content or "", end="")
+                full_response += chunk.choices[0].delta.content
+
+        print("\n ===== LLM response received ===== \n")
+
+        self.callback(full_response)
+
+        self.memory.append(
+            {
+                "role": "assistant",
+                "content": full_response,
+            }
+        )
+
+        return full_response
+    
+    
+    
     def chat_stream_audio(self, prompt, generate_audio_file=None, stream_audio_file=None):
         """
         Call the llm with text, print the result, and stream the audio to the frontend if the generate_audio_file and stream_audio_file functions are provided.
