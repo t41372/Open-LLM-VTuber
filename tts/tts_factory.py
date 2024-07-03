@@ -1,12 +1,14 @@
+from .tts_interface import TTSInterface
 from .azureTTS import TTSEngine as AzureTTSEngine
 from .barkTTS import TTSEngine as BarkTTSEngine
 from .edgeTTS import TTSEngine as EdgeTTSEngine
 from .pyttsx3TTS import TTSEngine as Pyttsx3TTSEngine
-from .stream_audio import StreamAudio  # Assuming StreamAudio also implements TTSInterface
+from typing import Type
+
 
 class TTSFactory:
     @staticmethod
-    def get_tts_engine(engine_type, **kwargs):
+    def get_tts_engine(engine_type, **kwargs) -> Type[TTSInterface]:
         if engine_type == "AzureTTS":
             return AzureTTSEngine(kwargs.get("api_key"), kwargs.get("region"), kwargs.get("voice"))
         elif engine_type == "barkTTS":

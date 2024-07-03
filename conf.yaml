@@ -9,23 +9,40 @@ PORT: 8000
 
 # Provider of LLM. You can only choose either "ollama" or "memgpt"
 # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
-LLM_PROVIDER: "ollama"
+LLM_PROVIDER: "memgpt"
 
 
-# url for ollama instance
-BASE_URL: "http://localhost:11434"
-# BASE_URL: "http://localhost:11434/v1"
-LLM_API_KEY: "somethingelse"
-ORGANIZATION_ID: "org_eternity"
-PROJECT_ID: "project_glass"
+# Ollama & OpenAI Compatible inference backend
+ollama:
+  # BASE_URL: "http://localhost:11434"
+  BASE_URL: "http://localhost:11434/v1"
+  LLM_API_KEY: "somethingelse"
+  ORGANIZATION_ID: "org_eternity"
+  PROJECT_ID: "project_glass"
+  ## LLM name
+  MODEL: "llama3:latest"
+  # system prompt is at the very end of this file
+  VERBOSE: False
 
-# LLM name
-MODEL: "llama3:latest"
+
+
+# MemGPT Configurations
+## Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)
+## In addition, please set up an agent using the webui launched in the memGPT base_url
+
+memgpt:
+  BASE_URL: "http://localhost:8283"
+
+  # You will find admin server password in memGPT console output. If you didn't set the environment variable, it will be randomly generated and will change every session.
+  ADMIN_TOKEN: ""
+
+  # The ID of the agent to send the message to.
+  AGENT_ID: ""
+  VERBOSE: True
 
 
 
-
-# Live2D
+# ===== Live2D front-end Settings =====
 
 LIVE2D: True
 LIVE2D_MODEL: "shizuku-local"
@@ -99,7 +116,8 @@ USER_NAME: "User"
 SAVE_CHAT_HISTORY: True
 # The directory where chat history is stored
 CHAT_HISTORY_DIR: "./chat_history/"
-# Turn on RAG (Retrieval Augmented Generation) or not. 
+
+# [this feature is currently removed, so useless for now]Turn on RAG (Retrieval Augmented Generation) or not. 
 RAG_ON: False
 LLMASSIST_RAG_ON: False
 

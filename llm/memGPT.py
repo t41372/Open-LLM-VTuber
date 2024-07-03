@@ -5,6 +5,8 @@ import concurrent.futures
 import pysbd
 from rich.console import Console
 
+from .llm_interface import LLMInterface
+
 console = Console()
 
 
@@ -26,7 +28,7 @@ def get_config(key, default=None):
     return config.get(key, default)
 
 
-class LLM:
+class LLM(LLMInterface):
 
     def __init__(
         self,

@@ -1,8 +1,8 @@
 # Open-LLM-VTuber
 
-> :warning: This project is in its early stages and is currently under **active development**. Features are unstable, and breaking changes may occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
+> :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code are messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline (with a minor exception...) on macOS, Linux, and Windows. 
+Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline (with a small exception...) on macOS, Linux, and Windows. 
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
@@ -52,12 +52,13 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/9ededf92-e6f4-48e7-a30
 
 Currently supported LLM backend
 - Ollama
-- Any OpenAI-API-compatible backend, such as Groq, LM Studio, OpenAI, and more. (only works if you turn off Rag and launch the program using `launch.py`)
+- Any OpenAI-API-compatible backend, such as Groq, LM Studio, OpenAI, and more.
 - MemGPT (setup required)
 
 Currently supported Speech recognition backend
 - [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
 - [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
+- The microphone will be listening in the terminal by default. You can change the settings in the `conf.yaml` to move the microphone (and vad) to the browser (at the cost of latency, for now). Microphone listening in the terminal means the program can't hear you if you open the Live2D front-end website on a different device or run this project inside a VM or docker. Set `MIC_IN_BROWSER` to `True` in this case.
 
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
@@ -70,14 +71,14 @@ Fast Text Synthesis
 - Synthesize text during audio playback. It's synthesizing new lines while speaking.
 
 Live2D Talking face
-- Switch model using `config.yaml` (needs to be listed in model_dict.json)
+- Change Live2D model with `config.yaml` (model needs to be listed in model_dict.json)
 - Load local Live2D models. Check `doc/live2d.md` for documentation.
 - Uses expression keywords in LLM response to control facial expression, so there is no additional model for emotion detection. The expression keywords are automatically loaded into the system prompt and excluded from the speech synthesis output.
 
 live2d technical details
 - Uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in *browser*
 - Uses WebSocket to control facial expressions and talking state between the server and the front end
-- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the required frontend packages from CDN. Once the page is loaded, you can disconnect the internet. Some Live2D models need to be fetched from CDN; some don't. Read `doc/live2d.md` for documentation on loading your live2D model from local.
+- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the required front-end packages from CDN. Once the page is loaded, you can disconnect the internet. Some Live2D models need to be fetched from CDN; some don't. Read `doc/live2d.md` for documentation on loading your live2D model from local.
 - Run the `server.js` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
 
 ## Install & Usage
@@ -90,7 +91,6 @@ Prepare the LLM of your choice. Edit the BASE_URL and MODEL in the project direc
 
 
 This project was developed using Python `3.10.13`. I strongly recommend creating a virtual Python environment like conda for this project. 
-Running through docker is not yet supported because the microphone is currently being listened to on the back end. I will dockerize this project once I move the microphone to the front end. Mac GPU acceleration will definitely not work inside docker, though.
 
 Run the following in the terminal to install the dependencies.
 
@@ -102,7 +102,7 @@ pip install py3-tts # if you want to use py3-tts as your text to speech backend,
 
 This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice.
 
-Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to pyttsx3, live2d to on, and Rag to off to achieve a similar effect to the demo. I recommend turning Rag off because it's incompatible with many new features at the moment.
+Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to edgeTTS, live2d to True, and Rag to off to achieve a similar effect to the demo. I recommend turning Rag off because it's incompatible with many new features at the moment.
 
 If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the URL you set in `conf.yaml` (`http://HOST:PORT`). By default, go to `http://localhost:8000`.
 
@@ -113,7 +113,7 @@ Also, the live2D models have to be fetched through the internet, so you'll have 
 
 
 ### Update
-Backup the configuration files `conf.yaml` and `memgpt_config.yaml` if you've edited them and do `git fetch` `git pull`.
+Back up the configuration files `conf.yaml` and `memgpt_config.yaml` if you've edited them and do `git fetch` and `git pull`.
 Or just clone the repo again and make sure to either transfer your config files or set those configuration again.
 
 
@@ -174,6 +174,10 @@ This project can use [MemGPT](https://github.com/cpacker/MemGPT) as its LLM back
 
 To use MemGPT, you need to have the MemGPT server configured and running. You can install it using `pip` or `docker` or run it on a different machine. Check their [GitHub repo](https://github.com/cpacker/MemGPT) and [official documentation](https://memgpt.readme.io/docs/index).
 
+> :warning:
+> I recommend you installing MemGPT either in a separate python virtual environment or in docker, because there is currently a dependency conflict between this project and MemGPT (on fastapi it seems). You can check this issue [Can you please upgrade typer version in your dependancies #1382](https://github.com/cpacker/MemGPT/issues/1382).
+
+
 Here is a checklist:
 - Install memgpt
 - Configure memgpt
@@ -188,21 +192,22 @@ Here is a checklist:
 # Development
 (this project is in the active prototyping stage, so many things will change)
 
-### How to add support for new TTS provider
+### [Outdated] How to add support for new TTS provider
 1. Create the new class `TTSEngine` in a new py file in the `./tts` directory
 2. In the class, expose a speak function: `speak` and `speak_stream` functions. Read the `pyttsx3TTS.py` for reference.
 3. Add your new tts module into the `tts_module_name` dictionary, which is currently hard-coded in the `main.py` and `launch.py` (I plan to ditch the main.py in the future). The dictionary key is the name of the TTS provider. The value is the module path of your module.
 4. Now you should be able to switch to the tts provider of your choice by editing the `conf.yaml`
 5. Create a pull request
 
-### How to add support for new Speech Recognition (or speech-to-text, STT) provider
+### [Outdated] How to add support for new Speech Recognition (or speech-to-text, STT) provider
 1. Create the new class `VoiceRecognition` in a new py file in the `./speech2text` directory
 2. In the class, expose a function: `transcribe_once(self)` that starts the voice recognition service. This function should be able to keep listening in the background, and when the user speaks something and finishes, the function should return the recognized text.
 3. Add your new stt module into the `stt_module_name` dictionary, which is currently hard-coded in the `main.py` and `launch.py` (I plan to ditch the main.py in the future). The key of the dictionary is the name of the speech recognition provider. The value is the module path of your module.
 4. Now you should be able to switch to the stt provider of your choice by editing the `conf.yaml`
 5. Create a pull request
 
-
+### Add support for new LLM provider
+Todo...
 
 # Acknowledgement
 Awesome projects I learned from

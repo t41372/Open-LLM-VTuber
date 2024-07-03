@@ -1,18 +1,16 @@
 # new version of main.py
 
 import os
-
 import json
 import importlib
-from Ollama import Ollama as oldOllama
-from llm.ollama import LLM
-import api_keys
 import requests
-from live2d import Live2dController
-from tts import stream_audio
-from tts.tts_factory import TTSFactory
-
 import yaml
+
+import api_keys
+from live2d import Live2dController
+from tts.tts_factory import TTSFactory
+from llm.llm_factory import LLMFactory
+from tts import stream_audio
 
 
 # Load configurations
@@ -55,35 +53,10 @@ live2d = init_live2d()
 
 def init_llm():
 
-    if get_config("RAG_ON", False):
-        llm = oldOllama(
-            base_url=get_config("BASE_URL"),
-            verbose=get_config("VERBOSE", False),
-            model=get_config("MODEL"),
-            system=system_prompt,
-            vector_db_path=get_config("MEMORY_DB_PATH"),
-        )
-        return llm
-
     llm_provider = get_config("LLM_PROVIDER")
-    llm_module_name = {
-        "ollama": "llm.ollama",
-        "memgpt": "llm.memGPT",
-    }.get(llm_provider)
-    llm = load_module(llm_module_name)
+    llm_config = get_config(llm_provider, {})
 
-    if llm_provider == "ollama":
-        llm = LLM(
-            base_url=get_config("BASE_URL") + "/v1",
-            verbose=get_config("VERBOSE", False),
-            model=get_config("MODEL"),
-            system=system_prompt,
-            llm_api_key=get_config("LLM_API_KEY"),
-            project_id=get_config("PROJECT_ID"),
-            organization_id=get_config("ORGANIZATION_ID"),
-        )
-    elif llm_provider == "memgpt":
-        llm = llm.LLM()
+    llm = LLMFactory.create_llm(llm_provider=llm_provider, SYSTEM_PROMPT=system_prompt, **llm_config)
 
     return llm
 
@@ -218,15 +191,11 @@ def stream_audio_file(sentence, filename):
 
 
 def callLLM(text, llm, tts):
-    rag_on = get_config("RAG_ON", False)
 
     if not get_config("TTS_ON", False):
         llm.chat(text)
         return
 
-    if rag_on:
-        result = llm.generateWithLongTermMemory(prompt=text)
-        stream_audio_file(result, generate_audio_file(result, "temp"))
     elif get_config("SAY_SENTENCE_SEPARATELY", False):
         result = llm.chat_stream_audio(
             text,

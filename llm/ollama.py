@@ -3,10 +3,11 @@
 # And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
 
 from openai import OpenAI
-# import rich as print
 import concurrent.futures
 
-class LLM:
+from .llm_interface import LLMInterface
+
+class LLM(LLMInterface):
 
     def __init__(self, base_url, model, system, callback=print, organization_id="z", project_id="z", llm_api_key="z", verbose=False):
         """
@@ -37,6 +38,9 @@ class LLM:
         )
 
         self.__set_system(system)
+
+        if self.verbose:
+            self.__printDebugInfo()
 
     
     def __set_system(self, system):
