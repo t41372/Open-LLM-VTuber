@@ -9,7 +9,7 @@ PORT: 8000
 
 # Provider of LLM. You can only choose either "ollama" or "memgpt"
 # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
-LLM_PROVIDER: "memgpt"
+LLM_PROVIDER: "ollama"
 
 
 # Ollama & OpenAI Compatible inference backend
@@ -51,10 +51,12 @@ LIVE2D_MODEL: "shizuku-local"
 
 # Automatic Speech Recognition
 VOICE_INPUT_ON: True
-# speech to text model options: "Faster-Whisper", "AzureSTT"
-STT_MODEL: "Faster-Whisper"
 # Put your mic in the browser or in the terminal? (would increase latency)
 MIC_IN_BROWSER: False
+
+# speech to text model options: "Faster-Whisper", "AzureSTT"
+STT_MODEL: "Faster-Whisper"
+
 
 # Text to Speech
 TTS_ON: True

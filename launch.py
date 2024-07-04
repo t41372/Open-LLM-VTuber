@@ -10,6 +10,7 @@ import api_keys
 from live2d import Live2dController
 from tts.tts_factory import TTSFactory
 from llm.llm_factory import LLMFactory
+from asr.asr_factory import ASRFactory
 from tts import stream_audio
 
 
@@ -68,33 +69,31 @@ def init_speech_services():
     speech2text, tts = None, None
 
     if voice_input_on:
-        stt_model = get_config("STT_MODEL")
-        stt_module_name = {
-            "Faster-Whisper": "speech2text.faster_whisper_asr",
-            "AzureSTT": "speech2text.azure_asr",
-        }.get(stt_model)
-        speech2text = load_module(stt_module_name)
-        if speech2text and stt_model == "AzureSTT":
-            speech2text = speech2text.VoiceRecognition(
-                callbackFunction=print,
-                subscription_key=api_keys.AZURE_API_Key,
-                region=api_keys.AZURE_REGION,
-            )
-        else:
-            speech2text = speech2text.VoiceRecognition()
+        asr_model = get_config("STT_MODEL")
+        
+        asr_config = {}
+        
+        if asr_model == "AzureSTT":
+            asr_config = {
+                "callback": print,
+                "subscription_key": api_keys.AZURE_API_Key,
+                "region": api_keys.AZURE_REGION,
+            }
+        
+        speech2text = ASRFactory.get_asr_system(asr_model, **asr_config)
 
     if tts_on:
         tts_model = get_config("TTS_MODEL", "pyttsx3TTS")
 
+        tts_config = {}
         if tts_model == "AzureTTS":
-            tts = TTSFactory.get_tts_engine(
-                tts_model,
-                api_key=api_keys.AZURE_API_Key,
-                region=api_keys.AZURE_REGION,
-                voice=api_keys.AZURE_VOICE,
-            )
-        else:
-            tts = TTSFactory.get_tts_engine(tts_model)
+            tts_config = {
+                "api_key": api_keys.AZURE_API_Key,
+                "region": api_keys.AZURE_REGION,
+                "voice": api_keys.AZURE_VOICE,
+            }
+        
+        tts = TTSFactory.get_tts_engine(tts_model, **tts_config)
 
     return speech2text, tts
 
@@ -113,7 +112,7 @@ def interaction_mode(llm, speech2text, tts):
             print("transcribing...")
             user_input = speech2text.transcribe_np(audio)
         elif voice_input_on:
-            user_input = speech2text.transcribe_with_vad()
+            user_input = speech2text.transcribe_with_local_vad()
         else:
             user_input = input(">> ")
 
@@ -207,17 +206,6 @@ def callLLM(text, llm, tts):
         stream_audio_file(result, generate_audio_file(result, "temp"))
 
 
-def send_message_to_broadcast(message):
-    url = live2d.base_url + "/broadcast"
-
-    payload = json.dumps(message)
-
-    response = requests.post(url, json={"message": payload})
-    print(f"Response Status Code: {response.status_code}")
-    if response.ok:
-        print("Message successfully sent to the broadcast route.")
-    else:
-        print("Failed to send message to the broadcast route.")
 
 
 if __name__ == "__main__":
