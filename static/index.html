@@ -95,7 +95,8 @@
             padding: 10px 20px;
             border: none;
             border-radius: 4px;
-            background-color: #008CBA;
+            /* background-color: #008CBA; */
+            background-color: #3f3f3f;
             color: white;
             cursor: pointer;
             transition: background-color 0.3s;
@@ -127,8 +128,8 @@
     <div class="bottom-container">
         <div class="fixed-bottom" id="message"></div>
         <div class="control-buttons">
-            <button id="micToggle">Mic On</button>
-            <button id="interruptBtn">Interrupt LLM [not implemented]</button>
+            <button id="micToggle">MicBtn [not implemented]</button>
+            <button id="interruptBtn">InterruptLLM [not implemented]</button>
         </div>
     </div>
 
@@ -136,13 +137,15 @@
     <script src="./live2d.js"></script>
 
     <script>
+        let micState = false;
+
         // Initialize the Live2D module with default model
         // live2dModule.init().then(() => {
         //     live2dModule.loadModel(modelDict[0]);
         // });
 
         // initialize vad
-
+        
         let myvad;
         async function init_vad() {
             myvad = await vad.MicVAD.new({
@@ -159,6 +162,7 @@
                     console.log(audio)
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         // ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
+                        micState = false;
                         sendAudioPartition(audio);
                     }
                     myvad.pause();
@@ -386,10 +390,11 @@
 
         }
 
-
+        
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
         // Once speech ends, the mic will pause.
         async function start_mic() {
+            micState = true;
             console.log("Mic start ")
             myvad.start();
         }
@@ -405,19 +410,22 @@
             }
         });
 
-        let micOn = true;
+        let micToggleState = true;
         micToggle.addEventListener('click', function () {
-            micOn = !micOn;
-            micToggle.textContent = micOn ? "Mic on" : "Mic off";
+            micToggleState = !micToggleState;
+            micToggle.textContent = micToggleState ? "Mic on [Not implemented]" : "Mic off [Not implemented]";
 
-            if (micOn) {
+            if (micToggleState) {
                 init_vad();
+                if (micState) {
+                    start_mic();
+                }
             } else {
                 myvad = null;
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: "mic_toggle", state: micOn }));
+                ws.send(JSON.stringify({ type: "mic_toggle", state: micToggleState }));
             }
         });
 
