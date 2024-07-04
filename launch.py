@@ -79,20 +79,23 @@ def init_speech_services():
                 "subscription_key": api_keys.AZURE_API_Key,
                 "region": api_keys.AZURE_REGION,
             }
+        else: 
+            asr_config = get_config(asr_model, {})
         
         speech2text = ASRFactory.get_asr_system(asr_model, **asr_config)
 
     if tts_on:
         tts_model = get_config("TTS_MODEL", "pyttsx3TTS")
-
-        tts_config = {}
+        
         if tts_model == "AzureTTS":
             tts_config = {
                 "api_key": api_keys.AZURE_API_Key,
                 "region": api_keys.AZURE_REGION,
                 "voice": api_keys.AZURE_VOICE,
             }
-        
+        else: 
+            tts_config = get_config(tts_model, {})
+
         tts = TTSFactory.get_tts_engine(tts_model, **tts_config)
 
     return speech2text, tts

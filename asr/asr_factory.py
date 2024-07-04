@@ -8,7 +8,11 @@ class ASRFactory:
     @staticmethod
     def get_asr_system(system_name: str, **kwargs) -> Type[ASRInterface]:
         if system_name == "Faster-Whisper":
-            return FasterWhisperASR()
+            return FasterWhisperASR(
+                model_path=kwargs.get("model_path"),
+                language=kwargs.get("language"),
+                device=kwargs.get("device"),
+            )
         elif system_name == "AzureSTT":
             return AzureASR(
                 subscription_key=kwargs.get("subscription_key"),
