@@ -1,9 +1,7 @@
 # new version of main.py
 
 import os
-import json
 import importlib
-import requests
 import yaml
 
 import api_keys

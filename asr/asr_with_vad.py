@@ -1,10 +1,35 @@
+r"""
+Original code by David Ng in [GlaDOS](https://github.com/dnhkng/GlaDOS) (/glados/voice_recognition.py), licensed under the MIT License.
 
-# Original code by David Ng in [GlaDOS](https://github.com/dnhkng/GlaDOS), licensed under the MIT License
-# https://opensource.org/licenses/MIT# 
-# Modifications by Yi-Ting Chiu as part of Open-LLM-VTuber, licensed under the MIT License
-# https://opensource.org/licenses/MIT
-# 
-#
+Original work Copyright (c) 2022 David Ng
+Modified work Copyright (c) 2024 Yi-Ting Chiu
+
+This file incorporates work covered by the following copyright and permission notice:
+
+MIT License
+
+Copyright (c) 2022 David Ng
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+This modified version is also distributed under the MIT License.
+"""
 
 import threading
 import queue
@@ -32,15 +57,6 @@ PAUSE_LIMIT = 1300  # Milliseconds of pause allowed before processing
 WAKE_WORD = "computer"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
-# Rest of the class remains unchanged
-VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
-SAMPLE_RATE = 16000  # Sample rate for input stream
-VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
-VAD_THRESHOLD = 0.7  # Threshold for VAD detection
-BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
-PAUSE_LIMIT = 1300  # Milliseconds of pause allowed before processing
-WAKE_WORD = "computer"  # Wake word for activation
-SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 
 class VoiceRecognitionVAD:

@@ -15,6 +15,6 @@ def send_message_to_broadcast(message):
     else:
         print("Failed to send message to the broadcast route.")
 
-# 使用範例
+# 使用例
 while True: 
     send_message_to_broadcast(input("(大人, 请广播🙏) >> "))

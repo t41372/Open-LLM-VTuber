@@ -15,3 +15,5 @@ openapi_assistants.json
 openapi_memgpt.json
 server.log
 cache/*
+asr/models*
+!asr/models/silero_vad.onnx

@@ -83,6 +83,8 @@ live2d technical details
 
 ## Install & Usage
 
+Install ffmpeg on your computer.
+
 Clone this repository.
 
 You need to have [Ollama](https://github.com/jmorganca/ollama) or any other OpenAI-API-Compatible backend ready and running. If you want to use MemGPT as your backend, scroll down to the MemGPT section.
@@ -96,8 +98,7 @@ Run the following in the terminal to install the dependencies.
 
 ~~~shell
 pip install -r requirements.txt # Run this in the project directory
-pip install azure-cognitiveservices-speech # If you want to use Azure for Speech Recognition or Text to Speech, install azure dependencies.
-pip install py3-tts # if you want to use py3-tts as your text to speech backend, install py3-tts
+# Install Speech recognition dependencies and text to speech dependencies according to the instructions below
 ~~~
 
 This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice.
@@ -119,32 +120,48 @@ Or just clone the repo again and make sure to either transfer your config files 
 
 
 
-## Change Speech Recognition and Text to Speech provider
-Edit the STT_MODEL and TTS MODEL settings in the `conf.yaml` to change the provider.
+## Install Speech Recognition
+Edit the STT_MODEL settings in the `conf.yaml` to change the provider.
 
-### Use your system default Text-to-Speech Engine, offline
-Run the following command to install `py3-tts` package.
-~~~sh
-pip install py3-tts
-~~~
-`py3-tts` is used instead of the more famous `pyttsx3` because I couldn't get the latest version working.
-In addition, `pyttsx3` seems unmaintained.
+Here are the options you have for speech recognition:
 
-This library will use the appropriate TTS engine on your machine. It uses `sapi5` on Windows, `nsss` on Mac, and `espeak` on other platforms.
+`Faster-Whisper` (local)
+- Whisper, but faster. On macOS, it seems to run on CPU only, which is not so fast.
 
-### barkTTS
-Install the pip package and turn it on in `conf.yaml`.
-~~~sh
-pip install git+https://github.com/suno-ai/bark.git
-~~~
-The required models will be downloaded on the first launch.
+`WhisperCPP` (local)
+- Install the package by running `pip install pywhispercpp`
+- The whisper cpp python binding. It is suppose to utilize GPU, but it's not on macOS, somehow.
+- On CPU, it is slower than `Faster-Whisper`. Maybe it will shine on your special computer, but certainly not on Mac or Nvidia GPU (because I believe Faster-Whisper runs on cuda as well)
 
-### Edge TTS
-Install the pip package and turn it on in `conf.yaml`.
-~~~sh
-pip install edge-tts
-~~~
-Remember to connect to the internet when using edge tts.
+`Whisper` (local)
+- Oringinal Whisper from OpenAI. Install it with `pip install -U openai-whisper`
+- The slowest of all. Added as an experiment to see if it can utilize macOS GPU. It didn't.
+
+`AzureSTT` (online, API Key required)
+- Azure Speech Recognition. Install with `pip install azure-cognitiveservices-speech`.
+- API key and internet connection are required.
+
+## Install Speech Synthesis (text to speech)
+Install the respective package and turn it on in the `TTS_MODEL` option in `conf.yaml`.
+
+`pyttsx3TTS` (local, fast)
+- Install with command `pip install py3-tts`.
+- This package will use the default TTS engine on your system. It uses `sapi5` on Windows, `nsss` on Mac, and `espeak` on other platforms.
+- `py3-tts` is used instead of the more famous `pyttsx3` because `pyttsx3` seems unmaintained and I couldn't get the latest version of `pyttsx3` working.
+
+
+
+`barkTTS` (local, slow)
+- Install the pip package with this command `pip install git+https://github.com/suno-ai/bark.git` and turn it on in `conf.yaml`.
+- The required models will be downloaded on the first launch.
+
+`edgeTTS` (online, no API key required)
+- Install the pip package with this command `pip install edge-tts` and turn it on in `conf.yaml`.
+- Sounds pretty good. Runs pretty fast.
+- Remember to connect to the internet when using edge tts.
+
+`AzureTTS` (online, API key required)
+- See below
 
 ### Azure API for Speech Recognition and Speech to Text, API key needed
 
