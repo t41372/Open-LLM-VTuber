@@ -9,13 +9,16 @@ Long-term memory with MemGPT can be configured to achieve perpetual chat, infini
 This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run offline on platforms other than Windows.
 
 
-
-<img width="500" alt="demo-image" src="https://github.com/t41372/Open-LLM-VTuber/assets/36402030/32378562-c9ca-4130-bf4e-92ac8928b27d">
-
+<img width="500" alt="demo-image" src="https://github.com/t41372/Open-LLM-VTuber/assets/36402030/fa363492-7c01-47d8-915f-f12a3a95942c"/>
 
 
 
-https://github.com/t41372/Open-LLM-VTuber/assets/36402030/9ededf92-e6f4-48e7-a309-994f3dbd884d
+
+
+https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63a-eea5694cbb83
+
+
+
 
 
 
