@@ -1,7 +1,7 @@
 import time
 import json
 import requests
-import TaskQueue
+import utils.TaskQueue as TaskQueue
 
 import websocket
 import json
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
     aud = live2d.get_mic_audio()
 
-    from speech2text.faster_whisper_asr import VoiceRecognition
+    from asr.faster_whisper_asr import VoiceRecognition
     text = VoiceRecognition().transcribe_np(aud)
 
     print(text)
