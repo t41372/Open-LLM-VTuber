@@ -1,6 +1,6 @@
 # Open-LLM-VTuber
 
-> :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code are messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
+> :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
 Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline (with a small exception...) on macOS, Linux, and Windows. 
 
@@ -83,7 +83,7 @@ live2d technical details
 
 ## Install & Usage
 
-Install ffmpeg on your computer.
+Install FFmpeg on your computer.
 
 Clone this repository.
 
@@ -98,7 +98,7 @@ Run the following in the terminal to install the dependencies.
 
 ~~~shell
 pip install -r requirements.txt # Run this in the project directory
-# Install Speech recognition dependencies and text to speech dependencies according to the instructions below
+# Install Speech recognition dependencies and text-to-speech dependencies according to the instructions below
 ~~~
 
 This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice.
@@ -115,7 +115,7 @@ Also, the live2D models have to be fetched through the internet, so you'll have 
 
 ### Update
 Back up the configuration files `conf.yaml` and `memgpt_config.yaml` if you've edited them and do `git fetch` and `git pull`.
-Or just clone the repo again and make sure to either transfer your config files or set those configuration again.
+Or just clone the repo again and make sure to either transfer your config files or set those configurations again.
 
 
 
@@ -126,15 +126,23 @@ Edit the STT_MODEL settings in the `conf.yaml` to change the provider.
 Here are the options you have for speech recognition:
 
 `Faster-Whisper` (local)
-- Whisper, but faster. On macOS, it seems to run on CPU only, which is not so fast.
+- Whisper, but faster. On macOS, it runs on CPU only, which is not so fast, but it's easy.
 
-`WhisperCPP` (local)
+`WhisperCPP` (local) (runs super fast on a Mac if configured correctly)
 - Install the package by running `pip install pywhispercpp`
-- The whisper cpp python binding. It is suppose to utilize GPU, but it's not on macOS, somehow.
-- On CPU, it is slower than `Faster-Whisper`. Maybe it will shine on your special computer, but certainly not on Mac or Nvidia GPU (because I believe Faster-Whisper runs on cuda as well)
+- The whisper cpp python binding. It can run on coreML with configuration, which makes it very fast on macOS.
+- On CPU or Nvidia GPU, it's probably slower than Faster-Whisper
+
+WhisperCPP coreML configuration:
+- Uninstall the original `pywhispercpp` if you have already installed it. We are building the package.
+- Run `install_coreml_whisper.py` with Python to automatically clone and build the coreML-supported `pywhispercpp` for you.
+- Prepare the appropriate coreML models.
+  - You can either convert models to coreml according to the documentation on Whisper.cpp repo
+  - ...or you can find some [magical huggingface repo](https://huggingface.co/chidiwilliams/whisper.cpp-coreml/tree/main) that happens to have those converted models. Just remember to decompress them. If the program fails to load the model, it will produce a segmentation fault.
+  - You don't need to include those weird prefixes in the model name in the `conf.yaml`. For example, if the coreml model's name looks like `ggml-base-encoder.mlmodelc`, just put `base` into the `model_name` under `WhisperCPP` settings in the `conf.yaml`.
 
 `Whisper` (local)
-- Oringinal Whisper from OpenAI. Install it with `pip install -U openai-whisper`
+- Original Whisper from OpenAI. Install it with `pip install -U openai-whisper`
 - The slowest of all. Added as an experiment to see if it can utilize macOS GPU. It didn't.
 
 `AzureSTT` (online, API Key required)
@@ -142,12 +150,12 @@ Here are the options you have for speech recognition:
 - API key and internet connection are required.
 
 ## Install Speech Synthesis (text to speech)
-Install the respective package and turn it on in the `TTS_MODEL` option in `conf.yaml`.
+Install the respective package and turn it on using the `TTS_MODEL` option in `conf.yaml`.
 
 `pyttsx3TTS` (local, fast)
-- Install with command `pip install py3-tts`.
+- Install with the command `pip install py3-tts`.
 - This package will use the default TTS engine on your system. It uses `sapi5` on Windows, `nsss` on Mac, and `espeak` on other platforms.
-- `py3-tts` is used instead of the more famous `pyttsx3` because `pyttsx3` seems unmaintained and I couldn't get the latest version of `pyttsx3` working.
+- `py3-tts` is used instead of the more famous `pyttsx3` because `pyttsx3` seems unmaintained, and I couldn't get the latest version of `pyttsx3` working.
 
 
 
@@ -192,7 +200,7 @@ This project can use [MemGPT](https://github.com/cpacker/MemGPT) as its LLM back
 To use MemGPT, you need to have the MemGPT server configured and running. You can install it using `pip` or `docker` or run it on a different machine. Check their [GitHub repo](https://github.com/cpacker/MemGPT) and [official documentation](https://memgpt.readme.io/docs/index).
 
 > :warning:
-> I recommend you installing MemGPT either in a separate python virtual environment or in docker, because there is currently a dependency conflict between this project and MemGPT (on fastapi it seems). You can check this issue [Can you please upgrade typer version in your dependancies #1382](https://github.com/cpacker/MemGPT/issues/1382).
+> I recommend you install MemGPT either in a separate Python virtual environment or in docker because there is currently a dependency conflict between this project and MemGPT (on fast API, it seems). You can check this issue [Can you please upgrade typer version in your dependancies #1382](https://github.com/cpacker/MemGPT/issues/1382).
 
 
 Here is a checklist:
