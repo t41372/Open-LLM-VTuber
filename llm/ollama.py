@@ -84,7 +84,8 @@ class LLM(LLMInterface):
             if text.strip().endswith(item):
                 return False
 
-        return text.strip().endswith(".") or text.strip().endswith("?") or text.strip().endswith("!")
+        punctuation_blacklist = [".", "?", "!", "。", "；", "？", "！", "…", "〰", "〜", "～", "！", ]
+        return any(text.strip().endswith(punct) for punct in punctuation_blacklist)
     
     def chat(self, prompt):
 
@@ -178,7 +179,7 @@ class LLM(LLMInterface):
         
         
         index = 0
-        sentence = ""
+        sentence_buffer = ""
         full_response = ""
         
 
@@ -188,20 +189,30 @@ class LLM(LLMInterface):
             for chunk in chat_completion:
                 if chunk.choices[0].delta.content is not None:
                     print(chunk.choices[0].delta.content or "", end="")
-                    sentence += chunk.choices[0].delta.content
+                    sentence_buffer += chunk.choices[0].delta.content
                     full_response += chunk.choices[0].delta.content
-                    if self.__is_complete_sentence(sentence):
+                    if self.__is_complete_sentence(sentence_buffer):
                         if callable(generate_audio_file):
                             print("\n")
-                            file_path = generate_audio_file(sentence, file_name_no_ext=f"temp-{index}")
+                            file_path = generate_audio_file(sentence_buffer, file_name_no_ext=f"temp-{index}")
                             
                             # wait for the audio to finish playing
                             if last_stream_future:
                                 last_stream_future.result()
                             # stream the audio file to the frontend
-                            last_stream_future = executor.submit(stream_audio_file, sentence, filename=file_path)
+                            last_stream_future = executor.submit(stream_audio_file, sentence_buffer, filename=file_path)
                             index += 1
-                        sentence = ""
+                        sentence_buffer = ""
+            if sentence_buffer: # if there is any remaining text, generate and stream the audio
+                if callable(generate_audio_file):
+                    print("\n")
+                    file_path = generate_audio_file(sentence_buffer, file_name_no_ext=f"temp-{index}")
+                    # wait for the audio to finish playing
+                    if last_stream_future:
+                        last_stream_future.result()
+                    # stream the audio file to the frontend
+                    last_stream_future = executor.submit(stream_audio_file, sentence_buffer, filename=file_path)
+                    index += 1
             # wait for the last audio to finish playing
             if last_stream_future:
                 last_stream_future.result()

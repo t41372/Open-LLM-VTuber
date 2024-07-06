@@ -71,7 +71,7 @@ WhisperCPP:
   print_realtime: False
   print_progress: False
   
-  language: "en" # en, auto, 
+  language: "en" # en, zh, auto, 
 
 Whisper:
   name: "medium"
@@ -89,6 +89,18 @@ TTS_MODEL: "edgeTTS"
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
 # if turned on, the timing and order of the facial expression will be more accurate
 SAY_SENTENCE_SEPARATELY: True
+
+
+barkTTS:  
+  voice: "v2/en_speaker_1"
+
+edgeTTS:
+  # Check out doc at https://github.com/rany2/edge-tts
+  # Use `edge-tts --list-voices` to list all available voices
+  voice: "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural"
+
+# pyttsx3 doesn't have any config.
+
 
 
 #  ===== Other Settings =====

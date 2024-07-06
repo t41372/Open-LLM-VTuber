@@ -20,7 +20,7 @@ import platform
 
 class TTSEngine(TTSInterface):
 
-    def __init__(self):
+    def __init__(self, voice="v2/en_speaker_1"):
 
         if platform.system() == "Darwin":
             print(">> Note: Running barkTTS on macOS can be very slow.")
@@ -30,7 +30,7 @@ class TTSEngine(TTSInterface):
 
         # download and load all models
         preload_models()
-        self.voice = "v2/en_speaker_1"
+        self.voice = voice
 
         self.temp_audio_file = "temp"
         self.file_extension = "wav"
@@ -56,9 +56,8 @@ class TTSEngine(TTSInterface):
         if on_speak_start_callback is not None:
             on_speak_start_callback()
         data, fs = sf.read(filepath, dtype="float32")
-        # 使用 sounddevice 播放音頻數據
+
         sd.play(data, fs)
-        # 等待音頻播放完成
         sd.wait()
         if on_speak_end_callback is not None:
             on_speak_end_callback()

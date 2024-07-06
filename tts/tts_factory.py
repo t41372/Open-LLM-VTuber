@@ -12,9 +12,9 @@ class TTSFactory:
         if engine_type == "AzureTTS":
             return AzureTTSEngine(kwargs.get("api_key"), kwargs.get("region"), kwargs.get("voice"))
         elif engine_type == "barkTTS":
-            return BarkTTSEngine()
+            return BarkTTSEngine(kwargs.get("voice"))
         elif engine_type == "edgeTTS":
-            return EdgeTTSEngine()
+            return EdgeTTSEngine(kwargs.get("voice"))
         elif engine_type == "pyttsx3TTS":
             return Pyttsx3TTSEngine()
         else:

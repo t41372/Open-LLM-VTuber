@@ -15,11 +15,10 @@ import soundfile as sf
 # Check out doc at https://github.com/rany2/edge-tts
 # Use `edge-tts --list-voices` to list all available voices
 
-DEFAULT_VOICE = "en-US-AvaMultilingualNeural"
 
 class TTSEngine(TTSInterface):
 
-    def __init__(self, voice=DEFAULT_VOICE):
+    def __init__(self, voice="en-US-AvaMultilingualNeural"):
         self.voice = voice
 
         self.temp_audio_file = "temp"

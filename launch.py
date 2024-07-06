@@ -174,7 +174,6 @@ def stream_audio_file(sentence, filename):
         live2d.send_text(sentence)
         return
 
-    # live2d.send_text(sentence)
 
     stream_audio.StreamAudio(
         filename,
