@@ -55,7 +55,7 @@ VOICE_INPUT_ON: True
 MIC_IN_BROWSER: False
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureSTT", 
-STT_MODEL: "Whisper"
+STT_MODEL: "Faster-Whisper"
 
 # Faster whisper config
 Faster-Whisper:
@@ -66,7 +66,7 @@ Faster-Whisper:
 
 WhisperCPP:
   # all available models are listed on https://abdeladim-s.github.io/pywhispercpp/#pywhispercpp.constants.AVAILABLE_MODELS
-  model_name: "medium"
+  model_name: "small"
   model_dir: "asr/models"
   print_realtime: False
   print_progress: False

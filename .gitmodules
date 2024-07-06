@@ -1,0 +1,3 @@
+[submodule "submodules/pywhispercpp"]
+	path = submodules/pywhispercpp
+	url = https://github.com/abdeladim-s/pywhispercpp
