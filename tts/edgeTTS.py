@@ -9,7 +9,7 @@ sys.path.append(current_dir)
 import os
 from pathlib import Path
 
-import sounddevice as sd
+
 import soundfile as sf
 
 # Check out doc at https://github.com/rany2/edge-tts
@@ -40,6 +40,7 @@ class TTSEngine(TTSInterface):
         on_speak_end_callback: function
             the callback function to call when synthesis ends
         '''
+        import sounddevice as sd
         filepath = self.generate_audio(text)
         if on_speak_start_callback is not None:
             on_speak_start_callback()

@@ -1,7 +1,7 @@
 from .tts_interface import TTSInterface
 from bark import SAMPLE_RATE, generate_audio, preload_models
 from scipy.io.wavfile import write as write_wav
-import sounddevice as sd
+
 import soundfile as sf
 
 
@@ -52,6 +52,7 @@ class TTSEngine(TTSInterface):
         on_speak_end_callback: function
             the callback function to call when synthesis ends
         """
+        import sounddevice as sd
         filepath = self.generate_audio(text)
         if on_speak_start_callback is not None:
             on_speak_start_callback()
