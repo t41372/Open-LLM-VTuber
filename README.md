@@ -208,6 +208,9 @@ To use MemGPT, you need to have the MemGPT server configured and running. You ca
 > I recommend you install MemGPT either in a separate Python virtual environment or in docker because there is currently a dependency conflict between this project and MemGPT (on fast API, it seems). You can check this issue [Can you please upgrade typer version in your dependancies #1382](https://github.com/cpacker/MemGPT/issues/1382).
 
 
+> :warning:
+> If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch on secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+
 Here is a checklist:
 - Install memgpt
 - Configure memgpt
@@ -225,6 +228,47 @@ Here is a checklist:
 - Install `libportaudio2` to your computer via your package manager like apt
 
 
+
+# Running in a Container
+
+:warning: This is highly experimental, totally untested (because I use a mac), and totally unfinished. If you are having trouble with all the dependencies, however, you can try to have trouble with the container instead, which is still a lot of trouble, but are a different set of trouble, I guess.
+
+Current issues:
+
+- Large image size (7-13GB)
+- Nvidia GPU required (GPU passthrough limitation)
+- [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) needs to be configured for GPU passthrough.
+- You can't run it on a remote server unless you have configured SSL for the front end (it's not a feature of this project quite yet, so you may do a reverse proxy). That's because the web mic on the front end will only launch in a secure context (which refers to localhost or https environment). 
+- I'm not sure if it works (because I use mac and the added complexity caused by the reason mentioned above)
+
+Setup guide:
+
+1. Review `conf.yaml` before building (currently burned into the image, I'm sorry):
+
+   - Set `MIC_IN_BROWSER` to true (required because your mic doesn't live inside the container)
+
+2. Build the image:
+
+   ```
+   docker build -t open-llm-vtuber .
+   ```
+
+   (Grab a drink, this may take a while)
+
+3. Run the container:
+
+   ```
+   docker run -it --net=host -p 8000:8000 open-llm-vtuber "sh"
+   ```
+
+4. Inside the container, run:
+
+   - `server.py`
+   - Open the frontend website in your browser
+   - `launch.py`
+     (Use screen, tmux, or similar to run server.py and launch.py simultaneously)
+
+5. Open localhost:8000 to test
 
 # Development
 (this project is in the active prototyping stage, so many things will change)
