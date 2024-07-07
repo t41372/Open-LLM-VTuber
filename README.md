@@ -219,6 +219,13 @@ Here is a checklist:
 
 
 
+# Issues
+
+`PortAudio` Missing
+- Install `libportaudio2` to your computer via your package manager like apt
+
+
+
 # Development
 (this project is in the active prototyping stage, so many things will change)
 
