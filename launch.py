@@ -4,7 +4,7 @@ import os
 import importlib
 import yaml
 
-import api_keys
+
 from live2d import Live2dController
 from tts.tts_factory import TTSFactory
 from llm.llm_factory import LLMFactory
@@ -72,6 +72,7 @@ def init_speech_services():
         asr_config = {}
         
         if asr_model == "AzureSTT":
+            import api_keys
             asr_config = {
                 "callback": print,
                 "subscription_key": api_keys.AZURE_API_Key,
@@ -86,6 +87,7 @@ def init_speech_services():
         tts_model = get_config("TTS_MODEL", "pyttsx3TTS")
         
         if tts_model == "AzureTTS":
+            import api_keys
             tts_config = {
                 "api_key": api_keys.AZURE_API_Key,
                 "region": api_keys.AZURE_REGION,
