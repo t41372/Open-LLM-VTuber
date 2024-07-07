@@ -16,7 +16,7 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 
 
 https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63a-eea5694cbb83
-
+- The demo video uses llama3 (Q4_0) with Ollama, edgeTTS, and WhisperCPP running the coreML version of small model.
 
 
 
@@ -60,6 +60,8 @@ Currently supported LLM backend
 
 Currently supported Speech recognition backend
 - [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
+- [Whisper-CPP](https://github.com/ggerganov/whisper.cpp) using the python binding [pywhispercpp](https://github.com/abdeladim-s/pywhispercpp) (Local, mac GPU acceleration can be configured)
+- [Whisper](https://github.com/openai/whisper) (local)
 - [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
 - The microphone will be listening in the terminal by default. You can change the settings in the `conf.yaml` to move the microphone (and vad) to the browser (at the cost of latency, for now). Microphone listening in the terminal means the program can't hear you if you open the Live2D front-end website on a different device or run this project inside a VM or docker. Set `MIC_IN_BROWSER` to `True` in this case.
 
