@@ -240,6 +240,7 @@ Current issues:
 - [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) needs to be configured for GPU passthrough.
 - You can't run it on a remote server unless you have configured SSL for the front end (it's not a feature of this project quite yet, so you may do a reverse proxy). That's because the web mic on the front end will only launch in a secure context (which refers to localhost or https environment). 
 - I'm not sure if it works (because I use mac and the added complexity caused by the reason mentioned above)
+- Don't build the image on an Arm machine. One of the dependencies (grpc, to be exact) will fail, for some reason https://github.com/grpc/grpc/issues/34998. 
 
 Setup guide:
 
