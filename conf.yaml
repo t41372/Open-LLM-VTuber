@@ -110,7 +110,7 @@ edgeTTS:
 VERBOSE: False
 
 # Exit phrase
-EXIT_PHRASE: "exit"
+EXIT_PHRASE: "exit."
 
 # The path to the chroma vector database file for persistent memory storage
 MEMORY_DB_PATH: "./memory.db"

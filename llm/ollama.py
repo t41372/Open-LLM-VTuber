@@ -134,6 +134,38 @@ class LLM(LLMInterface):
 
         return full_response
     
+    def chat_iter(self, prompt):
+
+        self.memory.append(
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        )
+
+        if self.verbose:
+            self.__printMemory()
+            print(" -- Base URL: " + self.base_url)
+            print(" -- Model: " + self.model)
+            print(" -- System: " + self.system)
+            print(" -- Prompt: " + prompt + "\n\n")
+
+        chat_completion = []
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=self.memory,
+                model=self.model,
+                stream=True,
+            )
+        except Exception as e:
+            print("Error calling the chat endpoint: " + str(e))
+            self.__printDebugInfo()
+            return "Error calling the chat endpoint: " + str(e)
+
+
+        # you need to manually insert the assistant's response into memory
+
+        return chat_completion
     
     
     def chat_stream_audio(self, prompt, generate_audio_file=None, stream_audio_file=None):

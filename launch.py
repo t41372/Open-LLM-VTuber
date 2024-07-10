@@ -35,6 +35,8 @@ def load_module(module_name):
         return None
 
 
+
+
 # initialize live2d
 def init_live2d():
     live2d_on = get_config("LIVE2D", False)
@@ -102,7 +104,7 @@ def init_speech_services():
 
 
 # Interaction modes
-def interaction_mode(llm, speech2text, tts):
+def conversation_loop(llm, speech2text, tts):
     exit_phrase = get_config("EXIT_PHRASE", "exit").lower()
     voice_input_on = get_config("VOICE_INPUT_ON", False)
 
@@ -232,7 +234,7 @@ if __name__ == "__main__":
         llm = init_llm()
 
         speech2text, tts = init_speech_services()
-        interaction_mode(llm, speech2text, tts)
+        conversation_loop(llm, speech2text, tts)
     except Exception as e:
         print(f"Error initializing: {e}")
         raise
