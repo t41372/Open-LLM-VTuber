@@ -34,6 +34,8 @@ class StreamAudio:
         self.volumes = []
         self.chunk_length_ms = 20
         self.audio = AudioSegment.from_file(self.audio_path)
+        if self.audio.empty or self.audio.max == 0:
+            raise ValueError("Audio is empty or all zero.")
         self.__getVolumeByChunks()
     
 

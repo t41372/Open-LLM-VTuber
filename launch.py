@@ -176,19 +176,24 @@ def stream_audio_file(sentence, filename):
         live2d.send_text(sentence)
         return
 
+    try:
+        stream_audio.StreamAudio(
+            filename,
+            display_text=sentence,
+            expression_list=expression_list,
+            base_url=live2d.base_url,
+        ).send_audio_with_volume(wait_for_audio=True)
 
-    stream_audio.StreamAudio(
-        filename,
-        display_text=sentence,
-        expression_list=expression_list,
-        base_url=live2d.base_url,
-    ).send_audio_with_volume(wait_for_audio=True)
-
-    if os.path.exists(filename):
-        os.remove(filename)
-        print(f"File {filename} removed successfully.")
-    else:
-        print(f"File {filename} does not exist.")
+        if os.path.exists(filename):
+            os.remove(filename)
+            print(f"File {filename} removed successfully.")
+        else:
+            print(f"File {filename} does not exist.")
+    except ValueError as e:
+        if str(e) == "Audio is empty or all zero.":
+            print("No audio to be streamed. Response is empty.")
+        else:
+            raise
 
 
 def callLLM(text, llm, tts):

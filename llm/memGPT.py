@@ -64,9 +64,7 @@ class LLM(LLMInterface):
         - str: The full response from the agent.
         """
 
-        full_response = self._send_message_to_agent(
-            prompt, callback_function=print
-        )
+        full_response = self._send_message_to_agent(prompt, callback_function=print)
 
         return full_response
 
@@ -97,6 +95,8 @@ class LLM(LLMInterface):
             last_stream_future = None
             for sentence in sentences:
                 print(f">> {sentence}")
+                if sentence.strip() == "":
+                    continue
 
                 if callable(generate_audio_file):
                     print("\n")

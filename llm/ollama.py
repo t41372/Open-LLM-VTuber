@@ -187,7 +187,7 @@ class LLM(LLMInterface):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             last_stream_future = None
             for chunk in chat_completion:
-                if chunk.choices[0].delta.content is not None:
+                if chunk.choices[0].delta.content:
                     print(chunk.choices[0].delta.content or "", end="")
                     sentence_buffer += chunk.choices[0].delta.content
                     full_response += chunk.choices[0].delta.content
