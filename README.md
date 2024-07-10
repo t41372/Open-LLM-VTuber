@@ -34,7 +34,7 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 
 
 
-### Goal
+### Basic Goals
 - [x] Chat with LLM by voice
 - [x] Choose your own LLM backend
 - [x] Choose your own Speech Recognition & Text to Speech provider
@@ -46,7 +46,11 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 - Windows
 - Linux
 
-
+### Recent Feature Updates
+- [Jul 7, 2024] Totally untested Docker support with Nvidia GPU passthrough (no mac, no amd)
+- [Jul 6, 2024] Support for Chinese 支持中文 and probably some other languages...
+- [Jul 6, 2024] WhisperCPP with macOS GPU acceleration. Dramatically decreased latency on mac
+- ...
 
 ## Implemented Features
 
