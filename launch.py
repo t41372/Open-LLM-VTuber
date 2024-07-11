@@ -170,6 +170,10 @@ def stream_audio_file(sentence, filename):
     if not live2d:
         tts.speak_local(sentence)
         return
+    
+    if filename is None:
+        print("No audio to be streamed. Response is empty.")
+        return
 
     expression_list = live2d.get_expression_list(sentence)
 

@@ -82,8 +82,12 @@ class TTSEngine(TTSInterface):
         
         file_name = str(Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}")
 
-        communicate = edge_tts.Communicate(text, self.voice)
-        communicate.save_sync(file_name)
+        try:
+            communicate = edge_tts.Communicate(text, self.voice)
+            communicate.save_sync(file_name)
+        except :
+            print("No audio was received. Please verify that your parameters are correct.")
+            return None
 
         return file_name
 
