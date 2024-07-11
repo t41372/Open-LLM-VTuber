@@ -19,6 +19,19 @@ class ASRFactory:
         elif system_name == "Whisper":
             from .openai_whisper_asr import VoiceRecognition as WhisperASR
             return WhisperASR(**kwargs)
+        elif system_name == "FunASR":
+            from .fun_asr import VoiceRecognition as FunASR
+            return FunASR(
+                model_name=kwargs.get("model_name"),
+                vad_model=kwargs.get("vad_model"),
+                punc_model=kwargs.get("punc_model"),
+                ncpu=kwargs.get("ncpu"),
+                hub=kwargs.get("hub"),
+                device=kwargs.get("device"),
+                language=kwargs.get("language"),
+                use_itn=kwargs.get("use_itn"),
+                # sample_rate=kwargs.get("sample_rate"),
+            )
         elif system_name == "AzureSTT":
             from .azure_asr import VoiceRecognition as AzureASR
             return AzureASR(

@@ -54,7 +54,7 @@ VOICE_INPUT_ON: True
 # Put your mic in the browser or in the terminal? (would increase latency)
 MIC_IN_BROWSER: False
 
-# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureSTT", 
+# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureSTT", "FunASR"
 STT_MODEL: "Faster-Whisper"
 
 # Faster whisper config
@@ -77,6 +77,16 @@ Whisper:
   name: "medium"
   download_root: "asr/models"
   device: "cpu"
+
+FunASR:
+  model_name: "iic/SenseVoiceSmall" # or "paraformer-zh"
+  vad_model: "fsmn-vad" # this is only used to make it works if audio is longer than 30s
+  punc_model: "ct-punc" # punctuation model.
+  device: "cpu"
+  ncpu: 4 # number of threads for CPU internal operations.
+  hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
+  use_itn: False
+  language: "auto" # zh, en, auto
 
 # set azure speech recognition configuration in api_keys.py
 

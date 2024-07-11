@@ -16,7 +16,7 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 
 
 https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63a-eea5694cbb83
-- The demo video uses llama3 (Q4_0) with Ollama, edgeTTS, and WhisperCPP running the coreML version of small model.
+- The demo video uses llama3 (Q4_0) with Ollama, edgeTTS, and WhisperCPP running the coreML version of the small model.
 
 
 
@@ -47,9 +47,10 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 - Linux
 
 ### Recent Feature Updates
-- [Jul 7, 2024] Totally untested Docker support with Nvidia GPU passthrough (no mac, no amd)
+- [Jul 11, 2024] Added FunASR with SenseVoiceSmall speech recognition model.
+- [Jul 7, 2024] Totally untested Docker support with Nvidia GPU passthrough (no Mac, no AMD)
 - [Jul 6, 2024] Support for Chinese 支持中文 and probably some other languages...
-- [Jul 6, 2024] WhisperCPP with macOS GPU acceleration. Dramatically decreased latency on mac
+- [Jul 6, 2024] WhisperCPP with macOS GPU acceleration. Dramatically decreased latency on Mac
 - ...
 
 ## Implemented Features
@@ -63,11 +64,12 @@ Currently supported LLM backend
 - MemGPT (setup required)
 
 Currently supported Speech recognition backend
+- [FunASR](https://github.com/modelscope/FunASR), which support [SenseVoiceSmall](https://github.com/FunAudioLLM/SenseVoice) and many other models. (Local)
 - [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
 - [Whisper-CPP](https://github.com/ggerganov/whisper.cpp) using the python binding [pywhispercpp](https://github.com/abdeladim-s/pywhispercpp) (Local, mac GPU acceleration can be configured)
 - [Whisper](https://github.com/openai/whisper) (local)
 - [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
-- The microphone will be listening in the terminal by default. You can change the settings in the `conf.yaml` to move the microphone (and vad) to the browser (at the cost of latency, for now). Microphone listening in the terminal means the program can't hear you if you open the Live2D front-end website on a different device or run this project inside a VM or docker. Set `MIC_IN_BROWSER` to `True` in this case.
+- The microphone will be listening in the terminal by default. You can change the settings in the `conf.yaml` to move the microphone (and vad) to the browser (at the cost of latency, for now). Microphone listening in the terminal means the program can't hear you if you open the Live2D frontend website on a different device or run this project inside a VM or docker. Set `MIC_IN_BROWSER` to `True` in this case.
 
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
@@ -87,7 +89,7 @@ Live2D Talking face
 live2d technical details
 - Uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in *browser*
 - Uses WebSocket to control facial expressions and talking state between the server and the front end
-- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the required front-end packages from CDN. Once the page is loaded, you can disconnect the internet. Some Live2D models need to be fetched from CDN; some don't. Read `doc/live2d.md` for documentation on loading your live2D model from local.
+- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the required frontend packages from CDN. Once the page is loaded, you can disconnect the internet. Some Live2D models need to be fetched from CDN; some don't. Read `doc/live2d.md` for documentation on loading your live2D model from local.
 - Run the `server.js` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
 
 ## Install & Usage
@@ -134,6 +136,11 @@ Edit the STT_MODEL settings in the `conf.yaml` to change the provider.
 
 Here are the options you have for speech recognition:
 
+
+`FunASR` (local) (Runs very fast even on CPU. Not sure how they did it)
+- [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. With the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group, the result and speed are very impressive.
+- Install with `pip install -U funasr modelscope huggingface_hub`
+
 `Faster-Whisper` (local)
 - Whisper, but faster. On macOS, it runs on CPU only, which is not so fast, but it's easy.
 
@@ -174,7 +181,7 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 
 `edgeTTS` (online, no API key required)
 - Install the pip package with this command `pip install edge-tts` and turn it on in `conf.yaml`.
-- Sounds pretty good. Runs pretty fast.
+- It sounds pretty good. Runs pretty fast.
 - Remember to connect to the internet when using edge tts.
 
 `AzureTTS` (online, API key required)
@@ -213,7 +220,7 @@ To use MemGPT, you need to have the MemGPT server configured and running. You ca
 
 
 > :warning:
-> If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch on secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+> If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 
 Here is a checklist:
 - Install memgpt
@@ -235,7 +242,7 @@ Here is a checklist:
 
 # Running in a Container
 
-:warning: This is highly experimental, totally untested (because I use a mac), and totally unfinished. If you are having trouble with all the dependencies, however, you can try to have trouble with the container instead, which is still a lot of trouble, but are a different set of trouble, I guess.
+:warning: This is highly experimental, totally untested (because I use a mac), and totally unfinished. If you are having trouble with all the dependencies, however, you can try to have trouble with the container instead, which is still a lot of trouble but is a different set of trouble, I guess.
 
 Current issues:
 
@@ -254,24 +261,24 @@ Setup guide:
 
 2. Build the image:
 
-   ```
-   docker build -t open-llm-vtuber .
-   ```
+ ```
+ docker build -t open-llm-vtuber .
+ ```
 
-   (Grab a drink, this may take a while)
+ (Grab a drink, this may take a while)
 
 3. Run the container:
 
-   ```
-   docker run -it --net=host -p 8000:8000 open-llm-vtuber "sh"
-   ```
+ ```
+ docker run -it --net=host -p 8000:8000 open-llm-vtuber "sh"
+ ```
 
 4. Inside the container, run:
 
    - `server.py`
    - Open the frontend website in your browser
    - `launch.py`
-     (Use screen, tmux, or similar to run server.py and launch.py simultaneously)
+ (Use screen, tmux, or similar to run server.py and launch.py simultaneously)
 
 5. Open localhost:8000 to test
 
