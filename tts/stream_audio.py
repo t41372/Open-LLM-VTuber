@@ -34,8 +34,7 @@ class StreamAudio:
         self.volumes = []
         self.chunk_length_ms = 20
         self.audio = AudioSegment.from_file(self.audio_path)
-        if self.audio.empty or self.audio.max == 0:
-            raise ValueError("Audio is empty or all zero.")
+        
         self.__getVolumeByChunks()
     
 
@@ -47,8 +46,9 @@ class StreamAudio:
         chunks = make_chunks(self.audio, self.chunk_length_ms)
         self.volumes = [chunk.rms for chunk in chunks]
         self.maxNum = max(self.volumes)
+        if self.maxNum == 0:
+            raise ValueError("Audio is empty or all zero.")
         self.volumes = [volume/self.maxNum for volume in self.volumes]
-
 
 
     def send_audio_with_volume(self, wait_for_audio=True, on_speak_start_callback=None, on_speak_end_callback=None):
