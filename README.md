@@ -64,7 +64,7 @@ Currently supported LLM backend
 - MemGPT (setup required)
 
 Currently supported Speech recognition backend
-- [FunASR](https://github.com/modelscope/FunASR), which support [SenseVoiceSmall](https://github.com/FunAudioLLM/SenseVoice) and many other models. (Local)
+- [FunASR](https://github.com/modelscope/FunASR), which support [SenseVoiceSmall](https://github.com/FunAudioLLM/SenseVoice) and many other models. (~~Local~~ currently requires internet connection, ridiculous)
 - [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
 - [Whisper-CPP](https://github.com/ggerganov/whisper.cpp) using the python binding [pywhispercpp](https://github.com/abdeladim-s/pywhispercpp) (Local, mac GPU acceleration can be configured)
 - [Whisper](https://github.com/openai/whisper) (local)
@@ -137,9 +137,10 @@ Edit the STT_MODEL settings in the `conf.yaml` to change the provider.
 Here are the options you have for speech recognition:
 
 
-`FunASR` (local) (Runs very fast even on CPU. Not sure how they did it)
+`FunASR` (~~local~~) (Runs very fast even on CPU. Not sure how they did it)
 - [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. With the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group, the result and speed are very impressive.
 - Install with `pip install -U funasr modelscope huggingface_hub`
+- It requires internet connection on launch _even if the models are locally available_. See https://github.com/modelscope/FunASR/issues/1897
 
 `Faster-Whisper` (local)
 - Whisper, but faster. On macOS, it runs on CPU only, which is not so fast, but it's easy.
