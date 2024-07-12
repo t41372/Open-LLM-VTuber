@@ -22,7 +22,7 @@ class TTSInterface(metaclass=abc.ABCMeta):
         Generate speech audio file using TTS.
         text: str
             the text to speak
-        file_name_no_ext: str
+        file_name_no_ext (optional and deprecated): str
             name of the file without extension
 
         

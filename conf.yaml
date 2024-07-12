@@ -5,7 +5,7 @@ HOST: "localhost"
 PORT: 8000
 
 
-#  ===== LLM Backend Settings =====
+#  ============== LLM Backend Settings ===================
 
 # Provider of LLM. You can only choose either "ollama" or "memgpt"
 # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
@@ -42,12 +42,12 @@ memgpt:
 
 
 
-# ===== Live2D front-end Settings =====
+# ============== Live2D front-end Settings ==============
 
 LIVE2D: True
 LIVE2D_MODEL: "shizuku-local"
 
-#  ===== Voice Interaction Settings =====
+#  ============== Voice Interaction Settings ==============
 
 # === Automatic Speech Recognition ===
 VOICE_INPUT_ON: True
@@ -91,9 +91,9 @@ FunASR:
 # set azure speech recognition configuration in api_keys.py
 
 
-# === Text to Speech ===
+# ============== Text to Speech ==============
 TTS_ON: True
-# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS"
+# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS"
 TTS_MODEL: "edgeTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
@@ -111,9 +111,19 @@ edgeTTS:
 
 # pyttsx3 doesn't have any config.
 
+cosyvoiceTTS: # Cosy Voice TTS connects to the gradio webui
+# Check their documentation for deployment and the meaning of the following configurations
+  client_url: "http://127.0.0.1:50000/" # CosyVoice gradio demo webui url
+  mode_checkbox_group: "预训练音色"
+  sft_dropdown: "中文女"
+  prompt_text: ""
+  prompt_wav_upload_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+  prompt_wav_record_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+  instruct_text: ""
+  seed: 0
+  api_name: "/generate_audio"
 
-
-#  ===== Other Settings =====
+#  ============== Other Settings ==============
 
 
 # Print debug info
@@ -129,7 +139,7 @@ MEMORY_DB_PATH: "./memory.db"
 MEMORY_SNAPSHOT: True
 
 
-# ===== Prompts =====
+# ============== Prompts ==============
 
 # The name and role of the AI (every new line of the prompt needs to be indent)
 SYSTEM_PROMPT: | 

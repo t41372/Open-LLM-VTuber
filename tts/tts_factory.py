@@ -17,6 +17,19 @@ class TTSFactory:
         elif engine_type == "pyttsx3TTS":
             from .pyttsx3TTS import TTSEngine as Pyttsx3TTSEngine
             return Pyttsx3TTSEngine()
+        elif engine_type == "cosyvoiceTTS":
+            from .cosyvoiceTTS import TTSEngine as CosyvoiceTTSEngine
+            return CosyvoiceTTSEngine(
+                client_url=kwargs.get("client_url"),
+                mode_checkbox_group=kwargs.get("mode_checkbox_group"),
+                sft_dropdown=kwargs.get("sft_dropdown"),
+                prompt_text=kwargs.get("prompt_text"),
+                prompt_wav_upload_url=kwargs.get("prompt_wav_upload_url"),
+                prompt_wav_record_url=kwargs.get("prompt_wav_record_url"),
+                instruct_text=kwargs.get("instruct_text"),
+                seed=kwargs.get("seed"),
+                api_name=kwargs.get("api_name"),
+            )
         else:
             raise ValueError(f"Unknown TTS engine type: {engine_type}")
 

@@ -47,6 +47,7 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 - Linux
 
 ### Recent Feature Updates
+- [Jul 11, 2024] Added CosyVoiceTTS
 - [Jul 11, 2024] Added FunASR with SenseVoiceSmall speech recognition model.
 - [Jul 7, 2024] Totally untested Docker support with Nvidia GPU passthrough (no Mac, no AMD)
 - [Jul 6, 2024] Support for Chinese 支持中文 and probably some other languages...
@@ -179,6 +180,10 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 `barkTTS` (local, slow)
 - Install the pip package with this command `pip install git+https://github.com/suno-ai/bark.git` and turn it on in `conf.yaml`.
 - The required models will be downloaded on the first launch.
+
+`cosyvoiceTTS` (local, slow)
+- Configure [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) and launch the webui demo according to their documentation. 
+- Edit `conf.yaml` with your desired configurations. Check their webui and the api documentation on the webui to see the meaning of the configurations under the setting `cosyvoiceTTS` in the `conf.yaml`.
 
 `edgeTTS` (online, no API key required)
 - Install the pip package with this command `pip install edge-tts` and turn it on in `conf.yaml`.
