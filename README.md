@@ -2,7 +2,7 @@
 
 > :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline (with a small exception...) on macOS, Linux, and Windows. 
+Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
@@ -57,11 +57,10 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 ## Implemented Features
 
 - Talk to LLM with voice. Offline.
-- RAG on chat history *(needs to be rewritten to be compatible with many other features, so turn this off for now)*
+- ~~RAG on chat history~~ *(temporarily removed)*
 
 Currently supported LLM backend
-- Ollama
-- Any OpenAI-API-compatible backend, such as Groq, LM Studio, OpenAI, and more.
+- Any OpenAI-API-compatible backend, such as Ollama, Groq, LM Studio, OpenAI, and more.
 - MemGPT (setup required)
 
 Currently supported Speech recognition backend
@@ -75,6 +74,7 @@ Currently supported Speech recognition backend
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
 - [bark](https://github.com/suno-ai/bark) (Local, very resource-consuming)
+- [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) (Local, very resource-consuming)
 - [Edge TTS](https://github.com/rany2/edge-tts) (online, no API key required)
 - [Azure Text-to-Speech](https://azure.microsoft.com/en-us/products/ai-services/text-to-speech) (online, API Key required)
 
@@ -115,7 +115,7 @@ pip install -r requirements.txt # Run this in the project directory
 
 This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice.
 
-Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to edgeTTS, live2d to True, and Rag to off to achieve a similar effect to the demo. I recommend turning Rag off because it's incompatible with many new features at the moment.
+Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to edgeTTS, live2d to True to achieve a similar effect to the demo.
 
 If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the URL you set in `conf.yaml` (`http://HOST:PORT`). By default, go to `http://localhost:8000`.
 
