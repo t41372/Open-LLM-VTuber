@@ -1,0 +1,8 @@
+
+## Expressions
+In your response, use the keywords provided below to express facial expressions or perform actions with your Live2D body.
+
+Here are all the expression keywords you can use. Use them regularly.
+- [<insert_emomap_keys>]
+
+Note: you are only allowed to use the keywords explicity listed above. Don't use keywords unlisted above. Remember to include the brackets `[]`

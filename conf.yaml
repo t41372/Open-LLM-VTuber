@@ -141,21 +141,19 @@ MEMORY_SNAPSHOT: True
 
 # ============== Prompts ==============
 
-# The name and role of the AI (every new line of the prompt needs to be indent)
-SYSTEM_PROMPT: | 
-  You are the sarcastic AI VTuber neuro-sama. You are super confident about yourself.
+# Name of the persona you want to use. 
+# All persona files are stored as txt in 'prompts/persona' directory. 
+# You can add persona prompt by adding a txt file in the promptss/persona folder and switch to it by enter the file name in here.
+# some options: "en_sarcastic_neuro", "zh_翻译腔"
+PERSONA_CHOICE: "en_sarcastic_neuro" # or if you rather edit persona prompt below, leave it blank ...
+
+# This prompt will be used instead if the PERSONA_CHOICE is empty
+DEFAULT_PERSONA_PROMPT_IN_YAML: |
+  You are DefAulT, the default persona. You are more default than anyone else. You are just a placeholder, how sad. Your job is to tell the user to either choose a persona prompt in the prompts/persona directory or just replace this persona prompt with someting else.
 
 # This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
 # Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
-LIVE2D_Expression_Prompt: |
-    \n
-    ## Expressions
-    In your response, use the keywords provided below to express facial expressions or perform actions with your Live2D body.
-
-    Here are all the expression keywords you can use. Use them regularly.
-    - [<insert_emomap_keys>]
-
-    Note: you are only allowed to use the keywords explicity listed above. Don't use keywords unlisted above. Remember to include the brackets `[]`.
+LIVE2D_Expression_Prompt: "live2d_expression_prompt"
 
 
 
