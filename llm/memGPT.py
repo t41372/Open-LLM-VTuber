@@ -67,6 +67,12 @@ class LLM(LLMInterface):
         full_response = self._send_message_to_agent(prompt, callback_function=print)
 
         return full_response
+    
+    def chat_iter(self, prompt):
+
+        full_response = self._send_message_to_agent(prompt, callback_function=print)
+
+        return full_response
 
     def chat_stream_audio(
         self, prompt, generate_audio_file=None, stream_audio_file=None

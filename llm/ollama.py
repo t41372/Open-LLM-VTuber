@@ -71,21 +71,7 @@ class LLM(LLMInterface):
         print(" -- Model: " + self.model)
         print(" -- System: " + self.system)
     
-    def __is_complete_sentence(self, text):
-        """
-        Check if the text is a complete sentence.
-        text: str
-            the text to check
-        """
-
-        white_list = ["...", "Dr.", "Mr.", "Ms.", "Mrs.", "Jr.", "Sr.", "St.", "Ave.", "Rd.", "Blvd.", "Dept.", "Univ.", "Prof.", "Ph.D.", "M.D.", "U.S.", "U.K.", "U.N.", "E.U.", "U.S.A.", "U.K.", "U.S.S.R.", "U.A.E."]
-
-        for item in white_list:
-            if text.strip().endswith(item):
-                return False
-
-        punctuation_blacklist = [".", "?", "!", "。", "；", "？", "！", "…", "〰", "〜", "～", "！", ]
-        return any(text.strip().endswith(punct) for punct in punctuation_blacklist)
+    
     
     def chat(self, prompt):
 
@@ -263,7 +249,7 @@ class LLM(LLMInterface):
         return full_response
     
 
-if __name__ == "__main__":
+def test():
     llm = LLM(
         base_url="http://localhost:11434/v1",
         model="llama3:latest",
@@ -276,5 +262,13 @@ if __name__ == "__main__":
     )
     while True:
         print("\n>> (Press Ctrl+C to exit.)")
-        llm.chat_stream_audio(input(">> "))
+        chat_complet = llm.chat_iter(input(">> "))
+
+        for chunk in chat_complet:
+            if chunk.choices[0].delta.content:
+                print(chunk.choices[0].delta.content or "", end="?")
+        
+
+if __name__ == "__main__":
+    test()
         
