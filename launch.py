@@ -1,7 +1,5 @@
-# new version of main.py
 
 import os
-import importlib
 import yaml
 
 
@@ -13,27 +11,15 @@ from tts import stream_audio
 from prompts import prompt_loader
 
 
-# Load configurations
-def load_config():
-    with open("conf.yaml", "r") as f:
-        return yaml.safe_load(f)
+config = {}
+with open("conf.yaml", "r") as f:
+    config = yaml.safe_load(f)
 
 
-config = load_config()
 
-
-# Simplified configuration access
 def get_config(key, default=None):
     return config.get(key, default)
 
-
-# Load and return module
-def load_module(module_name):
-    try:
-        return importlib.import_module(module_name)
-    except ImportError as e:
-        print(f"Module {module_name} not found: {e}")
-        return None
 
 
 # initialize live2d
@@ -128,10 +114,10 @@ def conversation_loop(llm, speech2text, tts):
             print("Exiting...")
             break
         print(f"User input: {user_input}")
-        callLLM(user_input, llm, tts)
+        call_llm(user_input, llm, tts)
 
 
-def callLLM(text, llm, tts):
+def call_llm(text, llm, tts):
 
     if not get_config("TTS_ON", False):
         llm.chat(text)
