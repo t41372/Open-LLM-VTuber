@@ -1,6 +1,6 @@
 import abc
 from typing import Iterator
-import concurrent.futures
+
 
 class LLMInterface(metaclass=abc.ABCMeta):
 
