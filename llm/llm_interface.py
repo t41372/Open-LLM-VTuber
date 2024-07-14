@@ -1,10 +1,11 @@
 import abc
-
+from typing import Iterator
+import concurrent.futures
 
 class LLMInterface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def chat(self, prompt):
+    def chat(self, prompt: str) -> str:
         """
         Sends a chat prompt to an agent, print the result, and returns the full response.
 
@@ -17,9 +18,10 @@ class LLMInterface(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def chat_iter(self, prompt):
+    def chat_iter(self, prompt: str) -> Iterator[str]:
         """
-        Sends a chat prompt to an agent and return an iterator to the response.
+        Sends a chat prompt to an agent and return an iterator to the response. 
+        This function will have to store the user message and ai response back to the memory.
 
         Parameters:
         - prompt (str): The message or question to send to the agent.
@@ -31,7 +33,7 @@ class LLMInterface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def chat_stream_audio(
-        self, prompt, generate_audio_file=None, stream_audio_file=None
+        self, prompt: str, generate_audio_file=None, stream_audio_file=None
     ):
         """
         Call the llm with text, print the result, and stream the audio to the frontend if the generate_audio_file and stream_audio_file functions are provided.
@@ -47,19 +49,6 @@ class LLMInterface(metaclass=abc.ABCMeta):
         """
         pass
 
-    @staticmethod
-    def is_complete_sentence(self, text:str):
-        """
-        Check if the text is a complete sentence.
-        text: str
-            the text to check
-        """
+    
+    
 
-        white_list = ["...", "Dr.", "Mr.", "Ms.", "Mrs.", "Jr.", "Sr.", "St.", "Ave.", "Rd.", "Blvd.", "Dept.", "Univ.", "Prof.", "Ph.D.", "M.D.", "U.S.", "U.K.", "U.N.", "E.U.", "U.S.A.", "U.K.", "U.S.S.R.", "U.A.E."]
-
-        for item in white_list:
-            if text.strip().endswith(item):
-                return False
-
-        punctuation_blacklist = [".", "?", "!", "。", "；", "？", "！", "…", "〰", "〜", "～", "！", ]
-        return any(text.strip().endswith(punct) for punct in punctuation_blacklist)

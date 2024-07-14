@@ -2,14 +2,26 @@
 # This class is responsible for handling the interaction with the OpenAI API for language generation.
 # And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
 
+from typing import Iterator
 from openai import OpenAI
 import concurrent.futures
 
 from .llm_interface import LLMInterface
 
+
 class LLM(LLMInterface):
 
-    def __init__(self, base_url, model, system, callback=print, organization_id="z", project_id="z", llm_api_key="z", verbose=False):
+    def __init__(
+        self,
+        base_url:str,
+        model:str,
+        system:str,
+        callback=print,
+        organization_id:str="z",
+        project_id:str="z",
+        llm_api_key:str="z",
+        verbose:bool=False,
+    ):
         """
         Initializes an instance of the `ollama` class.
 
@@ -17,7 +29,7 @@ class LLM(LLMInterface):
         - base_url (str): The base URL for the OpenAI API.
         - model (str): The model to be used for language generation.
         - system (str): The system to be used for language generation.
-        - callback (function, optional): The callback function to be called after each API call. Defaults to `print`.
+        - callback [DEPRECATED] (function, optional): The callback function to be called after each API call. Defaults to `print`.
         - organization_id (str, optional): The organization ID for the OpenAI API. Defaults to an empty string.
         - project_id (str, optional): The project ID for the OpenAI API. Defaults to an empty string.
         - llm_api_key (str, optional): The API key for the OpenAI API. Defaults to an empty string.
@@ -42,13 +54,12 @@ class LLM(LLMInterface):
         if self.verbose:
             self.__printDebugInfo()
 
-    
     def __set_system(self, system):
-        '''
+        """
         Set the system prompt
         system: str
             the system prompt
-        '''
+        """
         self.system = system
         self.memory.append(
             {
@@ -57,10 +68,10 @@ class LLM(LLMInterface):
             }
         )
 
-    def __printMemory(self):
-        '''
+    def __print_memory(self):
+        """
         Print the memory
-        '''
+        """
         print("Memory:\n========\n")
         # for message in self.memory:
         print(self.memory)
@@ -70,9 +81,7 @@ class LLM(LLMInterface):
         print(" -- Base URL: " + self.base_url)
         print(" -- Model: " + self.model)
         print(" -- System: " + self.system)
-    
-    
-    
+
     def chat(self, prompt):
 
         self.memory.append(
@@ -83,7 +92,7 @@ class LLM(LLMInterface):
         )
 
         if self.verbose:
-            self.__printMemory()
+            self.__print_memory()
             print(" -- Base URL: " + self.base_url)
             print(" -- Model: " + self.model)
             print(" -- System: " + self.system)
@@ -119,8 +128,8 @@ class LLM(LLMInterface):
         )
 
         return full_response
-    
-    def chat_iter(self, prompt):
+
+    def chat_iter(self, prompt:str) -> Iterator[str]:
 
         self.memory.append(
             {
@@ -130,7 +139,7 @@ class LLM(LLMInterface):
         )
 
         if self.verbose:
-            self.__printMemory()
+            self.__print_memory()
             print(" -- Base URL: " + self.base_url)
             print(" -- Model: " + self.model)
             print(" -- System: " + self.system)
@@ -148,13 +157,26 @@ class LLM(LLMInterface):
             self.__printDebugInfo()
             return "Error calling the chat endpoint: " + str(e)
 
+        # a generator to give back an iterator to the response that will store 
+        # the complete response in memory once the iteration is done
+        def _generate_and_store_response():
+            complete_response = ""
+            for chunk in chat_completion:
+                yield chunk.choices[0].delta.content
+                complete_response += chunk.choices[0].delta.content
+            self.memory.append(
+                {
+                    "role": "assistant",
+                    "content": complete_response,
+                }
+            )
+            return
 
-        # you need to manually insert the assistant's response into memory
+        return _generate_and_store_response()
 
-        return chat_completion
-    
-    
-    def chat_stream_audio(self, prompt, generate_audio_file=None, stream_audio_file=None):
+    def chat_stream_audio(
+        self, prompt, generate_audio_file=None, stream_audio_file=None
+    ):
         """
         Call the llm with text, print the result, and stream the audio to the frontend if the generate_audio_file and stream_audio_file functions are provided.
         prompt: str
@@ -176,7 +198,7 @@ class LLM(LLMInterface):
         )
 
         if self.verbose:
-            self.__printMemory()
+            self.__print_memory()
             print(" -- Base URL: " + self.base_url)
             print(" -- Model: " + self.model)
             print(" -- System: " + self.system)
@@ -194,12 +216,9 @@ class LLM(LLMInterface):
             self.__printDebugInfo()
             return "Error calling the chat endpoint: " + str(e)
 
-        
-        
         index = 0
         sentence_buffer = ""
         full_response = ""
-        
 
         # Initialize ThreadPoolExecutor
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -212,24 +231,34 @@ class LLM(LLMInterface):
                     if self.__is_complete_sentence(sentence_buffer):
                         if callable(generate_audio_file):
                             print("\n")
-                            file_path = generate_audio_file(sentence_buffer, file_name_no_ext=f"temp-{index}")
-                            
+                            file_path = generate_audio_file(
+                                sentence_buffer, file_name_no_ext=f"temp-{index}"
+                            )
+
                             # wait for the audio to finish playing
                             if last_stream_future:
                                 last_stream_future.result()
                             # stream the audio file to the frontend
-                            last_stream_future = executor.submit(stream_audio_file, sentence_buffer, filename=file_path)
+                            last_stream_future = executor.submit(
+                                stream_audio_file, sentence_buffer, filename=file_path
+                            )
                             index += 1
                         sentence_buffer = ""
-            if sentence_buffer: # if there is any remaining text, generate and stream the audio
+            if (
+                sentence_buffer
+            ):  # if there is any remaining text, generate and stream the audio
                 if callable(generate_audio_file):
                     print("\n")
-                    file_path = generate_audio_file(sentence_buffer, file_name_no_ext=f"temp-{index}")
+                    file_path = generate_audio_file(
+                        sentence_buffer, file_name_no_ext=f"temp-{index}"
+                    )
                     # wait for the audio to finish playing
                     if last_stream_future:
                         last_stream_future.result()
                     # stream the audio file to the frontend
-                    last_stream_future = executor.submit(stream_audio_file, sentence_buffer, filename=file_path)
+                    last_stream_future = executor.submit(
+                        stream_audio_file, sentence_buffer, filename=file_path
+                    )
                     index += 1
             # wait for the last audio to finish playing
             if last_stream_future:
@@ -247,14 +276,14 @@ class LLM(LLMInterface):
         )
 
         return full_response
-    
+
 
 def test():
     llm = LLM(
         base_url="http://localhost:11434/v1",
         model="llama3:latest",
         callback=print,
-        system="You are a sarcastic AI chatbot who loves to the jokes \"Get out and touch some grass\"",
+        system='You are a sarcastic AI chatbot who loves to the jokes "Get out and touch some grass"',
         organization_id="organization_id",
         project_id="project_id",
         llm_api_key="llm_api_key",
@@ -267,8 +296,7 @@ def test():
         for chunk in chat_complet:
             if chunk.choices[0].delta.content:
                 print(chunk.choices[0].delta.content or "", end="?")
-        
+
 
 if __name__ == "__main__":
     test()
-        

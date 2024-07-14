@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import concurrent.futures
+from typing import Iterator
 import pysbd
 from rich.console import Console
 
@@ -68,10 +69,9 @@ class LLM(LLMInterface):
 
         return full_response
     
-    def chat_iter(self, prompt):
-
+    def chat_iter(self, prompt) -> Iterator[str]:
         full_response = self._send_message_to_agent(prompt, callback_function=print)
-
+        # memGPT will handle the memory, so no need to deal with it here
         return full_response
 
     def chat_stream_audio(
