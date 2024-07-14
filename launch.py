@@ -142,7 +142,7 @@ class OpenLLMVTuberMain:
                 print("Listening from the microphone...")
                 return self.asr.transcribe_with_local_vad()
         else:
-            return input(">> ")
+            return input("\n>> ")
 
     def speak(self, chat_completion: Iterator[str]):
 
@@ -155,10 +155,12 @@ class OpenLLMVTuberMain:
                 print(char, end="")
                 full_response += char
             print("\n")
+            filename = asyncio.run(self._generate_audio_file(full_response, "temp"))
+            
             asyncio.run(
                 self._play_audio_file(
                     sentence=full_response,
-                    filename=self._generate_audio_file(full_response, "temp"),
+                    filename=filename,
                 )
             )
 
