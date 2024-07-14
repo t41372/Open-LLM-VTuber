@@ -25,6 +25,7 @@ class LLM(LLMInterface):
         print(">>>>>>>>>>>>>>>>>>>>FUCK YOU")
 
     def chat_iter(self, prompt: str) -> Iterator[str]:
+        print(">>> Received Prompt: " + prompt)
         if not self.response_list:
             return prompt
         return self.response_list.pop(0)
