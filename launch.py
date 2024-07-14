@@ -247,6 +247,19 @@ class OpenLLMVTuberMain:
                         await queue.put(audio_info)
                         index += 1
                         sentence_buffer = ""
+            # if there is more text left in the buffer
+            if sentence_buffer: # use the same code as above to generate audio file
+                print("\n")
+                audio_filepath = await self._generate_audio_file(
+                    sentence_buffer, file_name_no_ext=f"temp-{index}"
+                )
+                audio_info = {
+                    "sentence": sentence_buffer,
+                    "audio_filepath": audio_filepath,
+                }
+                await queue.put(audio_info)
+                index += 1
+                sentence_buffer = ""
             print("\nAudio generation completed.")
             return full_response
 
