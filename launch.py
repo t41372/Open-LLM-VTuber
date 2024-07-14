@@ -7,12 +7,14 @@ from asr.asr_factory import ASRFactory
 from tts import stream_audio
 from prompts import prompt_loader
 
+
 class OpenLLMVTuberMain:
-    def __init__(self, config):
+    def __init__(self, config: dict):
         self.config = config
         self.live2d = self.init_live2d()
         self.llm = self.init_llm()
-        self.speech2text, self.tts = self.init_speech_services()
+        self.asr = self.init_asr() if self.config.get("VOICE_INPUT_ON", False) else None
+        self.tts = self.init_tts() if self.config.get("TTS_ON", False) else None
 
     def init_live2d(self):
         live2d_on = self.config.get("LIVE2D", False)
@@ -28,47 +30,47 @@ class OpenLLMVTuberMain:
         llm_config = self.config.get(llm_provider, {})
         system_prompt = self.get_system_prompt()
 
-        llm = LLMFactory.create_llm(llm_provider=llm_provider, SYSTEM_PROMPT=system_prompt, **llm_config)
+        llm = LLMFactory.create_llm(
+            llm_provider=llm_provider, SYSTEM_PROMPT=system_prompt, **llm_config
+        )
         return llm
 
-    def init_speech_services(self):
-        voice_input_on = self.config.get("VOICE_INPUT_ON", False)
-        tts_on = self.config.get("TTS_ON", False)
-        speech2text, tts = None, None
+    def init_asr(self):
+        asr_model = self.config.get("ASR_MODEL")
+        asr_config = self.config.get(asr_model, {})
+        if asr_model == "AzureSTT":
+            import api_keys
 
-        if voice_input_on:
-            asr_model = self.config.get("STT_MODEL")
-            asr_config = self.config.get(asr_model, {})
+            asr_config = {
+                "callback": print,
+                "subscription_key": api_keys.AZURE_API_Key,
+                "region": api_keys.AZURE_REGION,
+            }
 
-            if asr_model == "AzureSTT":
-                import api_keys
-                asr_config = {
-                    "callback": print,
-                    "subscription_key": api_keys.AZURE_API_Key,
-                    "region": api_keys.AZURE_REGION,
-                }
+        asr = ASRFactory.get_asr_system(asr_model, **asr_config)
+        return asr
 
-            speech2text = ASRFactory.get_asr_system(asr_model, **asr_config)
+    def init_tts(self):
+        tts_model = self.config.get("TTS_MODEL", "pyttsx3TTS")
+        tts_config = self.config.get(tts_model, {})
 
-        if tts_on:
-            tts_model = self.config.get("TTS_MODEL", "pyttsx3TTS")
-            tts_config = self.config.get(tts_model, {})
+        if tts_model == "AzureTTS":
+            import api_keys
 
-            if tts_model == "AzureTTS":
-                import api_keys
-                tts_config = {
-                    "api_key": api_keys.AZURE_API_Key,
-                    "region": api_keys.AZURE_REGION,
-                    "voice": api_keys.AZURE_VOICE,
-                }
+            tts_config = {
+                "api_key": api_keys.AZURE_API_Key,
+                "region": api_keys.AZURE_REGION,
+                "voice": api_keys.AZURE_VOICE,
+            }
+        tts = TTSFactory.get_tts_engine(tts_model, **tts_config)
 
-            tts = TTSFactory.get_tts_engine(tts_model, **tts_config)
-
-        return speech2text, tts
+        return tts
 
     def get_system_prompt(self):
         if self.config.get("PERSONA_CHOICE"):
-            system_prompt = prompt_loader.load_persona(self.config.get("PERSONA_CHOICE"))
+            system_prompt = prompt_loader.load_persona(
+                self.config.get("PERSONA_CHOICE")
+            )
         else:
             system_prompt = self.config.get("DEFAULT_PERSONA_PROMPT_IN_YAML")
 
@@ -93,9 +95,9 @@ class OpenLLMVTuberMain:
                 print("Listening from the front end...")
                 audio = self.live2d.get_mic_audio()
                 print("transcribing...")
-                user_input = self.speech2text.transcribe_np(audio)
+                user_input = self.asr.transcribe_np(audio)
             elif voice_input_on:
-                user_input = self.speech2text.transcribe_with_local_vad()
+                user_input = self.asr.transcribe_with_local_vad()
             else:
                 user_input = input(">> ")
 
@@ -113,7 +115,7 @@ class OpenLLMVTuberMain:
         def generate_audio_file(sentence, file_name_no_ext):
             print("generate...")
 
-            if not self.config.get("TTS_ON", False):
+            if not self.tts:
                 return None
 
             if self.live2d:
@@ -170,6 +172,7 @@ class OpenLLMVTuberMain:
         else:
             result = self.llm.chat_stream_audio(text)
             stream_audio_file(result, generate_audio_file(result, "temp"))
+
 
 if __name__ == "__main__":
     with open("conf.yaml", "r") as f:

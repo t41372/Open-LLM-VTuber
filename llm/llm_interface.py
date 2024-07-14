@@ -48,7 +48,7 @@ class LLMInterface(metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def is_complete_sentence(self, text):
+    def is_complete_sentence(self, text:str):
         """
         Check if the text is a complete sentence.
         text: str
