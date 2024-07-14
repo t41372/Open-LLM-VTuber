@@ -1,6 +1,7 @@
 from llm.llm_interface import LLMInterface
 from llm.ollama import LLM as OllamaLLM
 from llm.memGPT import LLM as MemGPTLLM
+from llm.fake_llm import LLM as FakeLLM
 from typing import Type
 
 import yaml
@@ -37,6 +38,8 @@ class LLMFactory:
                 agent_id=kwargs.get("AGENT_ID"),
                 verbose=kwargs.get("VERBOSE", False)
             )
+        elif llm_provider == "fakellm":
+            return FakeLLM()
         else:
             raise ValueError(f"Unsupported LLM provider: {llm_provider}")
 
