@@ -23,10 +23,10 @@ class OpenLLMVTuberMain:
 
     def __init__(self, config: dict) -> None:
         self.config = config
-        self.llm = self.init_llm()
         self.live2d = self.init_live2d() if self.config.get("LIVE2D", False) else None
         self.asr = self.init_asr() if self.config.get("VOICE_INPUT_ON", False) else None
         self.tts = self.init_tts() if self.config.get("TTS_ON", False) else None
+        self.llm = self.init_llm()
 
     def init_live2d(self) -> Live2dController:
         live2d_model = self.config.get("LIVE2D_MODEL")
