@@ -82,52 +82,7 @@ class LLM(LLMInterface):
         print(" -- Model: " + self.model)
         print(" -- System: " + self.system)
 
-    def chat(self, prompt):
 
-        self.memory.append(
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        )
-
-        if self.verbose:
-            self.__print_memory()
-            print(" -- Base URL: " + self.base_url)
-            print(" -- Model: " + self.model)
-            print(" -- System: " + self.system)
-            print(" -- Prompt: " + prompt + "\n\n")
-
-        chat_completion = []
-        try:
-            chat_completion = self.client.chat.completions.create(
-                messages=self.memory,
-                model=self.model,
-                stream=True,
-            )
-        except Exception as e:
-            print("Error calling the chat endpoint: " + str(e))
-            self.__printDebugInfo()
-            return "Error calling the chat endpoint: " + str(e)
-
-        full_response = ""
-        for chunk in chat_completion:
-            if chunk.choices[0].delta.content is not None:
-                print(chunk.choices[0].delta.content or "", end="")
-                full_response += chunk.choices[0].delta.content
-
-        print("\n ===== LLM response received ===== \n")
-
-        self.callback(full_response)
-
-        self.memory.append(
-            {
-                "role": "assistant",
-                "content": full_response,
-            }
-        )
-
-        return full_response
 
     def chat_iter(self, prompt:str) -> Iterator[str]:
 
@@ -174,109 +129,6 @@ class LLM(LLMInterface):
 
         return _generate_and_store_response()
 
-    def chat_stream_audio(
-        self, prompt, generate_audio_file=None, stream_audio_file=None
-    ):
-        """
-        Call the llm with text, print the result, and stream the audio to the frontend if the generate_audio_file and stream_audio_file functions are provided.
-        prompt: str
-            the text to send to the llm
-        generate_audio_file: function
-            the function to generate audio file from text. The function should take the text as input and return the path to the generated audio file. Defaults to None.
-        stream_audio_file: function
-            the function to stream the audio file to the frontend. The function should take the path to the audio file as input. Defaults to None.
-
-        Returns:
-        str: the full response from the llm
-        """
-
-        self.memory.append(
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        )
-
-        if self.verbose:
-            self.__print_memory()
-            print(" -- Base URL: " + self.base_url)
-            print(" -- Model: " + self.model)
-            print(" -- System: " + self.system)
-            print(" -- Prompt: " + prompt + "\n\n")
-
-        chat_completion = []
-        try:
-            chat_completion = self.client.chat.completions.create(
-                messages=self.memory,
-                model=self.model,
-                stream=True,
-            )
-        except Exception as e:
-            print("Error calling the chat endpoint: " + str(e))
-            self.__printDebugInfo()
-            return "Error calling the chat endpoint: " + str(e)
-
-        index = 0
-        sentence_buffer = ""
-        full_response = ""
-
-        # Initialize ThreadPoolExecutor
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            last_stream_future = None
-            for chunk in chat_completion:
-                if chunk.choices[0].delta.content:
-                    print(chunk.choices[0].delta.content or "", end="")
-                    sentence_buffer += chunk.choices[0].delta.content
-                    full_response += chunk.choices[0].delta.content
-                    if self.__is_complete_sentence(sentence_buffer):
-                        if callable(generate_audio_file):
-                            print("\n")
-                            file_path = generate_audio_file(
-                                sentence_buffer, file_name_no_ext=f"temp-{index}"
-                            )
-
-                            # wait for the audio to finish playing
-                            if last_stream_future:
-                                last_stream_future.result()
-                            # stream the audio file to the frontend
-                            last_stream_future = executor.submit(
-                                stream_audio_file, sentence_buffer, filename=file_path
-                            )
-                            index += 1
-                        sentence_buffer = ""
-            if (
-                sentence_buffer
-            ):  # if there is any remaining text, generate and stream the audio
-                if callable(generate_audio_file):
-                    print("\n")
-                    file_path = generate_audio_file(
-                        sentence_buffer, file_name_no_ext=f"temp-{index}"
-                    )
-                    # wait for the audio to finish playing
-                    if last_stream_future:
-                        last_stream_future.result()
-                    # stream the audio file to the frontend
-                    last_stream_future = executor.submit(
-                        stream_audio_file, sentence_buffer, filename=file_path
-                    )
-                    index += 1
-            # wait for the last audio to finish playing
-            if last_stream_future:
-                last_stream_future.result()
-
-        print("\n ===== LLM response received ===== \n")
-
-        self.callback(full_response)
-
-        self.memory.append(
-            {
-                "role": "assistant",
-                "content": full_response,
-            }
-        )
-
-        return full_response
-
 
 def test():
     llm = LLM(
@@ -294,8 +146,8 @@ def test():
         chat_complet = llm.chat_iter(input(">> "))
 
         for chunk in chat_complet:
-            if chunk.choices[0].delta.content:
-                print(chunk.choices[0].delta.content or "", end="?")
+            if chunk:
+                print(chunk, end="")
 
 
 if __name__ == "__main__":

@@ -1,9 +1,6 @@
-import os
 import requests
 import json
-import concurrent.futures
 from typing import Iterator
-import pysbd
 from rich.console import Console
 
 from .llm_interface import LLMInterface
@@ -11,32 +8,15 @@ from .llm_interface import LLMInterface
 console = Console()
 
 
-import yaml
-
-
-# load configurations
-def load_config():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    config_path = os.path.join(dir_path, "memgpt_config.yaml")
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
-
-
-config = load_config()
-
-
-def get_config(key, default=None):
-    return config.get(key, default)
-
 
 class LLM(LLMInterface):
 
     def __init__(
         self,
-        base_url=get_config("BASE_URL"),
-        server_admin_token=get_config("ADMIN_TOKEN"),
-        agent_id=get_config("AGENT_ID"),
-        verbose=get_config("VERBOSE", False),
+        base_url:str,
+        server_admin_token:str,
+        agent_id:str,
+        verbose:str=False,
     ) -> None:
 
         self.base_url = base_url
@@ -54,91 +34,12 @@ class LLM(LLMInterface):
         }
         self.verbose = verbose
 
-    def chat(self, prompt):
-        """
-        Sends a chat prompt to an agent, print the result, and returns the full response.
-
-        Parameters:
-        - prompt (str): The message or question to send to the agent.
-
-        Returns:
-        - str: The full response from the agent.
-        """
-
-        full_response = self._send_message_to_agent(prompt, callback_function=print)
-
-        return full_response
     
     def chat_iter(self, prompt) -> Iterator[str]:
         full_response = self._send_message_to_agent(prompt, callback_function=print)
         # memGPT will handle the memory, so no need to deal with it here
         return full_response
 
-    def chat_stream_audio(
-        self, prompt, generate_audio_file=None, stream_audio_file=None
-    ):
-        """
-        Call the llm with text, print the result, and stream the audio to the frontend if the generate_audio_file and stream_audio_file functions are provided.
-        prompt: str
-            the text to send to the llm
-        generate_audio_file: function
-            the function to generate audio file from text. The function should take the text as input and return the path to the generated audio file. Defaults to None.
-        stream_audio_file: function
-            the function to stream the audio file to the frontend. The function should take the path to the audio file as input. Defaults to None.
-
-        Returns:
-        str: the full response from the llm
-        """
-
-        full_response = self._send_message_to_agent(prompt, callback_function=None)
-
-        sentences = self.__split_into_sentences(full_response)
-
-        index = 0
-
-        # Initialize ThreadPoolExecutor
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            last_stream_future = None
-            for sentence in sentences:
-                print(f">> {sentence}")
-                if sentence.strip() == "":
-                    continue
-
-                if callable(generate_audio_file):
-                    print("\n")
-                    file_path = generate_audio_file(
-                        sentence, file_name_no_ext=f"temp-{index}"
-                    )
-
-                    # wait for the audio to finish playing
-                    if last_stream_future:
-                        last_stream_future.result()
-                    # stream the audio file to the frontend
-                    last_stream_future = executor.submit(
-                        stream_audio_file, sentence, filename=file_path
-                    )
-                    index += 1
-
-            # wait for the last audio to finish playing
-            if last_stream_future:
-                last_stream_future.result()
-
-        print("\n ===== LLM response received ===== \n")
-
-        return full_response
-
-    def __split_into_sentences(self, text):
-        """
-        Splits the text into a list of sentences using the pysbd library.
-
-        Parameters:
-        - text (str): The text to split into sentences.
-
-        Returns:
-        - list: A list of sentences.
-        """
-
-        return pysbd.Segmenter(language="en", clean=False).segment(text)
 
     def _send_message_to_agent(self, message, callback_function=print):
         """
@@ -200,17 +101,6 @@ if __name__ == "__main__":
 
     llm = LLM(
         verbose=True,
-    )
-
-    print(
-        llm.__split_into_sentences(
-            "Hello, Mr. Smith. How are you? I am fine. Thank you."
-        )
-    )
-    print(
-        llm.__split_into_sentences(
-            "Mr. John Johnson Jr. was born in the U.S.A but earned his Ph.D. in Israel before joining Nike Inc. as an engineer. He also worked at craigslist.org as a business analyst... but he is now retired and living in the U.K.!"
-        )
     )
     # while True:
     # llm.send_message_to_agent(message=input(">> "))
