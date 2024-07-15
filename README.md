@@ -1,5 +1,7 @@
 # Open-LLM-VTuber
 
+[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)
+
 > :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
 > :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to either configure https with a reverse proxy or launch the front end locally and connects to the server via websocket (untested). Open the `static/index.html` with your browser and set the ws url on the page.
