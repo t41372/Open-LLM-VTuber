@@ -2,7 +2,9 @@
 
 > :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and text synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
+> :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to either configure https with a reverse proxy or launch the front end locally and connects to the server via websocket (untested). Open the `static/index.html` with your browser and set the ws url on the page.
+
+Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
@@ -24,10 +26,10 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 
 ### Why this project and not other similar projects on GitHub?
 - It works on macOS
-  - Many existing solutions display Live2D models using VTube Studio and achieve lip sync by routing desktop audio into VTube Studio. They let VTuber Studio listen to the desktop's internal audio and control the lips with that. On macOS, however, there is no easy way to let VTuber Studio listen to internal audio on the desktop.
-- It supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers you and what you've said.
+  - Many existing solutions display Live2D models using VTube Studio and achieve lip sync by routing desktop internal audio into VTube Studio and controlling the lips with that. On macOS, however, there is no easy way to let VTuber Studio listen to internal audio on the desktop.
+- It supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers what you've said.
 - No data leaves your computer if you wish to
-  - Once the live2D model is loaded, you can unplug the cable and enjoy total privacy. You can choose local solutions for LLM/voice recognition/speech synthesis. In addition, everything works on macOS.
+  - You can choose local LLM/voice recognition/speech synthesis solutions, and everything will work offline. Everything has been tested on macOS.
 
 
 
@@ -47,6 +49,7 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 - Linux
 
 ### Recent Feature Updates
+- [Jul 15, 2024] Refactored llm and launch.py and reduced TTS latency
 - [Jul 11, 2024] Added CosyVoiceTTS
 - [Jul 11, 2024] Added FunASR with SenseVoiceSmall speech recognition model.
 - [Jul 7, 2024] Totally untested Docker support with Nvidia GPU passthrough (no Mac, no AMD)
@@ -64,12 +67,12 @@ Currently supported LLM backend
 - MemGPT (setup required)
 
 Currently supported Speech recognition backend
-- [FunASR](https://github.com/modelscope/FunASR), which support [SenseVoiceSmall](https://github.com/FunAudioLLM/SenseVoice) and many other models. (~~Local~~ currently requires internet connection, ridiculous)
+- [FunASR](https://github.com/modelscope/FunASR), which support [SenseVoiceSmall](https://github.com/FunAudioLLM/SenseVoice) and many other models. (~~Local~~ Currently requires an internet connection for loading. Compute locally)
 - [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
 - [Whisper-CPP](https://github.com/ggerganov/whisper.cpp) using the python binding [pywhispercpp](https://github.com/abdeladim-s/pywhispercpp) (Local, mac GPU acceleration can be configured)
 - [Whisper](https://github.com/openai/whisper) (local)
 - [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
-- The microphone will be listening in the terminal by default. You can change the settings in the `conf.yaml` to move the microphone (and vad) to the browser (at the cost of latency, for now). Microphone listening in the terminal means the program can't hear you if you open the Live2D frontend website on a different device or run this project inside a VM or docker. Set `MIC_IN_BROWSER` to `True` in this case.
+- The microphone in the server terminal will be used by default. You can change the setting `MIC_IN_BROWSER` in the `conf.yaml` to move the microphone (and voice activation detection) to the browser (at the cost of latency, for now). You might want to use the microphone on your client (the browser) rather than the one on your server if you run the backend on a different machine or inside a VM or docker.
 
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
@@ -80,7 +83,7 @@ Currently supported Text to Speech backend
 
 Fast Text Synthesis
 - Synthesize sentences as soon as they arrive, so there is no need to wait for the entire LLM response.
-- Synthesize text during audio playback. It's synthesizing new lines while speaking.
+- Producer-consumer model with asyncio: Audio will be continuously synthesized in the background. They will be played one by one whenever the new audio is ready. The audio player will not block the audio synthesizer.
 
 Live2D Talking face
 - Change Live2D model with `config.yaml` (model needs to be listed in model_dict.json)
@@ -90,8 +93,9 @@ Live2D Talking face
 live2d technical details
 - Uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in *browser*
 - Uses WebSocket to control facial expressions and talking state between the server and the front end
-- The Live2D implementation in this project is currently in its early stages. It currently requires an internet connection to load the required frontend packages from CDN. Once the page is loaded, you can disconnect the internet. Some Live2D models need to be fetched from CDN; some don't. Read `doc/live2d.md` for documentation on loading your live2D model from local.
-- Run the `server.js` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
+- All the required packages are locally available, so the front end works offline. 
+- You can load live2d models from a URL or the one stored locally in the `live2d-models` directory. The default `shizuku-local` is stored locally and works offline. If the URL property of the model in the model_dict.json is a URL rather than a path starting with `/live2d-models`, they will need to be fetched from the specified URL whenever the front end is opened. Read `doc/live2d.md` for documentation on loading your live2D model from local.
+- Run the `server.py` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
 
 ## Install & Usage
 
@@ -115,39 +119,39 @@ pip install -r requirements.txt # Run this in the project directory
 
 This project, by default, launches the audio interaction mode, meaning you can talk to the LLM by voice, and the LLM will talk back to you by voice.
 
-Edit the `conf.yaml` for configurations. You may want to set the speech recognition to faster-whisper, text-to-speech to edgeTTS, live2d to True to achieve a similar effect to the demo.
+Edit the `conf.yaml` for configurations. You can follow the configuration used in the demo video.
 
 If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the URL you set in `conf.yaml` (`http://HOST:PORT`). By default, go to `http://localhost:8000`.
 
-Run `launch.py` with python. Some models will be downloaded during your first launch, which may take a while.
+Run `launch.py` with Python. Some models will be downloaded during your first launch, which may take a while.
 
 Also, the live2D models have to be fetched through the internet, so you'll have to keep your internet connected before the `index.html` is fully loaded with your desired live2D model.
 
 
 
 ### Update
-Back up the configuration files `conf.yaml` and `memgpt_config.yaml` if you've edited them and do `git fetch` and `git pull`.
-Or just clone the repo again and make sure to either transfer your config files or set those configurations again.
+Back up the configuration files `conf.yaml` if you've edited them, and then update the repo.
+Or just clone the repo again and make sure to transfer your configurations. The configuration file will sometimes change because this project is still in its early stages. Be cautious when updating the program.
 
 
 
 
 ## Install Speech Recognition
-Edit the STT_MODEL settings in the `conf.yaml` to change the provider.
+Edit the ASR_MODEL settings in the `conf.yaml` to change the provider.
 
 Here are the options you have for speech recognition:
 
 
 `FunASR` (~~local~~) (Runs very fast even on CPU. Not sure how they did it)
-- [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. With the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group, the result and speed are very impressive.
+- [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. The result and speed are pretty good with the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group.
 - Install with `pip install -U funasr modelscope huggingface_hub`
-- It requires internet connection on launch _even if the models are locally available_. See https://github.com/modelscope/FunASR/issues/1897
+- It requires an internet connection on launch _even if the models are locally available_. See https://github.com/modelscope/FunASR/issues/1897
 
 `Faster-Whisper` (local)
-- Whisper, but faster. On macOS, it runs on CPU only, which is not so fast, but it's easy.
+- Whisper, but faster. On macOS, it runs on CPU only, which is not so fast, but it's easy to use.
 
 `WhisperCPP` (local) (runs super fast on a Mac if configured correctly)
-- Install the package by running `pip install pywhispercpp`
+- If you are on a Mac, read below for instructions on setting up WhisperCPP with coreML support. If you want to use CPU or Nvidia GPU, install the package by running `pip install pywhispercpp`.
 - The whisper cpp python binding. It can run on coreML with configuration, which makes it very fast on macOS.
 - On CPU or Nvidia GPU, it's probably slower than Faster-Whisper
 
@@ -163,7 +167,7 @@ WhisperCPP coreML configuration:
 - Original Whisper from OpenAI. Install it with `pip install -U openai-whisper`
 - The slowest of all. Added as an experiment to see if it can utilize macOS GPU. It didn't.
 
-`AzureSTT` (online, API Key required)
+`AzureASR` (online, API Key required)
 - Azure Speech Recognition. Install with `pip install azure-cognitiveservices-speech`.
 - API key and internet connection are required.
 
@@ -183,7 +187,7 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 
 `cosyvoiceTTS` (local, slow)
 - Configure [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) and launch the webui demo according to their documentation. 
-- Edit `conf.yaml` with your desired configurations. Check their webui and the api documentation on the webui to see the meaning of the configurations under the setting `cosyvoiceTTS` in the `conf.yaml`.
+- Edit `conf.yaml` to match your desired configurations. Check their webui and the API documentation on the webui to see the meaning of the configurations under the setting `cosyvoiceTTS` in the `conf.yaml`.
 
 `edgeTTS` (online, no API key required)
 - Install the pip package with this command `pip install edge-tts` and turn it on in `conf.yaml`.
@@ -225,8 +229,6 @@ To use MemGPT, you need to have the MemGPT server configured and running. You ca
 > I recommend you install MemGPT either in a separate Python virtual environment or in docker because there is currently a dependency conflict between this project and MemGPT (on fast API, it seems). You can check this issue [Can you please upgrade typer version in your dependancies #1382](https://github.com/cpacker/MemGPT/issues/1382).
 
 
-> :warning:
-> If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 
 Here is a checklist:
 - Install memgpt
@@ -257,7 +259,7 @@ Current issues:
 - [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) needs to be configured for GPU passthrough.
 - You can't run it on a remote server unless you have configured SSL for the front end (it's not a feature of this project quite yet, so you may do a reverse proxy). That's because the web mic on the front end will only launch in a secure context (which refers to localhost or https environment). 
 - I'm not sure if it works (because I use mac and the added complexity caused by the reason mentioned above)
-- Don't build the image on an Arm machine. One of the dependencies (grpc, to be exact) will fail, for some reason https://github.com/grpc/grpc/issues/34998. 
+- Don't build the image on an Arm machine. One of the dependencies (grpc, to be exact) will fail for some reason https://github.com/grpc/grpc/issues/34998. 
 
 Setup guide:
 
@@ -291,22 +293,27 @@ Setup guide:
 # Development
 (this project is in the active prototyping stage, so many things will change)
 
-### [Outdated] How to add support for new TTS provider
-1. Create the new class `TTSEngine` in a new py file in the `./tts` directory
-2. In the class, expose a speak function: `speak` and `speak_stream` functions. Read the `pyttsx3TTS.py` for reference.
-3. Add your new tts module into the `tts_module_name` dictionary, which is currently hard-coded in the `main.py` and `launch.py` (I plan to ditch the main.py in the future). The dictionary key is the name of the TTS provider. The value is the module path of your module.
-4. Now you should be able to switch to the tts provider of your choice by editing the `conf.yaml`
-5. Create a pull request
+Some abbreviations used in this project:
 
-### [Outdated] How to add support for new Speech Recognition (or speech-to-text, STT) provider
-1. Create the new class `VoiceRecognition` in a new py file in the `./speech2text` directory
-2. In the class, expose a function: `transcribe_once(self)` that starts the voice recognition service. This function should be able to keep listening in the background, and when the user speaks something and finishes, the function should return the recognized text.
-3. Add your new stt module into the `stt_module_name` dictionary, which is currently hard-coded in the `main.py` and `launch.py` (I plan to ditch the main.py in the future). The key of the dictionary is the name of the speech recognition provider. The value is the module path of your module.
-4. Now you should be able to switch to the stt provider of your choice by editing the `conf.yaml`
-5. Create a pull request
+- LLM: Large Language Model
+- TTS: Text-to-speech, Speech Synthesis, Voice Synthesis
+- ASR: Automatic Speech Recognition, Speech recognition, Speech to text, STT
+- VAD: Voice Activation Detection
+
+### Add support for new TTS providers
+1. Implement `TTSInterface` defined in `tts/tts_interface.py`.
+1. Add your new TTS provider into `tts_factory`: the factory to instantiate and return the tts instance.
+1. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your TTSEngine as kwargs.
+
+### Add support for new Speech Recognition provider
+1. Implement `ASRInterface` defined in `asr/asr_interface.py`.
+2. Add your new ASR provider into `asr_factory`: the factory to instantiate and return the ASR instance.
+3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your class as kwargs.
 
 ### Add support for new LLM provider
-Todo...
+1. Implement `LLMInterface` defined in `llm/llm_interface.py`.
+2. Add your new LLM provider into `llm_factory`: the factory to instantiate and return the LLM instance.
+3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your class as kwargs.
 
 # Acknowledgement
 Awesome projects I learned from
