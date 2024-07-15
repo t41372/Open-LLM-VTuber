@@ -49,6 +49,7 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 - Linux
 
 ### Recent Feature Updates
+- [Jul 15, 2024] Added MeloTTS
 - [Jul 15, 2024] Refactored llm and launch.py and reduced TTS latency
 - [Jul 11, 2024] Added CosyVoiceTTS
 - [Jul 11, 2024] Added FunASR with SenseVoiceSmall speech recognition model.
@@ -178,6 +179,11 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 - Install with the command `pip install py3-tts`.
 - This package will use the default TTS engine on your system. It uses `sapi5` on Windows, `nsss` on Mac, and `espeak` on other platforms.
 - `py3-tts` is used instead of the more famous `pyttsx3` because `pyttsx3` seems unmaintained, and I couldn't get the latest version of `pyttsx3` working.
+
+`meloTTS` (local, fast)
+
+- Install MeloTTS according to their [documentation](https://github.com/myshell-ai/MeloTTS/blob/main/docs/install.md) (don't install via docker) (A nice place to clone the repo is submodule folder, but you can put it wherever you want). If you encounter a problem related to `mecab-python`, try this [fork](https://github.com/polm/MeloTTS) (hasn't been merge into main as of July 16, 2024).
+- It's not the best, but it's definitely better than pyttsx3TTS, and it's pretty fast on my mac. Probably what I would choose for now if I can't access the internet.
 
 
 
