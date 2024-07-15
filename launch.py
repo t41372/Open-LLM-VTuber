@@ -47,7 +47,7 @@ class OpenLLMVTuberMain:
     def init_asr(self) -> ASRInterface:
         asr_model = self.config.get("ASR_MODEL")
         asr_config = self.config.get(asr_model, {})
-        if asr_model == "AzureSTT":
+        if asr_model == "AzureASR":
             import api_keys
 
             asr_config = {

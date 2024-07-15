@@ -32,7 +32,7 @@ class ASRFactory:
                 use_itn=kwargs.get("use_itn"),
                 # sample_rate=kwargs.get("sample_rate"),
             )
-        elif system_name == "AzureSTT":
+        elif system_name == "AzureASR":
             from .azure_asr import VoiceRecognition as AzureASR
             return AzureASR(
                 subscription_key=kwargs.get("subscription_key"),

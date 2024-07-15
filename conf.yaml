@@ -7,7 +7,7 @@ PORT: 8000
 
 #  ============== LLM Backend Settings ===================
 
-# Provider of LLM. You can only choose either "ollama" or "memgpt"
+# Provider of LLM. Choose either "ollama" or "memgpt" (or "fakellm for debug purposes")
 # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
 LLM_PROVIDER: "ollama"
 
@@ -54,8 +54,8 @@ VOICE_INPUT_ON: True
 # Put your mic in the browser or in the terminal? (would increase latency)
 MIC_IN_BROWSER: False
 
-# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureSTT", "FunASR"
-STT_MODEL: "Faster-Whisper"
+# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR"
+ASR_MODEL: "Faster-Whisper"
 
 # Faster whisper config
 Faster-Whisper:
