@@ -17,3 +17,4 @@ server.log
 cache/*
 asr/models*
 !asr/models/silero_vad.onnx
+submodules/MeloTTS

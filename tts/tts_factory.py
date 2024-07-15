@@ -30,6 +30,14 @@ class TTSFactory:
                 seed=kwargs.get("seed"),
                 api_name=kwargs.get("api_name"),
             )
+        elif engine_type == "meloTTS":
+            from .meloTTS import TTSEngine as MeloTTSEngine
+            return MeloTTSEngine(
+                speaker=kwargs.get("speaker"),
+                language=kwargs.get("language"),
+                device=kwargs.get("device"),
+                speed=kwargs.get("speed"),
+            )
         else:
             raise ValueError(f"Unknown TTS engine type: {engine_type}")
 

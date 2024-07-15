@@ -93,7 +93,7 @@ FunASR:
 
 # ============== Text to Speech ==============
 TTS_ON: True
-# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS"
+# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS"
 TTS_MODEL: "edgeTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
@@ -122,6 +122,12 @@ cosyvoiceTTS: # Cosy Voice TTS connects to the gradio webui
   instruct_text: ""
   seed: 0
   api_name: "/generate_audio"
+
+meloTTS:
+  speaker: "EN-Default" # ZH
+  language: "EN" # ZH
+  device: "auto" # You can set it manually to 'cpu' or 'cuda' or 'cuda:0' or 'mps'
+  speed: 1.0
 
 #  ============== Other Settings ==============
 
