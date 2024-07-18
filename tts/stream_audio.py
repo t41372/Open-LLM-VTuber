@@ -113,7 +113,7 @@ class StreamAudio:
             print("Failed to send audio to the broadcast route.")
 
 
-if __name__ == "__main__":
-    audio_path = "../cache/temp-8.mp3"
-    stream_audio = StreamAudio(audio_path, display_text="YEESSSSS[fun!]", expression_list=[0,2,3,2]).send_audio_with_volume()
-    input("end")
+# if __name__ == "__main__":
+    # audio_path = "../cache/temp-8.mp3"
+    # stream_audio = StreamAudio(audio_path, display_text="YEESSSSS[fun!]", expression_list=[0,2,3,2]).send_audio_with_volume()
+    # input("end")

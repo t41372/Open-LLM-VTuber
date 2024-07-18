@@ -1,12 +1,14 @@
 import os
 import sys
+from pathlib import Path
+
 import pyttsx3
+
 from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-from pathlib import Path
 
 # using https://github.com/thevickypedia/py3-tts because pyttsx3 is unmaintained and not working
 

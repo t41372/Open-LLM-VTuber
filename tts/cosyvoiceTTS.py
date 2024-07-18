@@ -44,14 +44,7 @@ class TTSEngine(TTSInterface):
         sd.wait()
         if on_speak_end_callback is not None:
             on_speak_end_callback()
-        self.__remove_file(filepath)
-
-    def __remove_file(self, filepath):
-        try:
-            os.remove(filepath)
-        except:
-            print(f"Failed to remove file {filepath}")
-            pass
+        TTSInterface.remove_file(filepath)
 
     def generate_audio(self, text, file_name_no_ext=None):
 

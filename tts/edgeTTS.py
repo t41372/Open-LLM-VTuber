@@ -1,16 +1,16 @@
+import sys
+import os
+from pathlib import Path
+import soundfile as sf
+
 import edge_tts
 from .tts_interface import TTSInterface
 
-import sys
-import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-import os
-from pathlib import Path
 
 
-import soundfile as sf
 
 # Check out doc at https://github.com/rany2/edge-tts
 # Use `edge-tts --list-voices` to list all available voices
@@ -51,14 +51,7 @@ class TTSEngine(TTSInterface):
         sd.wait()
         if on_speak_end_callback is not None:
             on_speak_end_callback()
-        self.__remove_file(filepath)
-
-    def __remove_file(self, filepath):
-        try:
-            os.remove(filepath)
-        except:
-            print(f"Failed to remove file {filepath}")
-            pass
+        TTSInterface.remove_file(filepath)
 
 
     def generate_audio(self, text, file_name_no_ext=None):

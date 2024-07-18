@@ -1,16 +1,18 @@
+import asyncio
 import os
 from typing import Iterator
-import asyncio
+
 import yaml
-from live2d import Live2dController
-from tts.tts_factory import TTSFactory
-from tts.tts_interface import TTSInterface
-from llm.llm_factory import LLMFactory
-from llm.llm_interface import LLMInterface
+
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
-from tts import stream_audio
+from live2d import Live2dController
+from llm.llm_factory import LLMFactory
+from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
+from tts import stream_audio
+from tts.tts_factory import TTSFactory
+from tts.tts_interface import TTSInterface
 
 
 class OpenLLMVTuberMain:
@@ -21,8 +23,8 @@ class OpenLLMVTuberMain:
     tts: TTSInterface
     live2d: Live2dController
 
-    def __init__(self, config: dict) -> None:
-        self.config = config
+    def __init__(self, configs: dict) -> None:
+        self.config = configs
         self.live2d = self.init_live2d() if self.config.get("LIVE2D", False) else None
         self.asr = self.init_asr() if self.config.get("VOICE_INPUT_ON", False) else None
         self.tts = self.init_tts() if self.config.get("TTS_ON", False) else None

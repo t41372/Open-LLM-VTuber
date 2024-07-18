@@ -1,21 +1,15 @@
-from .tts_interface import TTSInterface
-from bark import SAMPLE_RATE, generate_audio, preload_models
-from scipy.io.wavfile import write as write_wav
-
-import soundfile as sf
-
-
 import os
 import sys
+from pathlib import Path
+import time
+import platform
+import soundfile as sf
+from bark import SAMPLE_RATE, generate_audio, preload_models
+from scipy.io.wavfile import write as write_wav
+from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
-
-from pathlib import Path
-
-
-import time
-import platform
 
 
 class TTSEngine(TTSInterface):
@@ -62,7 +56,7 @@ class TTSEngine(TTSInterface):
         sd.wait()
         if on_speak_end_callback is not None:
             on_speak_end_callback()
-        self.__remove_file(filepath)
+        TTSInterface.remove_file(filepath)
 
     def generate_audio(self, text, file_name_no_ext=None):
         """

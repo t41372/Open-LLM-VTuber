@@ -1,17 +1,16 @@
-from melo.api import TTS
-from .tts_interface import TTSInterface
-
-import sys
 import os
+import sys
+from pathlib import Path
+import soundfile as sf
+
+from melo.api import TTS
+
+from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-import os
-from pathlib import Path
 
-
-import soundfile as sf
 
 
 class TTSEngine(TTSInterface):
@@ -24,7 +23,7 @@ class TTSEngine(TTSInterface):
         speed: float = 1.0,
     ):
         # Speed is adjustable
-        self.speed = 1.0
+        self.speed = speed
 
         # CPU is sufficient for real-time inference.
         # You can set it manually to 'cpu' or 'cuda' or 'cuda:0' or 'mps'
@@ -65,14 +64,8 @@ class TTSEngine(TTSInterface):
         sd.wait()
         if on_speak_end_callback is not None:
             on_speak_end_callback()
-        self.__remove_file(filepath)
+        TTSInterface.remove_file(filepath)
 
-    def __remove_file(self, filepath):
-        try:
-            os.remove(filepath)
-        except:
-            print(f"Failed to remove file {filepath}")
-            pass
 
     def generate_audio(self, text, file_name_no_ext=None):
         """

@@ -1,4 +1,5 @@
 import abc
+import os
 
 class TTSInterface(metaclass=abc.ABCMeta):
     
@@ -31,3 +32,10 @@ class TTSInterface(metaclass=abc.ABCMeta):
         
         '''
         pass
+    
+    @staticmethod
+    def remove_file(filepath):
+        try:
+            os.remove(filepath)
+        except Exception as e:
+            print(f"Failed to remove file {filepath}: {e}")
