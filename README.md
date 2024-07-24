@@ -6,7 +6,7 @@
 
 > :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to either configure https with a reverse proxy or launch the front end locally and connects to the server via websocket (untested). Open the `static/index.html` with your browser and set the ws url on the page.
 
-Open-LLM-VTuber allows you to talk to any LLM by voice locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
+Open-LLM-VTuber allows you to talk to any LLM by voice (hands free) locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
@@ -28,8 +28,9 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 
 ### Why this project and not other similar projects on GitHub?
 - It works on macOS
-  - Many existing solutions display Live2D models using VTube Studio and achieve lip sync by routing desktop internal audio into VTube Studio and controlling the lips with that. On macOS, however, there is no easy way to let VTuber Studio listen to internal audio on the desktop.
-- It supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers what you've said.
+  - Many existing solutions display Live2D models with VTube Studio and achieve lip sync by routing desktop internal audio into VTube Studio and controlling the lips with that. On macOS, however, there is no easy way to let VTuber Studio listen to internal audio on the desktop.
+  - Many existing solutions lack support for GPU acceleration on macOS, which makes them runs slow on mac.
+- This project supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers what you've said.
 - No data leaves your computer if you wish to
   - You can choose local LLM/voice recognition/speech synthesis solutions, and everything will work offline. Everything has been tested on macOS.
 
@@ -86,7 +87,7 @@ Currently supported Text to Speech backend
 
 Fast Text Synthesis
 - Synthesize sentences as soon as they arrive, so there is no need to wait for the entire LLM response.
-- Producer-consumer model with asyncio: Audio will be continuously synthesized in the background. They will be played one by one whenever the new audio is ready. The audio player will not block the audio synthesizer.
+- Producer-consumer model with multithreading: Audio will be continuously synthesized in the background. They will be played one by one whenever the new audio is ready. The audio player will not block the audio synthesizer.
 
 Live2D Talking face
 - Change Live2D model with `config.yaml` (model needs to be listed in model_dict.json)
