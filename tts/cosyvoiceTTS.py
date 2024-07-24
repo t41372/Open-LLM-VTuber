@@ -29,22 +29,6 @@ class TTSEngine(TTSInterface):
         self.seed = seed
         self.api_name = api_name
 
-    def speak_local(
-        self, text, on_speak_start_callback=None, on_speak_end_callback=None
-    ):
-        import sounddevice as sd
-        import soundfile as sf
-        filepath = self.generate_audio(text)
-        if on_speak_start_callback is not None:
-            on_speak_start_callback()
-        data, fs = sf.read(filepath)  
-        # Play audio locally with sounddevice
-        sd.play(data, fs)
-        # Wait for audio to finish playing
-        sd.wait()
-        if on_speak_end_callback is not None:
-            on_speak_end_callback()
-        TTSInterface.remove_file(filepath)
 
     def generate_audio(self, text, file_name_no_ext=None):
 

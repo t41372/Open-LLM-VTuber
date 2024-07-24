@@ -36,24 +36,6 @@ class TTSEngine(TTSInterface):
             use_default_speaker=True
         )
 
-    def speak_local(
-        self, text, on_speak_start_callback=None, on_speak_end_callback=None
-    ):
-        """
-        speak the text to the speaker
-        text: str
-            the text to speak
-        on_speak_start_callback: function
-            the callback function to call when synthesis starts
-        on_speak_end_callback: function
-            the callback function to call when synthesis ends
-        """
-        return self.__speak_with_audio_config(
-            text,
-            audio_config=self.speakerAudioConfig,
-            on_speak_start_callback=on_speak_start_callback,
-            on_speak_end_callback=on_speak_end_callback,
-        )
 
     def generate_audio(self, text, file_name_no_ext=None):
         """

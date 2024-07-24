@@ -33,30 +33,6 @@ class TTSEngine(TTSInterface):
         if not os.path.exists(self.new_audio_dir):
             os.makedirs(self.new_audio_dir)
 
-    def speak_local(
-        self, text, on_speak_start_callback=None, on_speak_end_callback=None
-    ):
-        """
-        Speak the text on the speaker.
-
-        text: str
-            the text to speak
-        on_speak_start_callback: function
-            the callback function to call when synthesis starts
-        on_speak_end_callback: function
-            the callback function to call when synthesis ends
-        """
-        import sounddevice as sd
-        filepath = self.generate_audio(text)
-        if on_speak_start_callback is not None:
-            on_speak_start_callback()
-        data, fs = sf.read(filepath, dtype="float32")
-
-        sd.play(data, fs)
-        sd.wait()
-        if on_speak_end_callback is not None:
-            on_speak_end_callback()
-        TTSInterface.remove_file(filepath)
 
     def generate_audio(self, text, file_name_no_ext=None):
         """

@@ -1,8 +1,7 @@
-import asyncio
-import os
+import sys
+import threading
+import queue
 from typing import Iterator
-
-import yaml
 
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
@@ -13,6 +12,8 @@ from prompts import prompt_loader
 from tts import stream_audio
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
+
+import yaml
 
 
 class OpenLLMVTuberMain:
@@ -25,6 +26,7 @@ class OpenLLMVTuberMain:
 
     def __init__(self, configs: dict) -> None:
         self.config = configs
+        self.verbose = self.config.get("VERBOSE", False)
         self.live2d = self.init_live2d() if self.config.get("LIVE2D", False) else None
         self.asr = self.init_asr() if self.config.get("VOICE_INPUT_ON", False) else None
         self.tts = self.init_tts() if self.config.get("TTS_ON", False) else None
@@ -93,7 +95,7 @@ class OpenLLMVTuberMain:
                 self.config.get("LIVE2D_Expression_Prompt")
             ).replace("[<insert_emomap_keys>]", self.live2d.getEmoMapKeyAsString())
 
-        if self.config.get("VERBOSE", False):
+        if self.verbose:
             print("\n === System Prompt ===")
             print(system_prompt)
 
@@ -127,7 +129,8 @@ class OpenLLMVTuberMain:
             return full_response
 
         full_response = self.speak(chat_completion)
-        print(f"\nFull response: {full_response}")
+        if self.verbose:
+            print(f"\nComplete response: [\n{full_response}\n]")
 
     def get_user_input(self) -> str:
         """
@@ -160,32 +163,27 @@ class OpenLLMVTuberMain:
         Returns:
         - str: The full response from the LLM
         """
-
         full_response = ""
         if self.config.get("SAY_SENTENCE_SEPARATELY", True):
-            full_response = asyncio.run(self.speak_by_sentence_chain(chat_completion))
+            full_response = self.speak_by_sentence_chain(chat_completion)
         else:  # say the full response at once? how stupid
             full_response = ""
             for char in chat_completion:
                 print(char, end="")
                 full_response += char
             print("\n")
-            filename = asyncio.run(self._generate_audio_file(full_response, "temp"))
+            filename = self._generate_audio_file(full_response, "temp")
 
-            asyncio.run(
-                self._play_audio_file(
-                    sentence=full_response,
-                    filename=filename,
-                )
+            self._play_audio_file(
+                sentence=full_response,
+                filepath=filename,
             )
 
         return full_response
 
-    async def _generate_audio_file(
-        self, sentence: str, file_name_no_ext: str
-    ) -> str | None:
+    def _generate_audio_file(self, sentence: str, file_name_no_ext: str) -> str | None:
         """
-        A coroutine to generate an audio file from the given sentence using the TTS engine.
+        Generate an audio file from the given sentence using the TTS engine.
 
         Parameters:
         - sentence (str): The sentence to generate audio from
@@ -194,8 +192,8 @@ class OpenLLMVTuberMain:
         Returns:
         - str or None: The path to the generated audio file or None if the sentence is empty
         """
-
-        print("generate...")
+        if self.verbose:
+            print(f">> generating {file_name_no_ext}...")
 
         if not self.tts:
             return None
@@ -206,60 +204,50 @@ class OpenLLMVTuberMain:
         if sentence.strip() == "":
             return None
 
-        return await asyncio.to_thread(
-            self.tts.generate_audio, sentence, file_name_no_ext=file_name_no_ext
-        )
+        return self.tts.generate_audio(sentence, file_name_no_ext=file_name_no_ext)
 
-    async def _play_audio_file(self, sentence: str, filename: str | None) -> None:
+    def _play_audio_file(self, sentence: str, filepath: str | None) -> None:
         """
-        A coroutine to play the audio file either locally or remotely using the Live2D controller if available.
+        Play the audio file either locally or remotely using the Live2D controller if available.
 
         Parameters:
         - sentence (str): The sentence to display
-        - filename (str): The path to the audio file. If None, no audio will be streamed.
+        - filepath (str): The path to the audio file. If None, no audio will be streamed.
         """
 
-        print("stream...")
-
-        if not self.live2d:
-            await asyncio.to_thread(self.tts.speak_local, sentence)
-            return
-
-        if filename is None:
+        if filepath is None:
             print("No audio to be streamed. Response is empty.")
             return
 
-        expression_list = self.live2d.get_expression_list(sentence)
-
-        if self.live2d.remove_expression_from_string(sentence).strip() == "":
-            self.live2d.send_expressions_str(sentence, send_delay=0)
-            self.live2d.send_text(sentence)
-            return
-
         try:
-            # todo: refactor stream_audio to a real async coroutine later
-            await asyncio.to_thread(
+            if self.live2d:
+                # Filter out expression keywords from the sentence
+                expression_list = self.live2d.get_expression_list(sentence)
+                if self.live2d.remove_expression_from_string(sentence).strip() == "":
+                    self.live2d.send_expressions_str(sentence, send_delay=0)
+                    self.live2d.send_text(sentence)
+                    return
+                print("streaming...")
+                # Stream the audio to the frontend
                 stream_audio.StreamAudio(
-                    filename,
+                    filepath,
                     display_text=sentence,
                     expression_list=expression_list,
                     base_url=self.live2d.base_url,
-                ).send_audio_with_volume,
-                wait_for_audio=True,
-            )
-
-            if os.path.exists(filename):
-                os.remove(filename)
-                print(f"File {filename} removed successfully.")
+                ).send_audio_with_volume(wait_for_audio=True)
             else:
-                print(f"File {filename} does not exist.")
+                if self.verbose:
+                    print(f">> Playing {filepath}...")
+                self.tts.play_audio_file_local(filepath)
+
+            self.tts.remove_file(filepath, verbose=self.verbose)
         except ValueError as e:
             if str(e) == "Audio is empty or all zero.":
                 print("No audio to be streamed. Response is empty.")
             else:
                 raise e
 
-    async def speak_by_sentence_chain(
+    def speak_by_sentence_chain(
         self,
         chat_completion: Iterator[str],
     ) -> str:
@@ -273,7 +261,7 @@ class OpenLLMVTuberMain:
         - str: The full response from the LLM
         """
 
-        async def producer_worker(queue: asyncio.Queue):
+        def producer_worker(task_queue: queue):
             index = 0
             sentence_buffer = ""
             full_response = ""
@@ -281,51 +269,56 @@ class OpenLLMVTuberMain:
             for char in chat_completion:
                 if char:
                     print(char, end="")
+                    sys.stdout.flush()
                     sentence_buffer += char
                     full_response += char
                     if self.is_complete_sentence(sentence_buffer):
-                        print("\n")
-                        audio_filepath = await self._generate_audio_file(
+                        # when verbose, more information is printed, so we need a new line
+                        if self.verbose:
+                            print("\n")
+                        audio_filepath = self._generate_audio_file(
                             sentence_buffer, file_name_no_ext=f"temp-{index}"
                         )
                         audio_info = {
                             "sentence": sentence_buffer,
                             "audio_filepath": audio_filepath,
                         }
-                        await queue.put(audio_info)
+                        task_queue.put(audio_info)
                         index += 1
                         sentence_buffer = ""
             # if there is more text left in the buffer
             if sentence_buffer:  # use the same code as above to generate audio file
                 print("\n")
-                audio_filepath = await self._generate_audio_file(
+                audio_filepath = self._generate_audio_file(
                     sentence_buffer, file_name_no_ext=f"temp-{index}"
                 )
                 audio_info = {
                     "sentence": sentence_buffer,
                     "audio_filepath": audio_filepath,
                 }
-                await queue.put(audio_info)
+                task_queue.put(audio_info)
                 index += 1
                 sentence_buffer = ""
-            print("\nAudio generation completed.")
+            print("\n\n --- Audio generation completed ---")
             return full_response
 
-        async def consumer_worker(queue: asyncio.Queue):
+        def consumer_worker(task_queue: queue):
             while True:
-                audio_info = await queue.get()
+                audio_info = task_queue.get()
                 if audio_info:
-                    await self._play_audio_file(
-                        audio_info["sentence"], audio_info["audio_filepath"]
+                    self._play_audio_file(
+                        sentence=audio_info["sentence"],
+                        filepath=audio_info["audio_filepath"],
                     )
-                queue.task_done()
+                task_queue.task_done()
 
-        queue = asyncio.Queue()
-        producer_task = asyncio.create_task(producer_worker(queue))
-        consumer_task = asyncio.create_task(consumer_worker(queue))
-        full_response = await producer_task
-        await queue.join()
-        consumer_task.cancel()
+        task_queue = queue.Queue()
+        threading.Thread(
+            target=consumer_worker, args=(task_queue,), daemon=True
+        ).start()
+        full_response = producer_worker(task_queue)
+
+        task_queue.join()
 
         return full_response
 

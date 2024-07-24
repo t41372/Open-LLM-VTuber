@@ -1,20 +1,38 @@
-legacy/
-__pycache__/
-.conda
-.env
+# macOS system files
 .DS_Store
-chat_history/
-knowledge_base/*
-!knowledge_base/README.md
+
+# Python files
+__pycache__/
+*.pyc
+lab.py
+
+# Virtual environment
+.conda
+
+# Sensitive data
+.env
 api_keys.py
+llm/user_credentials.json
+
+# Database files
 memory.db
 memory.db.bk
-lab.py
-llm/user_credentials.json
-openapi_assistants.json
-openapi_memgpt.json
+
+# Logs
 server.log
+
+# Cache and models
 cache/*
+tts/asset
+tts/config
 asr/models*
 !asr/models/silero_vad.onnx
+
+
+# Legacy and specific directories
+legacy/
+chat_history/
+knowledge_base/
 submodules/MeloTTS
+openapi_assistants.json
+openapi_memgpt.json

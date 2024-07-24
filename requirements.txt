@@ -8,6 +8,7 @@ numpy
 pydub
 sounddevice
 soundfile
+playsound
 faster_whisper
 scipy
 onnxruntime
