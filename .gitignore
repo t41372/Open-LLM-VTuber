@@ -27,6 +27,7 @@ tts/asset
 tts/config
 asr/models*
 !asr/models/silero_vad.onnx
+asset
 
 
 # Legacy and specific directories
