@@ -100,4 +100,4 @@ if __name__ == "__main__":
 
     # Initialize and run the WebSocket server
     server = WebSocketServer()
-    server.run(host=config["host"], port=config["port"])
+    server.run(host=config["HOST"], port=config["PORT"])
