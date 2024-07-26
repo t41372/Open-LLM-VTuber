@@ -5,6 +5,7 @@
 __pycache__/
 *.pyc
 lab.py
+.idea
 
 # Virtual environment
 .conda
