@@ -2,85 +2,102 @@ from fastapi import FastAPI, WebSocket, APIRouter, Body
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
-from typing import List
+from typing import List, Dict
 
 import yaml
-# Load configurations
-def load_config():
-    with open('conf.yaml', 'r') as f:
-        return yaml.safe_load(f)
-
-config = load_config()
-
-# Simplified configuration access
-def get_config(key, default=None):
-    return config.get(key, default)
 
 
-app = FastAPI()
-router = APIRouter()
+class WebSocketServer:
+    """
+    WebSocketServer initializes a FastAPI application with WebSocket endpoints and a broadcast endpoint.
+
+    Attributes:
+        config (dict): Configuration dictionary.
+        app (FastAPI): FastAPI application instance.
+        router (APIRouter): APIRouter instance for routing.
+        connected_clients (List[WebSocket]): List of connected WebSocket clients for "/client-ws".
+        server_ws_clients (List[WebSocket]): List of connected WebSocket clients for "/server-ws".
+    """
+
+    def __init__(self):
+        """
+        Initializes the WebSocketServer with the given configuration.
+        """
+        self.app = FastAPI()
+        self.router = APIRouter()
+        self.connected_clients: List[WebSocket] = []
+        self.server_ws_clients: List[WebSocket] = []
+        self._setup_routes()
+        self._mount_static_files()
+
+    def _setup_routes(self):
+        """Sets up the WebSocket and broadcast routes."""
+
+        @self.router.websocket("/server-ws")
+        async def server_websocket_endpoint(websocket: WebSocket):
+            await websocket.accept()
+            self.server_ws_clients.append(websocket)
+            # When a connection is established, send a specific payload to all clients connected to "/client-ws"
+            control_message = {"type": "control", "text": "start-mic"}
+            for client in self.connected_clients:
+                await client.send_json(control_message)
+            try:
+                while True:
+                    # Receive messages from "/server-ws" clients
+                    message = await websocket.receive_text()
+                    # Forward received messages to all clients connected to "/client-ws"
+                    for client in self.connected_clients:
+                        await client.send_text(message)
+            except WebSocketDisconnect:
+                self.server_ws_clients.remove(websocket)
+
+        @self.router.websocket("/client-ws")
+        async def websocket_endpoint(websocket: WebSocket):
+            await websocket.accept()
+            self.connected_clients.append(websocket)
+            try:
+                while True:
+                    # Receive messages from "/client-ws" clients
+                    message = await websocket.receive_text()
+                    # Forward received messages to all clients connected to "/server-ws"
+                    for server_client in self.server_ws_clients:
+                        await server_client.send_text(message)
+            except WebSocketDisconnect:
+                self.connected_clients.remove(websocket)
+
+        @self.router.post("/broadcast")
+        async def broadcast_message(message: str = Body(..., embed=True)):
+            disconnected_clients = []
+            for client in self.connected_clients:
+                try:
+                    await client.send_text(message)
+                except WebSocketDisconnect:
+                    disconnected_clients.append(client)
+            for client in disconnected_clients:
+                self.connected_clients.remove(client)
+
+        self.app.include_router(self.router)
+
+    def _mount_static_files(self):
+        """Mounts static file directories."""
+        self.app.mount(
+            "/live2d-models",
+            StaticFiles(directory="live2d-models"),
+            name="live2d-models",
+        )
+        self.app.mount("/", StaticFiles(directory="./static", html=True), name="static")
+
+    def run(self, host: str = "127.0.0.1", port: int = 8000):
+        """Runs the FastAPI application using Uvicorn."""
+        import uvicorn
+        uvicorn.run(self.app, host=host, port=port)
 
 
-
-# 存儲已連接的WebSocket客戶端
-connected_clients: List[WebSocket] = []
-
-server_ws_clients = []
-
-@router.websocket("/server-ws")
-async def server_websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    server_ws_clients.append(websocket)
-    # 當與客戶端建立連接時，向所有連接到 "/client-ws" 的客戶端發送特定的 payload
-    control_message = {"type": "control", "text": "start-mic"}
-    for client in connected_clients:  # 假設 connected_clients 是連接到 "/client-ws" 的客戶端列表
-        await client.send_json(control_message)
-    try:
-        while True:
-            # 接收來自 "/server-ws" 客戶端的消息
-            message = await websocket.receive_text()
-            # 將接收到的消息轉發給所有連接到 "/client-ws" 的客戶端
-            for client in connected_clients:
-                await client.send_text(message)
-    except WebSocketDisconnect:
-        server_ws_clients.remove(websocket)
-
-# 修改原有的 websocket_endpoint 函數，使其能夠接收消息並轉發給 "/server-ws" 的客戶端
-@router.websocket("/client-ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    connected_clients.append(websocket)
-    try:
-        while True:
-            # 接收來自 "/client-ws" 客戶端的消息
-            message = await websocket.receive_text()
-            # 將接收到的消息轉發給所有連接到 "/server-ws" 的客戶端
-            for server_client in server_ws_clients:
-                await server_client.send_text(message)
-    except WebSocketDisconnect:
-        connected_clients.remove(websocket)
-
-
-
-@router.post("/broadcast")
-async def broadcast_message(message: str = Body(..., embed=True)):
-    disconnected_clients = []
-    for client in connected_clients:
-        try:
-            await client.send_text(message)
-        except WebSocketDisconnect:
-            disconnected_clients.append(client)
-    for client in disconnected_clients:
-        connected_clients.remove(client)
-
-app.include_router(router)
-
-app.mount("/live2d-models", StaticFiles(directory="live2d-models"), name="live2d-models")
-app.mount("/", StaticFiles(directory="./static", html=True), name="static")
-
-# 如果直接運行此文件，則啟動伺服器
 if __name__ == "__main__":
-    import uvicorn
-    host = get_config("HOST", default="127.0.0.1")
-    port = get_config("PORT", default=8000)
-    uvicorn.run(app, host=host, port=port)
+    # Load configurations from yaml file
+    with open("conf.yaml", "r") as f:
+        config = yaml.safe_load(f)
+
+    # Initialize and run the WebSocket server
+    server = WebSocketServer()
+    server.run(host=config["host"], port=config["port"])
