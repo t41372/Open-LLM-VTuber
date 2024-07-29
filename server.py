@@ -33,6 +33,7 @@ class WebSocketServer:
     def _setup_routes(self):
         """Sets up the WebSocket and broadcast routes."""
 
+        # the connection between this server and the python backend
         @self.router.websocket("/server-ws")
         async def server_websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
@@ -51,6 +52,7 @@ class WebSocketServer:
             except WebSocketDisconnect:
                 self.server_ws_clients.remove(websocket)
 
+        # the connection between this server and the frontend client
         @self.router.websocket("/client-ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
@@ -87,10 +89,10 @@ class WebSocketServer:
         )
         self.app.mount("/", StaticFiles(directory="./static", html=True), name="static")
 
-    def run(self, host: str = "127.0.0.1", port: int = 8000):
+    def run(self, host: str = "127.0.0.1", port: int = 8000, log_level: str = "info"):
         """Runs the FastAPI application using Uvicorn."""
         import uvicorn
-        uvicorn.run(self.app, host=host, port=port)
+        uvicorn.run(self.app, host=host, port=port, log_level=log_level)
 
 
 if __name__ == "__main__":
