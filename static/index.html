@@ -187,7 +187,7 @@
         }
 
 
-        window.addEventListener('load', init_vad);
+        // window.addEventListener('load', init_vad);
 
 
         // WebSocket connection
@@ -400,6 +400,7 @@
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
         // Once speech ends, the mic will pause.
         async function start_mic() {
+            await init_vad();
             micState = true;
             console.log("Mic start ")
             myvad.start();
@@ -416,13 +417,12 @@
             }
         });
 
-        let micToggleState = true;
+        let micToggleState = false;
         micToggle.addEventListener('click', function () {
             micToggleState = !micToggleState;
             micToggle.textContent = micToggleState ? "Mic on [Not implemented]" : "Mic off [Not implemented]";
 
             if (micToggleState) {
-                init_vad();
                 if (micState) {
                     start_mic();
                 }
