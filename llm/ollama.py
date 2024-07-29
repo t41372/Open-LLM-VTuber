@@ -4,7 +4,6 @@
 
 from typing import Iterator
 from openai import OpenAI
-import concurrent.futures
 
 from .llm_interface import LLMInterface
 
@@ -117,8 +116,11 @@ class LLM(LLMInterface):
         def _generate_and_store_response():
             complete_response = ""
             for chunk in chat_completion:
+                if chunk.choices[0].delta.content is None:
+                    chunk.choices[0].delta.content = ""
                 yield chunk.choices[0].delta.content
                 complete_response += chunk.choices[0].delta.content
+                
             self.memory.append(
                 {
                     "role": "assistant",

@@ -1,5 +1,8 @@
-from typing import Iterator
+# This file contains the implementation of the `fake_llm`.
+# This class is a fake llm for testing purposes. It is used to simulate the behavior of a real llm.
+# Use it normally, and it will return predefined responses when chat is called.
 
+from typing import Iterator
 from .llm_interface import LLMInterface
 
 
