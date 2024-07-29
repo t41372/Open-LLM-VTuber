@@ -101,18 +101,21 @@ class OpenLLMVTuberMain:
 
         return system_prompt
 
-    def conversation_chain(self) -> str:
+    def conversation_chain(self, user_input: str = None) -> str:
         """
         One iteration of the main conversation.
-        1. Get user input (text or audio)
+        1. Get user input (text or audio) if not provided as an argument
         2. Call the LLM with the user input
         3. Speak (or not)
+        
+        Parameters:
+        - user_input (str or None): The user input to be used in the conversation. If None, it will be requested from the user.
 
         Returns:
         - str: The full response from the LLM
         """
 
-        user_input = self.get_user_input()
+        user_input = self.get_user_input() if user_input is None else user_input
         if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower():
             print("Exiting...")
             exit()
@@ -131,6 +134,7 @@ class OpenLLMVTuberMain:
         full_response = self.speak(chat_completion)
         if self.verbose:
             print(f"\nComplete response: [\n{full_response}\n]")
+        return full_response
 
     def get_user_input(self) -> str:
         """
