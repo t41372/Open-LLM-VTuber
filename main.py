@@ -257,6 +257,8 @@ class OpenLLMVTuberMain:
                 print("No audio to be streamed. Response is empty.")
             else:
                 raise e
+        except Exception as e:
+            print(f"Error playing the audio file {filepath}: {e}")
 
     def speak_by_sentence_chain(
         self,
