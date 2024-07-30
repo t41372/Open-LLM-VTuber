@@ -27,15 +27,22 @@ class OpenLLMVTuberMain:
     def __init__(self, configs: dict) -> None:
         self.config = configs
         self.verbose = self.config.get("VERBOSE", False)
-        self.live2d = self.init_live2d() if self.config.get("LIVE2D", False) else None
+        self.live2d = self.init_live2d()
         self.asr = self.init_asr() if self.config.get("VOICE_INPUT_ON", False) else None
         self.tts = self.init_tts() if self.config.get("TTS_ON", False) else None
         self.llm = self.init_llm()
 
-    def init_live2d(self) -> Live2dController:
-        live2d_model = self.config.get("LIVE2D_MODEL")
-        url = f"{self.config.get('PROTOCOL', 'http://')}{self.config.get('HOST', 'localhost')}:{self.config.get('PORT', 8000)}"
-        live2d_controller = Live2dController(live2d_model, base_url=url)
+    def init_live2d(self) -> Live2dController | None:
+        if not self.config.get("LIVE2D", False):
+            return None
+        try:
+            live2d_model = self.config.get("LIVE2D_MODEL")
+            url = f"{self.config.get('PROTOCOL', 'http://')}{self.config.get('HOST', 'localhost')}:{self.config.get('PORT', 8000)}"
+            live2d_controller = Live2dController(live2d_model, base_url=url)
+        except Exception as e:
+            print(f"Error initializing Live2D: {e}")
+            print("Proceed without Live2D.")
+            return None
         return live2d_controller
 
     def init_llm(self) -> LLMInterface:
@@ -90,7 +97,7 @@ class OpenLLMVTuberMain:
         else:
             system_prompt = self.config.get("DEFAULT_PERSONA_PROMPT_IN_YAML")
 
-        if self.config.get("LIVE2D"):
+        if self.live2d is not None:
             system_prompt += prompt_loader.load_util(
                 self.config.get("LIVE2D_Expression_Prompt")
             ).replace("[<insert_emomap_keys>]", self.live2d.getEmoMapKeyAsString())

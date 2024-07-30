@@ -46,7 +46,7 @@ class Live2dController:
 
 
 
-    def setModel(self, model_name: str):
+    def setModel(self, model_name: str) -> dict:
         '''
         Sets the live2d model name and returns the matched model dictionary.
 
@@ -62,8 +62,18 @@ class Live2dController:
         '''
         self.live2d_model_name = model_name
 
-        with open(self.modelDictPath, 'r') as file:
-            model_dict = json.load(file)
+        try:
+            with open(self.modelDictPath, 'r') as file:
+                model_dict = json.load(file)
+        except FileNotFoundError as file_e:
+            print(f"Model dictionary file not found at {self.modelDictPath}.")
+            raise file_e
+        except json.JSONDecodeError as json_e:
+            print(f"Error decoding JSON from model dictionary file at {self.modelDictPath}.")
+            raise json_e
+        except Exception as e:
+            print(f"Error occurred while reading model dictionary file at {self.modelDictPath}.")
+            raise e
 
         # Find the model in the model_dict
         matched_model = next((model for model in model_dict if model["name"] == model_name), None)
@@ -274,11 +284,6 @@ class Live2dController:
         payload = json.dumps(message)
 
         response = requests.post(url, json={"message": payload})
-        # print(f"Response Status Code: {response.status_code}")
-        # if response.ok:
-        #     print("Message successfully sent to the broadcast route.")
-        # else:
-        #     print("Failed to send message to the broadcast route.")
 
 
 
