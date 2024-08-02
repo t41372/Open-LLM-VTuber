@@ -99,7 +99,7 @@ live2d technical details
 - Uses WebSocket to control facial expressions and talking state between the server and the front end
 - All the required packages are locally available, so the front end works offline. 
 - You can load live2d models from a URL or the one stored locally in the `live2d-models` directory. The default `shizuku-local` is stored locally and works offline. If the URL property of the model in the model_dict.json is a URL rather than a path starting with `/live2d-models`, they will need to be fetched from the specified URL whenever the front end is opened. Read `doc/live2d.md` for documentation on loading your live2D model from local.
-- Run the `server.py` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run `launch.py` to run the backend for LLM/ASR/TTS processing.
+- Run the `server.py` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run ~~`launch.py`~~ `main.py` to run the backend for LLM/ASR/TTS processing.
 
 ## Install & Usage
 
@@ -127,7 +127,7 @@ Edit the `conf.yaml` for configurations. You can follow the configuration used i
 
 If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the URL you set in `conf.yaml` (`http://HOST:PORT`). By default, go to `http://localhost:8000`.
 
-Run `launch.py` with Python. Some models will be downloaded during your first launch, which may take a while.
+Run ~~`launch.py`~~`main.py` with Python. Some models will be downloaded during your first launch, which may take a while.
 
 Also, the live2D models have to be fetched through the internet, so you'll have to keep your internet connected before the `index.html` is fully loaded with your desired live2D model.
 
@@ -294,8 +294,8 @@ Setup guide:
 
    - `server.py`
    - Open the frontend website in your browser
-   - `launch.py`
- (Use screen, tmux, or similar to run server.py and launch.py simultaneously)
+   - ~~`launch.py`~~ `main.py`
+ (Use screen, tmux, or similar to run server.py and main.py simultaneously)
 
 5. Open localhost:8000 to test
 
