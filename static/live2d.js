@@ -1,4 +1,4 @@
-// index.js
+
 var app, model2;
 var modelInfo, emoMap;
 
