@@ -103,6 +103,9 @@ live2d technical details
 
 ## Install & Usage
 
+> **New installation instruction is being created [here](https://github.com/t41372/Open-LLM-VTuber/wiki)**
+
+
 Install FFmpeg on your computer.
 
 Clone this repository.
