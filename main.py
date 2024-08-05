@@ -391,7 +391,7 @@ class OpenLLMVTuberMain:
 
 
 if __name__ == "__main__":
-    with open("conf.yaml", "r") as f:
+    with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
 
     vtuber_main = OpenLLMVTuberMain(config)

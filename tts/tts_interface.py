@@ -1,6 +1,6 @@
 import abc
 import os
-from playsound import playsound
+from playsound3 import playsound
 
 
 class TTSInterface(metaclass=abc.ABCMeta):

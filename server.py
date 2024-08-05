@@ -97,7 +97,7 @@ class WebSocketServer:
 
 if __name__ == "__main__":
     # Load configurations from yaml file
-    with open("conf.yaml", "r") as f:
+    with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
 
     # Initialize and run the WebSocket server

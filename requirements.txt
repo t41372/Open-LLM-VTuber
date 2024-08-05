@@ -1,4 +1,5 @@
 requests
+websocket
 python-dotenv==1.0.0
 transformers
 halo
@@ -8,7 +9,7 @@ numpy
 pydub
 sounddevice
 soundfile
-playsound
+playsound3
 faster_whisper
 scipy
 onnxruntime
