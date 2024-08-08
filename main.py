@@ -2,6 +2,7 @@ import sys
 import threading
 import queue
 from typing import Iterator
+from fastapi import WebSocket
 
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
@@ -17,6 +18,17 @@ import yaml
 
 
 class OpenLLMVTuberMain:
+    """
+    The main class for the OpenLLM VTuber.
+    It initializes the Live2D controller, ASR, TTS, and LLM based on the provided configuration.
+    Run `conversation_chain` to start one conversation (user_input -> llm -> speak).
+
+    Attributes:
+    - config (dict): The configuration dictionary.
+    - llm (LLMInterface): The LLM instance.
+    - asr (ASRInterface): The ASR instance.
+    - tts (TTSInterface): The TTS instance.
+    """
 
     config: dict
     llm: LLMInterface
@@ -24,12 +36,41 @@ class OpenLLMVTuberMain:
     tts: TTSInterface
     live2d: Live2dController
 
-    def __init__(self, configs: dict) -> None:
+    def __init__(
+        self,
+        configs: dict,
+        custom_asr: ASRInterface | None = None,
+        custom_tts: TTSInterface | None = None,
+        websocket: WebSocket | None = None,
+    ) -> None:
         self.config = configs
         self.verbose = self.config.get("VERBOSE", False)
+        self.websocket = websocket
         self.live2d = self.init_live2d()
-        self.asr = self.init_asr() if self.config.get("VOICE_INPUT_ON", False) else None
-        self.tts = self.init_tts() if self.config.get("TTS_ON", False) else None
+        
+
+        # Init ASR if voice input is on.
+        if self.config.get("VOICE_INPUT_ON", False):
+            # if custom_asr is provided, don't init asr and use it instead.
+            if custom_asr is None:
+                self.asr = self.init_asr()
+            else:
+                print("Using custom ASR")
+                self.asr = custom_asr
+        else:
+            self.asr = None
+
+        # Init TTS if TTS is on.
+        if self.config.get("TTS_ON", False):
+            # if custom_tts is provided, don't init tts and use it instead.
+            if custom_tts is None:
+                self.tts = self.init_tts()
+            else:
+                print("Using custom TTS")
+                self.tts = custom_tts
+        else:
+            self.tts = None
+
         self.llm = self.init_llm()
 
     def init_live2d(self) -> Live2dController | None:
@@ -114,7 +155,7 @@ class OpenLLMVTuberMain:
         1. Get user input (text or audio) if not provided as an argument
         2. Call the LLM with the user input
         3. Speak (or not)
-        
+
         Parameters:
         - user_input (str or None): The user input to be used in the conversation. If None, it will be requested from the user.
 

@@ -1,10 +1,14 @@
+import yaml
+import json
+import asyncio
 from fastapi import FastAPI, WebSocket, APIRouter, Body
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from typing import List, Dict
+from main import OpenLLMVTuberMain
 
-import yaml
+
 
 
 class WebSocketServer:
@@ -19,14 +23,17 @@ class WebSocketServer:
         server_ws_clients (List[WebSocket]): List of connected WebSocket clients for "/server-ws".
     """
 
-    def __init__(self):
+    def __init__(self, open_llm_vtuber_config: Dict | None = None):
         """
         Initializes the WebSocketServer with the given configuration.
         """
         self.app = FastAPI()
         self.router = APIRouter()
+        self.new_connected_clients: List[WebSocket] = []
         self.connected_clients: List[WebSocket] = []
         self.server_ws_clients: List[WebSocket] = []
+        self.open_llm_vtuber: OpenLLMVTuberMain | None = None
+        self.open_llm_vtuber_config: Dict | None = open_llm_vtuber_config
         self._setup_routes()
         self._mount_static_files()
 
@@ -61,11 +68,43 @@ class WebSocketServer:
                 while True:
                     # Receive messages from "/client-ws" clients
                     message = await websocket.receive_text()
+                    # do some funny thing here...
                     # Forward received messages to all clients connected to "/server-ws"
                     for server_client in self.server_ws_clients:
                         await server_client.send_text(message)
             except WebSocketDisconnect:
                 self.connected_clients.remove(websocket)
+
+        # the connection between this server and the frontend client
+        # The version 2 of the client-ws. Introduces breaking changes.
+        # This route will initiate its own main.py instance and conversation loop
+        @self.router.websocket("/browser-ws-connection")
+        async def websocket_endpoint(websocket: WebSocket):
+            await websocket.accept()
+            await websocket.send_text("Connection established")
+            self.connected_clients.append(websocket)
+            print("Com")
+            self.open_llm_vtuber = await asyncio.create_task(OpenLLMVTuberMain(self.open_llm_vtuber_config))
+            print("Bo")
+            
+            try:
+                while True:
+                    # Receive messages from "/client-ws" clients
+                    print("Wait for it...")
+                    message = await websocket.receive_text()
+                    print(message)
+                    payload = {
+                        "type": "full-text",
+                        "text": "Jojo said he received the message, so i guess it's working"
+                    }
+                    websocket.send_text(json.dumps(payload))
+                    # do some funny thing here...
+                    # # Forward received messages to all clients connected to "/server-ws"
+                    # for server_client in self.server_ws_clients:
+                    #     await server_client.send_text(message)
+            except WebSocketDisconnect:
+                self.connected_clients.remove(websocket)
+                self.open_llm_vtuber = None
 
         @self.router.post("/broadcast")
         async def broadcast_message(message: str = Body(..., embed=True)):
@@ -92,6 +131,7 @@ class WebSocketServer:
     def run(self, host: str = "127.0.0.1", port: int = 8000, log_level: str = "info"):
         """Runs the FastAPI application using Uvicorn."""
         import uvicorn
+
         uvicorn.run(self.app, host=host, port=port, log_level=log_level)
 
 
@@ -101,5 +141,5 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     # Initialize and run the WebSocket server
-    server = WebSocketServer()
+    server = WebSocketServer(open_llm_vtuber_config=config)
     server.run(host=config["HOST"], port=config["PORT"])
