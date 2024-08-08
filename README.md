@@ -4,9 +4,11 @@
 
 > :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
+> :warning: This project currently **has a lot of issues on Windows**. In theory, it should all work, but many people using Windows are having many problems with many dependencies now. Those issues will probably be fixed in the future, but Windows support currently requires testing and debugging. If you have a Mac or a Linux machine, use them instead for the time being. Join the Discord server if you are having trouble or just want to talk.
+
 > :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to either configure https with a reverse proxy or launch the front end locally and connects to the server via websocket (untested). Open the `static/index.html` with your browser and set the ws url on the page.
 
-Open-LLM-VTuber allows you to talk to any LLM by voice (hands free) locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
+Open-LLM-VTuber allows you to talk to any LLM by voice (hands free) locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows (). 
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
