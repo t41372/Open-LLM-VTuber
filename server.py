@@ -1,12 +1,13 @@
 import yaml
 import json
-import asyncio
+import numpy as np
 from fastapi import FastAPI, WebSocket, APIRouter, Body
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from typing import List, Dict
 from main import OpenLLMVTuberMain
+from frontend.live2d_model import Live2dModel
 
 
 
@@ -78,26 +79,46 @@ class WebSocketServer:
         # the connection between this server and the frontend client
         # The version 2 of the client-ws. Introduces breaking changes.
         # This route will initiate its own main.py instance and conversation loop
-        @self.router.websocket("/browser-ws-connection")
+        @self.router.websocket("/b-ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
-            await websocket.send_text("Connection established")
+            await websocket.send_text(json.dumps({"type": "full-text", "text": "Connection established"}))
+            
             self.connected_clients.append(websocket)
             print("Com")
-            self.open_llm_vtuber = await asyncio.create_task(OpenLLMVTuberMain(self.open_llm_vtuber_config))
+            l2d = Live2dModel(self.open_llm_vtuber_config["LIVE2D_MODEL"])
+            self.open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_config)
+            await websocket.send_text(json.dumps({"type": "set-model", "text": l2d.model_info}))
             print("Bo")
+            received_data_buffer = np.array([])
             
             try:
                 while True:
-                    # Receive messages from "/client-ws" clients
-                    print("Wait for it...")
+                    # Receive messages from the clients
+                    print("Enter conversation loop...")
                     message = await websocket.receive_text()
-                    print(message)
+                    # print(message)
+                    
+                    data = json.loads(message)
+                    if data.get("type") == "mic-audio":
+                        received_data_buffer = np.append(
+                            received_data_buffer,
+                            np.array(list(data.get("audio").values()), dtype=np.float32),
+                        )
+                        print(".", end="")
+                        # ws.close()
+                    elif data.get("type") == "mic-audio-end":
+                        print("Received audio data end from front end.")
+                        self.open_llm_vtuber.conversation_chain(user_input=received_data_buffer)
+                        
+                        
+                    
+                    
                     payload = {
                         "type": "full-text",
                         "text": "Jojo said he received the message, so i guess it's working"
                     }
-                    websocket.send_text(json.dumps(payload))
+                    await websocket.send_text(json.dumps(payload))
                     # do some funny thing here...
                     # # Forward received messages to all clients connected to "/server-ws"
                     # for server_client in self.server_ws_clients:

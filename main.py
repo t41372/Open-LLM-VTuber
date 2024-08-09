@@ -3,6 +3,7 @@ import threading
 import queue
 from typing import Iterator
 from fastapi import WebSocket
+import numpy as np
 
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
@@ -47,7 +48,6 @@ class OpenLLMVTuberMain:
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
         self.live2d = self.init_live2d()
-        
 
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
@@ -149,7 +149,7 @@ class OpenLLMVTuberMain:
 
         return system_prompt
 
-    def conversation_chain(self, user_input: str = None) -> str:
+    def conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
         """
         One iteration of the main conversation.
         1. Get user input (text or audio) if not provided as an argument
@@ -157,13 +157,20 @@ class OpenLLMVTuberMain:
         3. Speak (or not)
 
         Parameters:
-        - user_input (str or None): The user input to be used in the conversation. If None, it will be requested from the user.
+        - user_input (str, numpy array, or None): The user input to be used in the conversation. If it's string, it will be considered as user input. If it's a numpy array, it will be transcribed. If it's None, we'll request input from the user.
 
         Returns:
         - str: The full response from the LLM
         """
 
-        user_input = self.get_user_input() if user_input is None else user_input
+        # if user_input is not string, make it string
+        if user_input is None:
+            user_input = self.get_user_input()
+        elif isinstance(user_input, np.ndarray):
+            print("transcribing...")
+            user_input = self.asr.transcribe_np(user_input)
+        
+
         if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower():
             print("Exiting...")
             exit()

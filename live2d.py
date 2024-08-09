@@ -154,7 +154,7 @@ class Live2dController:
                 )
                 print(".", end="")
                 # ws.close()
-            if data.get("type") == "mic-audio-end":
+            elif data.get("type") == "mic-audio-end":
                 print("Received audio data end from front end.")
                 ws.close()
 
