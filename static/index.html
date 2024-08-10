@@ -65,7 +65,7 @@
                         micState = false;
                         sendAudioPartition(audio);
                     }
-                    myvad.pause();
+                    // myvad.pause();
                 }
             })
         }
@@ -139,6 +139,11 @@
                     switch (message.text) {
                         case "start-mic":
                             start_mic();
+                            break;
+                        
+                        case "stop-mic":
+                            myvad.pause();
+                            micState = false;
                             break;
 
                         case "speaking-start":
@@ -288,7 +293,8 @@
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
         // Once speech ends, the mic will pause.
         async function start_mic() {
-            await init_vad();
+            if (myvad == null)
+                await init_vad();
             micState = true;
             console.log("Mic start ")
             myvad.start();

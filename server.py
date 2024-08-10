@@ -1,6 +1,7 @@
 import yaml
 import json
 import numpy as np
+import asyncio
 from fastapi import FastAPI, WebSocket, APIRouter, Body
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,8 +9,7 @@ from starlette.websockets import WebSocketDisconnect
 from typing import List, Dict
 from main import OpenLLMVTuberMain
 from frontend.live2d_model import Live2dModel
-
-
+from tts.stream_audio import AudioPayloadPreparer
 
 
 class WebSocketServer:
@@ -82,47 +82,92 @@ class WebSocketServer:
         @self.router.websocket("/b-ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
-            await websocket.send_text(json.dumps({"type": "full-text", "text": "Connection established"}))
-            
+            await websocket.send_text(
+                json.dumps({"type": "full-text", "text": "Connection established"})
+            )
+
             self.connected_clients.append(websocket)
             print("Com")
             l2d = Live2dModel(self.open_llm_vtuber_config["LIVE2D_MODEL"])
             self.open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_config)
-            await websocket.send_text(json.dumps({"type": "set-model", "text": l2d.model_info}))
+            audio_payload_preparer = AudioPayloadPreparer()
+            import time
+            def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
+                if filepath is None:
+                    print("No audio to be streamed. Response is empty.")
+                    return
+
+                if sentence is None:
+                    sentence = ""
+                print(f">> Playing {filepath}...")
+                payload, duration = audio_payload_preparer.prepare_audio_payload(
+                    filepath, sentence
+                )
+                print("Payload send.")
+                async def _send_audio():
+                    await websocket.send_text(json.dumps(payload))
+                    await asyncio.sleep(duration)
+                
+                asyncio.run(_send_audio())
+                
+                print("Audio played.")
+
+            self.open_llm_vtuber.set_audio_output_func(_play_audio_file)
+
+            await websocket.send_text(
+                json.dumps({"type": "set-model", "text": l2d.model_info})
+            )
             print("Bo")
             received_data_buffer = np.array([])
-            
+            # start mic
+            await websocket.send_text(
+                json.dumps({"type": "control", "text": "start-mic"})
+            )
+
+            conversation_task = None
+
             try:
                 while True:
                     # Receive messages from the clients
                     print("Enter conversation loop...")
                     message = await websocket.receive_text()
                     # print(message)
-                    
+
                     data = json.loads(message)
                     if data.get("type") == "mic-audio":
                         received_data_buffer = np.append(
                             received_data_buffer,
-                            np.array(list(data.get("audio").values()), dtype=np.float32),
+                            np.array(
+                                list(data.get("audio").values()), dtype=np.float32
+                            ),
                         )
                         print(".", end="")
                         # ws.close()
                     elif data.get("type") == "mic-audio-end":
                         print("Received audio data end from front end.")
-                        self.open_llm_vtuber.conversation_chain(user_input=received_data_buffer)
-                        
-                        
-                    
-                    
-                    payload = {
-                        "type": "full-text",
-                        "text": "Jojo said he received the message, so i guess it's working"
-                    }
-                    await websocket.send_text(json.dumps(payload))
-                    # do some funny thing here...
-                    # # Forward received messages to all clients connected to "/server-ws"
-                    # for server_client in self.server_ws_clients:
-                    #     await server_client.send_text(message)
+                        await websocket.send_text(
+                            json.dumps({"type": "full-text", "text": "Thinking..."})
+                        )
+
+                        if (
+                            conversation_task is not None
+                            and not conversation_task.done()
+                        ):
+                            print("Cancelling previous conversation task...")
+                            conversation_task.cancel()
+
+                        async def _run_conversation():
+                            await asyncio.to_thread(
+                                self.open_llm_vtuber.conversation_chain,
+                                user_input=received_data_buffer,
+                            )
+
+                        conversation_task = asyncio.create_task(_run_conversation())
+                        # self.open_llm_vtuber.conversation_chain(user_input=received_data_buffer)
+
+                    # print("Received message: ", message)
+                    print("Loop Completed")
+
             except WebSocketDisconnect:
                 self.connected_clients.remove(websocket)
                 self.open_llm_vtuber = None

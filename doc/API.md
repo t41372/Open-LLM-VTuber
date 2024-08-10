@@ -163,7 +163,10 @@ sequenceDiagram
 
 Type: `control`
 
-- message `speaking-start`: 
+- Type `start-mic`
+  - Start microphone indefinitely
+  - 
+- Type `speaking-start`: 
   - Start speaking (start moving mouth like an idiot)
-- message `speaking-stop`:
+- Type `speaking-stop`:
   - Stop speaking (stop moving mouth like an idiot)

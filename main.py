@@ -1,7 +1,7 @@
 import sys
 import threading
 import queue
-from typing import Iterator
+from typing import Callable, Iterator, Optional
 from fastapi import WebSocket
 import numpy as np
 
@@ -73,6 +73,8 @@ class OpenLLMVTuberMain:
 
         self.llm = self.init_llm()
 
+    # Initialization methods
+
     def init_live2d(self) -> Live2dController | None:
         if not self.config.get("LIVE2D", False):
             return None
@@ -127,6 +129,39 @@ class OpenLLMVTuberMain:
 
         return tts
 
+    def set_audio_output_func(
+        self, audio_output_func: Callable[[Optional[str], Optional[str]], None]
+    ) -> None:
+        '''
+        Set the audio output function to be used for playing audio files.
+        The function should accept two arguments: sentence (str) and filepath (str).
+        
+        sentence: str | None
+        - The sentence to be displayed on the frontend.
+        - If None, empty sentence will be displayed.
+        
+        filepath: str | None
+        - The path to the audio file to be played.
+        - If None, no audio will be played.
+        
+        Here is an example of the function:
+        ~~~python
+        def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
+            if filepath is None:
+                print("No audio to be streamed. Response is empty.")
+                return
+            
+            if sentence is None:
+                sentence = ""
+            print(f">> Playing {filepath}...")
+            playsound(filepath)
+        ~~~
+        '''
+        
+        self._play_audio_file = audio_output_func
+
+        # def _play_audio_file(self, sentence: str, filepath: str | None) -> None:
+
     def get_system_prompt(self) -> str:
         """
         Construct and return the system prompt based on the configuration file.
@@ -149,6 +184,8 @@ class OpenLLMVTuberMain:
 
         return system_prompt
 
+    # Main conversation methods
+
     def conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
         """
         One iteration of the main conversation.
@@ -169,7 +206,6 @@ class OpenLLMVTuberMain:
         elif isinstance(user_input, np.ndarray):
             print("transcribing...")
             user_input = self.asr.transcribe_np(user_input)
-        
 
         if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower():
             print("Exiting...")
@@ -265,7 +301,7 @@ class OpenLLMVTuberMain:
 
         return self.tts.generate_audio(sentence, file_name_no_ext=file_name_no_ext)
 
-    def _play_audio_file(self, sentence: str, filepath: str | None) -> None:
+    def _play_audio_file(self, sentence: str | None, filepath: str | None) -> None:
         """
         Play the audio file either locally or remotely using the Live2D controller if available.
 
@@ -277,6 +313,9 @@ class OpenLLMVTuberMain:
         if filepath is None:
             print("No audio to be streamed. Response is empty.")
             return
+
+        if sentence is None:
+            sentence = ""
 
         try:
             if self.live2d:
@@ -322,7 +361,7 @@ class OpenLLMVTuberMain:
         - str: The full response from the LLM
         """
 
-        def producer_worker(task_queue: queue):
+        def producer_worker(task_queue: queue.Queue) -> str:
             index = 0
             sentence_buffer = ""
             full_response = ""
@@ -363,7 +402,7 @@ class OpenLLMVTuberMain:
             print("\n\n --- Audio generation completed ---")
             return full_response
 
-        def consumer_worker(task_queue: queue):
+        def consumer_worker(task_queue: queue.Queue):
             while True:
                 audio_info = task_queue.get()
                 if audio_info:
