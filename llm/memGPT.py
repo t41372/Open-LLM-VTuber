@@ -39,6 +39,9 @@ class LLM(LLMInterface):
         full_response = self._send_message_to_agent(prompt, callback_function=print)
         # memGPT will handle the memory, so no need to deal with it here
         return full_response
+    
+    def handle_interrupt(self, heard_response: str) -> None:
+        print("\n>> (MemGPT doesn't know you interrupted it for now. I don't know how to tell it about the interruption.) \n")
 
 
     def _send_message_to_agent(self, message, callback_function=print):

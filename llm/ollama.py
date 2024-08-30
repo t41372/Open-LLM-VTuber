@@ -6,6 +6,7 @@ from typing import Iterator
 from openai import OpenAI
 
 from .llm_interface import LLMInterface
+import json
 
 
 class LLM(LLMInterface):
@@ -127,9 +128,31 @@ class LLM(LLMInterface):
                     "content": complete_response,
                 }
             )
+            def serialize_memory(memory, filename):
+                with open(filename, 'w') as file:
+                    json.dump(memory, file)
+
+            serialize_memory(self.memory, 'mem.json')
             return
 
         return _generate_and_store_response()
+    
+    def handle_interrupt(self, heard_response: str) -> None:
+        if self.memory[-1]["role"] == "assistant":
+            self.memory[-1]["content"] = heard_response + "..."
+        else:
+            self.memory.append(
+                {
+                    "role": "assistant",
+                    "content": heard_response + "...",
+                }
+            )
+        self.memory.append(
+            {
+                "role": "system",
+                "content": "[Interrupted by user]",
+            }
+        )
 
 
 def test():

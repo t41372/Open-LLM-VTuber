@@ -123,7 +123,6 @@ class OpenLLMVTuberMain:
         if tts_model == "AzureTTS":
             import api_keys
 
-
             tts_config = {
                 "api_key": api_keys.AZURE_API_Key,
                 "region": api_keys.AZURE_REGION,
@@ -136,32 +135,32 @@ class OpenLLMVTuberMain:
     def set_audio_output_func(
         self, audio_output_func: Callable[[Optional[str], Optional[str]], None]
     ) -> None:
-        '''
+        """
         Set the audio output function to be used for playing audio files.
         The function should accept two arguments: sentence (str) and filepath (str).
-        
+
         sentence: str | None
         - The sentence to be displayed on the frontend.
         - If None, empty sentence will be displayed.
-        
+
         filepath: str | None
         - The path to the audio file to be played.
         - If None, no audio will be played.
-        
+
         Here is an example of the function:
         ~~~python
         def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
             if filepath is None:
                 print("No audio to be streamed. Response is empty.")
                 return
-            
+
             if sentence is None:
                 sentence = ""
             print(f">> Playing {filepath}...")
             playsound(filepath)
         ~~~
-        '''
-        
+        """
+
         self._play_audio_file = audio_output_func
 
         # def _play_audio_file(self, sentence: str, filepath: str | None) -> None:
@@ -203,17 +202,17 @@ class OpenLLMVTuberMain:
         Returns:
         - str: The full response from the LLM
         """
-        
+
         self._interrupt_flag.clear()  # Reset the interrupt flag
-        
+
         # Generate a random number between 0 and 3
         color_code = random.randint(0, 3)
         c = [None] * 4
         # Define the color codes for red, blue, green, and white
-        c[0] = '\033[91m'
-        c[1] = '\033[94m'
-        c[2] = '\033[92m'
-        c[3] = '\033[0m'
+        c[0] = "\033[91m"
+        c[1] = "\033[94m"
+        c[2] = "\033[92m"
+        c[3] = "\033[0m"
 
         # Apply the color to the console output
         print(f"{c[color_code]}This is a colored console output!")
@@ -237,6 +236,7 @@ class OpenLLMVTuberMain:
             full_response = ""
             for char in chat_completion:
                 if self._interrupt_flag.is_set():
+                    self._interrupt_post_processing(full_response)
                     print("\nInterrupted!")
                     return None
                 full_response += char
@@ -246,7 +246,7 @@ class OpenLLMVTuberMain:
         full_response = self.speak(chat_completion)
         if self.verbose:
             print(f"\nComplete response: [\n{full_response}\n]")
-        
+
         print(f"{c[color_code]}Conversation completed.")
         return full_response
 
@@ -289,6 +289,7 @@ class OpenLLMVTuberMain:
             for char in chat_completion:
                 if self._interrupt_flag.is_set():
                     print("\nInterrupted!")
+                    self._interrupt_post_processing(full_response)
                     return None
                 print(char, end="")
                 full_response += char
@@ -300,6 +301,8 @@ class OpenLLMVTuberMain:
                     sentence=full_response,
                     filepath=filename,
                 )
+            else:
+                self._interrupt_post_processing(full_response)
 
         return full_response
 
@@ -398,9 +401,13 @@ class OpenLLMVTuberMain:
                         if self.is_complete_sentence(sentence_buffer):
                             if self.verbose:
                                 print("\n")
+                            if self._interrupt_flag.is_set():
+                                raise InterruptedError("Producer interrupted")
                             audio_filepath = self._generate_audio_file(
                                 sentence_buffer, file_name_no_ext=f"temp-{index}"
                             )
+                            if self._interrupt_flag.is_set():
+                                raise InterruptedError("Producer interrupted")
                             audio_info = {
                                 "sentence": sentence_buffer,
                                 "audio_filepath": audio_filepath,
@@ -411,6 +418,8 @@ class OpenLLMVTuberMain:
 
                 # Handle any remaining text in the buffer
                 if sentence_buffer:
+                    if self._interrupt_flag.is_set():
+                        raise InterruptedError("Producer interrupted")
                     print("\n")
                     audio_filepath = self._generate_audio_file(
                         sentence_buffer, file_name_no_ext=f"temp-{index}"
@@ -423,20 +432,25 @@ class OpenLLMVTuberMain:
 
             except InterruptedError:
                 print("\nProducer interrupted")
+                self._interrupt_post_processing("") # No sentence was heard before the interrupt
             finally:
                 task_queue.put(None)  # Signal end of production
 
         def consumer_worker():
+            heard_sentence = ""
             try:
                 while True:
                     if self._interrupt_flag.is_set():
                         raise InterruptedError("Consumer interrupted")
 
                     try:
-                        audio_info = task_queue.get(timeout=0.1)  # Short timeout to check for interrupts
+                        audio_info = task_queue.get(
+                            timeout=0.1
+                        )  # Short timeout to check for interrupts
                         if audio_info is None:
                             break  # End of production
                         if audio_info:
+                            heard_sentence += audio_info["sentence"]
                             self._play_audio_file(
                                 sentence=audio_info["sentence"],
                                 filepath=audio_info["audio_filepath"],
@@ -447,6 +461,7 @@ class OpenLLMVTuberMain:
 
             except InterruptedError:
                 print("\nConsumer interrupted")
+                self._interrupt_post_processing(heard_sentence=heard_sentence)
 
         producer_thread = threading.Thread(target=producer_worker)
         consumer_thread = threading.Thread(target=consumer_worker)
@@ -473,11 +488,20 @@ class OpenLLMVTuberMain:
         """Set the interrupt flag to stop the conversation chain."""
         self._interrupt_flag.set()
 
+    def _interrupt_post_processing(self, heard_sentence: str) -> None:
+        """Perform post-processing tasks (like updating memory or tell the LLM that it's been interrupted) after an interrupt.
+        
+        Parameters:
+        - heard_sentence (str): The sentence that was already shown or heard by the user before the interrupt.
+            (because apparently the user won't know the rest of the response.)
+        
+        """
+        self.llm.handle_interrupt(heard_sentence)
+
     def _check_interrupt(self):
         """Check if the interrupt flag is set and raise an exception if it is."""
         if self._interrupt_flag.is_set():
             raise InterruptedError("Conversation chain interrupted.")
-    
 
     def is_complete_sentence(self, text: str):
         """
