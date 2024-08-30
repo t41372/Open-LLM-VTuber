@@ -45,6 +45,24 @@
 
     <script>
         let micState = false;
+        let interrupted = false;
+        var audioPlayer = new Audio();
+
+        // call this function to interrupt the LLM
+        function interrupt() {
+            ws.send(JSON.stringify({ type: "mic-audio-start-listening" }));
+            interrupted = true;
+            audioPlayer.pause();
+            audioPlayer = new Audio();
+            console.log("Interrupted!!!! ===== -2-3-4o03-weporl")
+        }
+        
+        // resume from the interruption
+        function resume() {
+            console.log("Resuming from interruption")
+            interrupted = false;
+            // audioPlayer.play();
+        }
 
         let myvad;
         async function init_vad() {
@@ -52,6 +70,7 @@
                 preSpeechPadFrames: 10,
                 onSpeechStart: () => {
                     console.log("Speech start detected")
+                    interrupt()
                 },
                 onFrameProcessed: (probs) => {
                     // console.log(`Prob:`)
@@ -60,6 +79,7 @@
                 onSpeechEnd: (audio) => {
                     // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
                     console.log(audio)
+                    interrupted = false;
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         // ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
                         micState = false;
@@ -75,7 +95,7 @@
             for (let index = 0; index < audio.length; index += chunkSize) {
                 const endIndex = Math.min(index + chunkSize, audio.length);
                 const chunk = audio.slice(index, endIndex);
-                ws.send(JSON.stringify({ type: "mic-audio", audio: chunk }));
+                ws.send(JSON.stringify({ type: "mic-audio-data", audio: chunk }));
             }
             ws.send(JSON.stringify({ type: "mic-audio-end" }));
         }
@@ -104,12 +124,14 @@
             ws = new WebSocket(wsUrl.value);
 
             ws.onopen = function () {
+                interrupted = false;
                 console.log("Connected to WebSocket");
                 wsStatus.textContent = "Connected";
                 wsStatus.classList.add('connected');
             };
 
             ws.onclose = function () {
+                interrupt = false;
                 console.log("Disconnected from WebSocket");
                 wsStatus.textContent = "Disconnected";
                 wsStatus.classList.remove('connected');
@@ -267,13 +289,16 @@
                 document.getElementById("message").textContent = text;
             }
 
-            const audio = new Audio("data:audio/wav;base64," + audio_base64);
-            audio.play();
+            audioPlayer = new Audio("data:audio/wav;base64," + audio_base64);
+            audioPlayer.play();
 
             let i = 0;
             const interval = setInterval(() => {
                 if (i >= volumes.length) {
                     clearInterval(interval);
+                    return;
+                }
+                if (interrupted) {
                     return;
                 }
                 setMouth(volumes[i]);
@@ -288,6 +313,7 @@
 
 
         }
+
 
 
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.

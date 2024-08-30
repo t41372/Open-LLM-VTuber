@@ -87,11 +87,11 @@ class WebSocketServer:
             )
 
             self.connected_clients.append(websocket)
-            print("Com")
+            print("Connection established")
             l2d = Live2dModel(self.open_llm_vtuber_config["LIVE2D_MODEL"])
             self.open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_config)
             audio_payload_preparer = AudioPayloadPreparer()
-            import time
+
             def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
                 if filepath is None:
                     print("No audio to be streamed. Response is empty.")
@@ -107,9 +107,9 @@ class WebSocketServer:
                 async def _send_audio():
                     await websocket.send_text(json.dumps(payload))
                     await asyncio.sleep(duration)
-                
+
                 asyncio.run(_send_audio())
-                
+
                 print("Audio played.")
 
             self.open_llm_vtuber.set_audio_output_func(_play_audio_file)
@@ -117,7 +117,7 @@ class WebSocketServer:
             await websocket.send_text(
                 json.dumps({"type": "set-model", "text": l2d.model_info})
             )
-            print("Bo")
+            print("Model set")
             received_data_buffer = np.array([])
             # start mic
             await websocket.send_text(
@@ -128,45 +128,46 @@ class WebSocketServer:
 
             try:
                 while True:
-                    # Receive messages from the clients
                     print("Enter conversation loop...")
                     message = await websocket.receive_text()
-                    # print(message)
-
                     data = json.loads(message)
-                    if data.get("type") == "mic-audio":
+                    print(f"\033\nReceived ws req: {data.get('type')}\033[0m\n")
+
+                    if data.get("type") == "mic-audio-start-listening":
+                        received_data_buffer = np.array([])
+                        print("Start receiving audio data from front end.")
+                        if conversation_task is not None:
+                            print("\033[91mLLM hadn't finish itself. Interrupting it...\033[0m")
+                            self.open_llm_vtuber.interrupt()
+                            conversation_task.cancel()
+                            
+
+                    elif data.get("type") == "mic-audio-data":
                         received_data_buffer = np.append(
                             received_data_buffer,
-                            np.array(
-                                list(data.get("audio").values()), dtype=np.float32
-                            ),
+                            np.array(list(data.get("audio").values()), dtype=np.float32),
                         )
-                        print(".", end="")
-                        # ws.close()
+                        print("*", end="")
+
                     elif data.get("type") == "mic-audio-end":
                         print("Received audio data end from front end.")
                         await websocket.send_text(
                             json.dumps({"type": "full-text", "text": "Thinking..."})
                         )
 
-                        if (
-                            conversation_task is not None
-                            and not conversation_task.done()
-                        ):
-                            print("Cancelling previous conversation task...")
-                            conversation_task.cancel()
-
                         async def _run_conversation():
-                            await asyncio.to_thread(
-                                self.open_llm_vtuber.conversation_chain,
-                                user_input=received_data_buffer,
-                            )
+                            try:
+                                await asyncio.to_thread(
+                                    self.open_llm_vtuber.conversation_chain,
+                                    user_input=received_data_buffer,
+                                )
+                                print("Loop Completed")
+                            except asyncio.CancelledError:
+                                print("Conversation task was cancelled.")
+                            except InterruptedError:
+                                print("Conversation was interrupted.")
 
                         conversation_task = asyncio.create_task(_run_conversation())
-                        # self.open_llm_vtuber.conversation_chain(user_input=received_data_buffer)
-
-                    # print("Received message: ", message)
-                    print("Loop Completed")
 
             except WebSocketDisconnect:
                 self.connected_clients.remove(websocket)

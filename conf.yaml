@@ -44,7 +44,7 @@ memgpt:
 
 # ============== Live2D front-end Settings ==============
 
-LIVE2D: True
+LIVE2D: False
 LIVE2D_MODEL: "shizuku-local"
 
 #  ============== Voice Interaction Settings ==============
