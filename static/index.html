@@ -35,8 +35,8 @@
     <div class="bottom-container">
         <div class="fixed-bottom" id="message"></div>
         <div class="control-buttons">
-            <button id="micToggle">MicBtn [not implemented]</button>
-            <button id="interruptBtn">InterruptLLM [not implemented]</button>
+            <button id="micToggle">🎙️Mic is On</button>
+            <button id="interruptBtn">InterruptLLM [sure but you can just talk...]</button>
         </div>
     </div>
 
@@ -44,13 +44,13 @@
     <script src="./live2d.js"></script>
 
     <script>
-        let micState = false;
         let conversationChainStarted = false;
         let interrupted = false;
         let audioPlayer = new Audio();
 
         // call this function to interrupt the LLM
         function interrupt() {
+            console.log("😡👎 Interrupting conversation chain");
             ws.send(JSON.stringify({ type: "interrupt-signal" }));
             interrupted = true;
             audioPlayer.pause();
@@ -66,7 +66,6 @@
                 onSpeechStart: () => {
                     console.log("Speech start detected: " + previousTriggeredProbability);
                     if (conversationChainStarted) {
-                        console.log("😡👎 Interrupting conversation chain");
                         interrupt();
                     }
                     else {
@@ -84,8 +83,6 @@
                     // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
                     interrupted = false;
                     if (ws && ws.readyState === WebSocket.OPEN) {
-                        // ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
-                        micState = false;
                         sendAudioPartition(audio);
                     }
                     // myvad.pause();
@@ -265,13 +262,11 @@
         // Once speech ends, the mic will pause.
         async function start_mic() {
             if (myvad == null) await init_vad();
-            micState = true;
             console.log("Mic start ");
             myvad.start();
         }
 
         function stop_mic() {
-            micState = false;
             console.log("Mic stop");
             myvad.pause();
         }
@@ -279,25 +274,19 @@
         interruptBtn.addEventListener('click', function () {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 // placeholder for interrupting the LLM
-                ws.send(JSON.stringify({ type: "interrupt" }));
+                interrupt();
             }
         });
 
-        let micToggleState = false;
+        let micToggleState = true;
         micToggle.addEventListener('click', function () {
             micToggleState = !micToggleState;
-            micToggle.textContent = micToggleState ? "Mic on [Not implemented]" : "Mic off [Not implemented]";
+            micToggle.textContent = micToggleState ? "🎙️Mic is On" : "❌Mic is off";
 
             if (micToggleState) {
-                if (micState) {
-                    start_mic();
-                }
+                start_mic();
             } else {
                 stop_mic();
-            }
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: "mic_toggle", state: micToggleState }));
             }
         });
 

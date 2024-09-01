@@ -78,14 +78,14 @@ body {
     border: none;
     border-radius: 4px;
     /* background-color: #008CBA; */
-    background-color: #3f3f3f;
+    background-color: #005f7f;
     color: white;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
 .control-buttons button:hover {
-    background-color: #005f7f;
+    background-color: #009fd4;
 }
 
 canvas {
