@@ -8,7 +8,7 @@
 
 > :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to either configure https with a reverse proxy or launch the front end locally and connects to the server via websocket (untested). Open the `static/index.html` with your browser and set the ws url on the page.
 
-Open-LLM-VTuber allows you to talk to any LLM by voice (hands free) locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows (). 
+Open-LLM-VTuber allows you to talk to (and interrupt!) any LLM by voice (hands free) locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
@@ -35,6 +35,7 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 - This project supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers what you've said.
 - No data leaves your computer if you wish to
   - You can choose local LLM/voice recognition/speech synthesis solutions, and everything will work offline. Everything has been tested on macOS.
+- You can interrupt the LLM at anytime with voice without wearing a headphone.
 
 
 
@@ -50,10 +51,11 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 
 ### Target Platform
 - macOS
-- Windows
 - Linux
+- Windows
 
 ### Recent Feature Updates
+- [Sep 1, 2024] Added voice interruption (and refactored the backend)
 - [Jul 15, 2024] Added MeloTTS
 - [Jul 15, 2024] Refactored llm and launch.py and reduced TTS latency
 - [Jul 11, 2024] Added CosyVoiceTTS
@@ -82,6 +84,7 @@ Currently supported Speech recognition backend
 
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
+- [meloTTS](https://github.com/myshell-ai/MeloTTS) (Local, fast)
 - [bark](https://github.com/suno-ai/bark) (Local, very resource-consuming)
 - [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) (Local, very resource-consuming)
 - [Edge TTS](https://github.com/rany2/edge-tts) (online, no API key required)
@@ -117,12 +120,12 @@ You need to have [Ollama](https://github.com/jmorganca/ollama) or any other Open
 Prepare the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
 
 
-This project was developed using Python `3.10.13`. I strongly recommend creating a virtual Python environment like conda for this project. 
+This project was developed using Python `3.10.13`, and is incompatible with Python versions lower than `3.9`. I strongly recommend creating a virtual Python environment like conda for this project. 
 
 Run the following in the terminal to install the dependencies.
 
 ~~~shell
-pip install -r requirements.txt # Run this in the project directory
+pip install -r requirements.txt # Run this in the project directory 
 # Install Speech recognition dependencies and text-to-speech dependencies according to the instructions below
 ~~~
 
@@ -192,8 +195,6 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 
 - Install MeloTTS according to their [documentation](https://github.com/myshell-ai/MeloTTS/blob/main/docs/install.md) (don't install via docker) (A nice place to clone the repo is submodule folder, but you can put it wherever you want). If you encounter a problem related to `mecab-python`, try this [fork](https://github.com/polm/MeloTTS) (hasn't been merge into main as of July 16, 2024).
 - It's not the best, but it's definitely better than pyttsx3TTS, and it's pretty fast on my mac. Probably what I would choose for now if I can't access the internet.
-
-
 
 `barkTTS` (local, slow)
 - Install the pip package with this command `pip install git+https://github.com/suno-ai/bark.git` and turn it on in `conf.yaml`.
@@ -313,6 +314,10 @@ Some abbreviations used in this project:
 - TTS: Text-to-speech, Speech Synthesis, Voice Synthesis
 - ASR: Automatic Speech Recognition, Speech recognition, Speech to text, STT
 - VAD: Voice Activation Detection
+
+### Regarding sample rates
+
+You can assume that the sample rate is 16000 thorughout this project.
 
 ### Add support for new TTS providers
 1. Implement `TTSInterface` defined in `tts/tts_interface.py`.
