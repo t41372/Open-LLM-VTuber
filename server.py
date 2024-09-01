@@ -3,7 +3,6 @@ import json
 import numpy as np
 import asyncio
 from fastapi import FastAPI, WebSocket, APIRouter, Body
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from typing import List, Dict
@@ -61,7 +60,7 @@ class WebSocketServer:
                 self.server_ws_clients.remove(websocket)
 
         # the connection between this server and the frontend client
-        @self.router.websocket("/client-ws")
+        @self.router.websocket("/legacy-ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
             self.connected_clients.append(websocket)
@@ -79,7 +78,7 @@ class WebSocketServer:
         # the connection between this server and the frontend client
         # The version 2 of the client-ws. Introduces breaking changes.
         # This route will initiate its own main.py instance and conversation loop
-        @self.router.websocket("/b-ws")
+        @self.router.websocket("/client-ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
             await websocket.send_text(
@@ -108,7 +107,10 @@ class WebSocketServer:
                     await websocket.send_text(json.dumps(payload))
                     await asyncio.sleep(duration)
 
-                asyncio.run(_send_audio())
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                new_loop.run_until_complete(_send_audio())
+                new_loop.close()
 
                 print("Audio played.")
 
@@ -128,18 +130,17 @@ class WebSocketServer:
 
             try:
                 while True:
-                    print("Enter conversation loop...")
+                    print(".", end="")
                     message = await websocket.receive_text()
                     data = json.loads(message)
-                    print(f"\033\nReceived ws req: {data.get('type')}\033[0m\n")
+                    # print(f"\033\n Received ws req: {data.get('type')}\033[0m\n")
 
-                    if data.get("type") == "mic-audio-start-listening":
-                        received_data_buffer = np.array([])
+                    if data.get("type") == "interrupt-signal":
                         print("Start receiving audio data from front end.")
                         if conversation_task is not None:
                             print("\033[91mLLM hadn't finish itself. Interrupting it...\033[0m")
                             self.open_llm_vtuber.interrupt()
-                            conversation_task.cancel()
+                            # conversation_task.cancel()
                             
 
                     elif data.get("type") == "mic-audio-data":
@@ -154,20 +155,29 @@ class WebSocketServer:
                         await websocket.send_text(
                             json.dumps({"type": "full-text", "text": "Thinking..."})
                         )
-
+                        audio = received_data_buffer
+                        received_data_buffer = np.array([])
                         async def _run_conversation():
                             try:
+                                await websocket.send_text(
+                                    json.dumps({"type": "control", "text": "conversation-chain-start"})
+                                )
                                 await asyncio.to_thread(
                                     self.open_llm_vtuber.conversation_chain,
-                                    user_input=received_data_buffer,
+                                    user_input=audio,
                                 )
-                                print("Loop Completed")
+                                await websocket.send_text(
+                                    json.dumps({"type": "control", "text": "conversation-chain-end"})
+                                )
+                                print("One Conversation Loop Completed")
                             except asyncio.CancelledError:
                                 print("Conversation task was cancelled.")
                             except InterruptedError:
-                                print("Conversation was interrupted.")
+                                print("😢Conversation was interrupted.")
 
                         conversation_task = asyncio.create_task(_run_conversation())
+                    else:
+                        print("Unknown data type received.")
 
             except WebSocketDisconnect:
                 self.connected_clients.remove(websocket)

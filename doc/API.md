@@ -57,6 +57,8 @@ sequenceDiagram
 
 
 
+
+
 ## Client to Server
 
 ### text input
@@ -75,7 +77,10 @@ sequenceDiagram
 ### audio input
 
 ~~~json
-...
+{
+	"type": "mic-audio-data",
+	"text": "some text"
+}
 ~~~
 
 - text input from the user to the LLM
@@ -152,7 +157,7 @@ sequenceDiagram
 
 
 
-### Control Signals
+### State Signals
 
 ~~~json
 {
@@ -163,10 +168,9 @@ sequenceDiagram
 
 Type: `control`
 
-- Type `start-mic`
+- Text: `start-mic`
   - Start microphone indefinitely
-  - 
-- Type `speaking-start`: 
-  - Start speaking (start moving mouth like an idiot)
-- Type `speaking-stop`:
-  - Stop speaking (stop moving mouth like an idiot)
+- Text: `stop-mic`
+  - Stop microphone
+- Text: `conversation-chain-start`
+- Text: `conversation-chain-end`

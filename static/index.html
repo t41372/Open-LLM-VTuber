@@ -45,40 +45,43 @@
 
     <script>
         let micState = false;
+        let conversationChainStarted = false;
         let interrupted = false;
-        var audioPlayer = new Audio();
+        let audioPlayer = new Audio();
 
         // call this function to interrupt the LLM
         function interrupt() {
-            ws.send(JSON.stringify({ type: "mic-audio-start-listening" }));
+            ws.send(JSON.stringify({ type: "interrupt-signal" }));
             interrupted = true;
             audioPlayer.pause();
             audioPlayer = new Audio();
-            console.log("Interrupted!!!! ===== -2-3-4o03-weporl")
-        }
-        
-        // resume from the interruption
-        function resume() {
-            console.log("Resuming from interruption")
-            interrupted = false;
-            // audioPlayer.play();
+            console.log("Interrupted!!!!");
         }
 
         let myvad;
+        let previousTriggeredProbability = 0; // the possibility that triggered the last speech start
         async function init_vad() {
             myvad = await vad.MicVAD.new({
                 preSpeechPadFrames: 10,
                 onSpeechStart: () => {
-                    console.log("Speech start detected")
-                    interrupt()
+                    console.log("Speech start detected: " + previousTriggeredProbability);
+                    if (conversationChainStarted) {
+                        console.log("😡👎 Interrupting conversation chain");
+                        interrupt();
+                    }
+                    else {
+                        console.log("😀👍 Not interrupted. Just normal conversation");
+                    }
                 },
                 onFrameProcessed: (probs) => {
-                    // console.log(`Prob:`)
-                    // console.log(probs)
+                    // console.log(`Prob:`);
+                    // console.log("is speech: ", probs["isSpeech"]);
+                    if (probs["isSpeech"] > previousTriggeredProbability) {
+                        previousTriggeredProbability = probs["isSpeech"];
+                    }
                 },
                 onSpeechEnd: (audio) => {
                     // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
-                    console.log(audio)
                     interrupted = false;
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         // ws.send(JSON.stringify({ type: "mic-audio", audio: audio }));
@@ -87,11 +90,13 @@
                     }
                     // myvad.pause();
                 }
-            })
+            });
         }
+
         const chunkSize = 4096;
         async function sendAudioPartition(audio) {
-            // semd the audio, a Float32Array of audio, to the back end by chunks
+            console.log(audio)
+            // send the audio, a Float32Array of audio, to the back end by chunks
             for (let index = 0; index < audio.length; index += chunkSize) {
                 const endIndex = Math.min(index + chunkSize, audio.length);
                 const chunk = audio.slice(index, endIndex);
@@ -100,9 +105,7 @@
             ws.send(JSON.stringify({ type: "mic-audio-end" }));
         }
 
-
         // window.addEventListener('load', init_vad);
-
 
         // WebSocket connection
         let ws;
@@ -111,13 +114,13 @@
         const interruptBtn = document.getElementById('interruptBtn');
         const micToggle = document.getElementById('micToggle');
 
-        wsUrl.value = "ws://127.0.0.1:8000/client-ws";
+        wsUrl.value = "ws://127.0.0.1:12393/client-ws";
         // if running on server
         if (window.location.protocol.startsWith("http")) {
-            console.log("Running on server")
+            console.log("Running on server");
             wsUrl.value = "/client-ws";
         } else { // if running on local using file://
-            console.log("Running on local")
+            console.log("Running on local");
         }
 
         function connectWebSocket() {
@@ -135,7 +138,6 @@
                 console.log("Disconnected from WebSocket");
                 wsStatus.textContent = "Disconnected";
                 wsStatus.classList.remove('connected');
-                talkState = false;
                 taskQueue.clearQueue();
             };
 
@@ -146,71 +148,51 @@
 
         wsStatus.addEventListener('click', connectWebSocket);
 
-
-
-
-
         function handleMessage(message) {
-            console.log("Received Request: \n", message)
+            console.log("Received Request: \n", message);
             switch (message.type) {
                 case "full-text":
                     document.getElementById("message").textContent = message.text;
-                    console.log(message)
+                    console.log(message);
                     console.log("full-text: ", message.text);
+                    break;
                 case "control":
                     switch (message.text) {
                         case "start-mic":
                             start_mic();
                             break;
-                        
                         case "stop-mic":
-                            myvad.pause();
-                            micState = false;
+                            stop_mic();
                             break;
-
-                        case "speaking-start":
-                            if (talkState) {
-                                console.log("Already talking");
-                                return;
-                            }
-                            talkState = true;
-                            stupidTalk();
+                        case "conversation-chain-start":
+                            conversationChainStarted = true;
                             break;
-                        case "speaking-stop":
-                            if (!talkState) {
-                                console.log("Not talking");
-                                return;
-                            }
-                            talkState = false;
+                        case "conversation-chain-end":
+                            conversationChainStarted = false;
                             break;
                     }
-
                     break;
                 case "expression":
                     setExpression(message.text);
                     break;
-
                 case "mouth":
                     setMouth(Number(message.text));
                     break;
-
                 case "audio":
-                    playAudioLipSync(message.audio, message.volumes, message.slice_length, test = message.text, expression_list = message.expressions);
+                    playAudioLipSync(message.audio, message.volumes, message.slice_length, message.text, message.expressions);
                     break;
-
                 case "set-model":
                     console.log("set-model: ", message.text);
                     live2dModule.init().then(() => {
                         live2dModule.loadModel(message.text);
                     });
                     break;
-
                 case "listExpressions":
                     console.log(listSupportedExpressions());
                     break;
                 default:
                     console.error("Unknown message type: " + message.type);
-                    console.log(message)
+                    console.log(message);
             }
         }
 
@@ -224,14 +206,13 @@
 
         // Check if the string contains an expression. If it does, set the expression of the model2.
         // @param {string} str - the string to check
-        // 
         function checkStringForExpression(str) {
             console.log("emo map: ", emoMap);
             for (const key of Object.keys(emoMap)) {
                 if (str.toLowerCase().includes("[" + key + "]")) {
                     console.info(">> [ ] <- add to exec queue: " + key + ", " + emoMap[key]);
                     taskQueue.addTask(() => { setExpression(emoMap[key]); });
-                    taskQueue.addTask(() => { console.log("timing out...") });
+                    taskQueue.addTask(() => { console.log("timing out..."); });
                     // setExpression(emoMap[key]);
                 }
             }
@@ -244,47 +225,15 @@
 
 
 
-        let talkState = false;
-
-        /**
-         * Initiates an animation that simulates talking by opening and closing the mouth randomly. This function uses a recursive timeout to continuously toggle the mouth's open state at random intervals, simulating random talking movements.
-         */
-        function stupidTalk() {
-            let isOpen = false; // track if mouth is open
-
-            function toggleMouth() {
-                if (!talkState) {
-                    model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', 0.1);
-                    return;
-                }
-
-                if (isOpen) {
-                    model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', 0.1);
-                    isOpen = false;
-                } else {
-                    model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', (Math.random() * (0.9 - 0.5) + 0.5));
-                    isOpen = true;
-                }
-
-                setTimeout(toggleMouth, (Math.random() * (0.2 - 0.1) + 0.1) * 1000);
-            }
-
-            toggleMouth();
-        }
-
         function setMouth(mouthY) {
             if (typeof model2.internalModel.coreModel.setParameterValueById === 'function') {
                 model2.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', mouthY);
             } else {
                 model2.internalModel.coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', mouthY);
             }
-            // model2.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', mouthY);
         }
 
-
-
         function playAudioLipSync(audio_base64, volumes, slice_length, text = null, expression_list = null) {
-
             if (text) {
                 document.getElementById("message").textContent = text;
             }
@@ -310,25 +259,22 @@
                     taskQueue.addTask(() => { setExpression(expression); });
                 }
             }
-
-
         }
-
-
 
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
         // Once speech ends, the mic will pause.
         async function start_mic() {
-            if (myvad == null)
-                await init_vad();
+            if (myvad == null) await init_vad();
             micState = true;
-            console.log("Mic start ")
+            console.log("Mic start ");
             myvad.start();
         }
 
-
-
-
+        function stop_mic() {
+            micState = false;
+            console.log("Mic stop");
+            myvad.pause();
+        }
 
         interruptBtn.addEventListener('click', function () {
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -347,7 +293,7 @@
                     start_mic();
                 }
             } else {
-                myvad = null;
+                stop_mic();
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {

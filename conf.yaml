@@ -2,7 +2,7 @@
 # Server
 PROTOCAL: "http://"
 HOST: "localhost"
-PORT: 8000
+PORT: 12393
 
 
 #  ============== LLM Backend Settings ===================
@@ -44,7 +44,7 @@ memgpt:
 
 # ============== Live2D front-end Settings ==============
 
-LIVE2D: False
+LIVE2D: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 LIVE2D_MODEL: "shizuku-local"
 
 #  ============== Voice Interaction Settings ==============
@@ -52,7 +52,7 @@ LIVE2D_MODEL: "shizuku-local"
 # === Automatic Speech Recognition ===
 VOICE_INPUT_ON: True
 # Put your mic in the browser or in the terminal? (would increase latency)
-MIC_IN_BROWSER: False
+MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR"
 ASR_MODEL: "Faster-Whisper"

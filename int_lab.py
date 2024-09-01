@@ -11,7 +11,6 @@ if __name__ == "__main__":
         threading.Thread(target=vtuber_main.conversation_chain).start()
         
         if input(">>> say i to interrupt: ") == "i":
-            print("\n\n!!!!!!!!!! Panic !!!!!!!!!!!!1...\n")
+            print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
             vtuber_main.interrupt()
-            input(">>> Press Enter to continue: ")
             

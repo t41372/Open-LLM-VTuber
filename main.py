@@ -37,7 +37,8 @@ class OpenLLMVTuberMain:
     asr: ASRInterface
     tts: TTSInterface
     live2d: Live2dController
-    _interrupt_flag: threading.Event
+    _continue_exec_flag: threading.Event
+    EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
 
     def __init__(
         self,
@@ -50,7 +51,8 @@ class OpenLLMVTuberMain:
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
         self.live2d = self.init_live2d()
-        self._interrupt_flag = threading.Event()
+        self._continue_exec_flag = threading.Event()
+        self._continue_exec_flag.set()  # Set the flag to continue execution
 
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
@@ -202,8 +204,10 @@ class OpenLLMVTuberMain:
         Returns:
         - str: The full response from the LLM
         """
-
-        self._interrupt_flag.clear()  # Reset the interrupt flag
+        
+        if not self._continue_exec_flag.wait(timeout=self.EXEC_FLAG_CHECK_TIMEOUT):  # Wait for the flag to be set
+            print(">> Execution flag not set. In interruption state for too long. Exiting conversation chain.")
+            raise InterruptedError("Conversation chain interrupted. Wait flag timeout reached.")
 
         # Generate a random number between 0 and 3
         color_code = random.randint(0, 3)
@@ -215,7 +219,7 @@ class OpenLLMVTuberMain:
         c[3] = "\033[0m"
 
         # Apply the color to the console output
-        print(f"{c[color_code]}This is a colored console output!")
+        print(f"{c[color_code]}New Conversation Chain started!")
 
         # if user_input is not string, make it string
         if user_input is None:
@@ -235,7 +239,7 @@ class OpenLLMVTuberMain:
         if not self.config.get("TTS_ON", False):
             full_response = ""
             for char in chat_completion:
-                if self._interrupt_flag.is_set():
+                if not self._continue_exec_flag.is_set():
                     self._interrupt_post_processing(full_response)
                     print("\nInterrupted!")
                     return None
@@ -287,7 +291,7 @@ class OpenLLMVTuberMain:
         else:  # say the full response at once? how stupid
             full_response = ""
             for char in chat_completion:
-                if self._interrupt_flag.is_set():
+                if not self._continue_exec_flag.is_set():
                     print("\nInterrupted!")
                     self._interrupt_post_processing(full_response)
                     return None
@@ -296,7 +300,7 @@ class OpenLLMVTuberMain:
             print("\n")
             filename = self._generate_audio_file(full_response, "temp")
 
-            if not self._interrupt_flag.is_set():
+            if self._continue_exec_flag.is_set():
                 self._play_audio_file(
                     sentence=full_response,
                     filepath=filename,
@@ -380,7 +384,7 @@ class OpenLLMVTuberMain:
     def speak_by_sentence_chain(self, chat_completion: Iterator[str]) -> str:
         """
         Generate and play the chat completion sentences one by one using the TTS engine.
-        Now properly handles interrupts in a multi-threaded environment using the existing _interrupt_flag.
+        Now properly handles interrupts in a multi-threaded environment using the existing _continue_exec_flag.
         """
         task_queue = queue.Queue()
         full_response = [""]  # Use a list to store the full response
@@ -391,7 +395,7 @@ class OpenLLMVTuberMain:
                 sentence_buffer = ""
 
                 for char in chat_completion:
-                    if self._interrupt_flag.is_set():
+                    if not self._continue_exec_flag.is_set():
                         raise InterruptedError("Producer interrupted")
 
                     if char:
@@ -401,12 +405,12 @@ class OpenLLMVTuberMain:
                         if self.is_complete_sentence(sentence_buffer):
                             if self.verbose:
                                 print("\n")
-                            if self._interrupt_flag.is_set():
+                            if not self._continue_exec_flag.is_set():
                                 raise InterruptedError("Producer interrupted")
                             audio_filepath = self._generate_audio_file(
                                 sentence_buffer, file_name_no_ext=f"temp-{index}"
                             )
-                            if self._interrupt_flag.is_set():
+                            if not self._continue_exec_flag.is_set():
                                 raise InterruptedError("Producer interrupted")
                             audio_info = {
                                 "sentence": sentence_buffer,
@@ -418,7 +422,7 @@ class OpenLLMVTuberMain:
 
                 # Handle any remaining text in the buffer
                 if sentence_buffer:
-                    if self._interrupt_flag.is_set():
+                    if not self._continue_exec_flag.is_set():
                         raise InterruptedError("Producer interrupted")
                     print("\n")
                     audio_filepath = self._generate_audio_file(
@@ -432,7 +436,9 @@ class OpenLLMVTuberMain:
 
             except InterruptedError:
                 print("\nProducer interrupted")
-                self._interrupt_post_processing("") # No sentence was heard before the interrupt
+                self._interrupt_post_processing(
+                    ""
+                )  # No sentence was heard before the interrupt
             finally:
                 task_queue.put(None)  # Signal end of production
 
@@ -440,7 +446,7 @@ class OpenLLMVTuberMain:
             heard_sentence = ""
             try:
                 while True:
-                    if self._interrupt_flag.is_set():
+                    if not self._continue_exec_flag.is_set():
                         raise InterruptedError("Consumer interrupted")
 
                     try:
@@ -476,7 +482,6 @@ class OpenLLMVTuberMain:
                 self._check_interrupt()  # This will raise InterruptedError if interrupt is set
         except InterruptedError:
             print("\nMain thread interrupted, stopping worker threads")
-            # We don't need to set _interrupt_flag here as it's already set by the interrupt() method
 
         producer_thread.join()
         consumer_thread.join()
@@ -486,21 +491,22 @@ class OpenLLMVTuberMain:
 
     def interrupt(self):
         """Set the interrupt flag to stop the conversation chain."""
-        self._interrupt_flag.set()
+        self._continue_exec_flag.clear()
 
     def _interrupt_post_processing(self, heard_sentence: str) -> None:
         """Perform post-processing tasks (like updating memory or tell the LLM that it's been interrupted) after an interrupt.
-        
+
         Parameters:
         - heard_sentence (str): The sentence that was already shown or heard by the user before the interrupt.
             (because apparently the user won't know the rest of the response.)
-        
+
         """
         self.llm.handle_interrupt(heard_sentence)
+        self._continue_exec_flag.set()  # Reset the interrupt flag
 
     def _check_interrupt(self):
-        """Check if the interrupt flag is set and raise an exception if it is."""
-        if self._interrupt_flag.is_set():
+        """Check if we are in an interrupt state and raise an exception if we are."""
+        if not self._continue_exec_flag.is_set():
             raise InterruptedError("Conversation chain interrupted.")
 
     def is_complete_sentence(self, text: str):
@@ -564,4 +570,8 @@ if __name__ == "__main__":
 
     vtuber_main = OpenLLMVTuberMain(config)
     while True:
-        vtuber_main.conversation_chain()
+        threading.Thread(target=vtuber_main.conversation_chain).start()
+
+        if input(">>> say i to interrupt: ") == "i":
+            print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
+            vtuber_main.interrupt()
