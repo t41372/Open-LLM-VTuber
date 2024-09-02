@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from typing import List, Dict
 from main import OpenLLMVTuberMain
-from frontend.live2d_model import Live2dModel
+from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer
 
 
@@ -100,9 +100,12 @@ class WebSocketServer:
                     sentence = ""
                 print(f">> Playing {filepath}...")
                 payload, duration = audio_payload_preparer.prepare_audio_payload(
-                    filepath, sentence
+                    audio_path=filepath,
+                    display_text=sentence,
+                    expression_list=l2d.extract_emotion(sentence),
                 )
                 print("Payload send.")
+
                 async def _send_audio():
                     await websocket.send_text(json.dumps(payload))
                     await asyncio.sleep(duration)
@@ -138,15 +141,18 @@ class WebSocketServer:
                     if data.get("type") == "interrupt-signal":
                         print("Start receiving audio data from front end.")
                         if conversation_task is not None:
-                            print("\033[91mLLM hadn't finish itself. Interrupting it...\033[0m")
+                            print(
+                                "\033[91mLLM hadn't finish itself. Interrupting it...\033[0m"
+                            )
                             self.open_llm_vtuber.interrupt()
                             # conversation_task.cancel()
-                            
 
                     elif data.get("type") == "mic-audio-data":
                         received_data_buffer = np.append(
                             received_data_buffer,
-                            np.array(list(data.get("audio").values()), dtype=np.float32),
+                            np.array(
+                                list(data.get("audio").values()), dtype=np.float32
+                            ),
                         )
                         print("*", end="")
 
@@ -157,17 +163,28 @@ class WebSocketServer:
                         )
                         audio = received_data_buffer
                         received_data_buffer = np.array([])
+
                         async def _run_conversation():
                             try:
                                 await websocket.send_text(
-                                    json.dumps({"type": "control", "text": "conversation-chain-start"})
+                                    json.dumps(
+                                        {
+                                            "type": "control",
+                                            "text": "conversation-chain-start",
+                                        }
+                                    )
                                 )
                                 await asyncio.to_thread(
                                     self.open_llm_vtuber.conversation_chain,
                                     user_input=audio,
                                 )
                                 await websocket.send_text(
-                                    json.dumps({"type": "control", "text": "conversation-chain-end"})
+                                    json.dumps(
+                                        {
+                                            "type": "control",
+                                            "text": "conversation-chain-end",
+                                        }
+                                    )
                                 )
                                 print("One Conversation Loop Completed")
                             except asyncio.CancelledError:
@@ -216,6 +233,8 @@ if __name__ == "__main__":
     # Load configurations from yaml file
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
+
+    config["LIVE2D"] = True  # make sure the live2d is enabled
 
     # Initialize and run the WebSocket server
     server = WebSocketServer(open_llm_vtuber_config=config)

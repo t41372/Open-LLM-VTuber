@@ -16,6 +16,12 @@ class Live2dModel:
         emo_map (dict): The emotion map of the Live2D model.
         emo_str (str): The string representation of the emotion map of the Live2D model.
     """
+    
+    model_dict_path: str
+    live2d_model_name: str
+    model_info: dict
+    emo_map: dict
+    emo_str: str
 
     def __init__(
         self, live2d_model_name: str, model_dict_path: str = "model_dict.json"

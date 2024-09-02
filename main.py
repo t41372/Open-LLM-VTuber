@@ -8,6 +8,7 @@ import numpy as np
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
 from live2d import Live2dController
+from live2d_model import Live2dModel
 from llm.llm_factory import LLMFactory
 from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
@@ -36,7 +37,7 @@ class OpenLLMVTuberMain:
     llm: LLMInterface
     asr: ASRInterface
     tts: TTSInterface
-    live2d: Live2dController
+    live2d: Live2dModel | None
     _continue_exec_flag: threading.Event
     EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
 
@@ -80,13 +81,12 @@ class OpenLLMVTuberMain:
 
     # Initialization methods
 
-    def init_live2d(self) -> Live2dController | None:
+    def init_live2d(self) -> Live2dModel | None:
         if not self.config.get("LIVE2D", False):
             return None
         try:
-            live2d_model = self.config.get("LIVE2D_MODEL")
-            url = f"{self.config.get('PROTOCOL', 'http://')}{self.config.get('HOST', 'localhost')}:{self.config.get('PORT', 8000)}"
-            live2d_controller = Live2dController(live2d_model, base_url=url)
+            live2d_model_name = self.config.get("LIVE2D_MODEL")
+            live2d_controller = Live2dModel(live2d_model_name)
         except Exception as e:
             print(f"Error initializing Live2D: {e}")
             print("Proceed without Live2D.")
@@ -181,7 +181,7 @@ class OpenLLMVTuberMain:
         if self.live2d is not None:
             system_prompt += prompt_loader.load_util(
                 self.config.get("LIVE2D_Expression_Prompt")
-            ).replace("[<insert_emomap_keys>]", self.live2d.getEmoMapKeyAsString())
+            ).replace("[<insert_emomap_keys>]", self.live2d.emo_str)
 
         if self.verbose:
             print("\n === System Prompt ===")
@@ -262,16 +262,12 @@ class OpenLLMVTuberMain:
         Returns:
         - str: The user input
         """
+        # for live2d with browser, their input are now injected by the server class
+        # and they no longer use this method
         if self.config.get("VOICE_INPUT_ON", False):
-            if self.live2d and self.config.get("MIC_IN_BROWSER", False):
-                # get audio from the browser microphone
-                print("Listening audio from the front end...")
-                audio = self.live2d.get_mic_audio()
-                print("transcribing...")
-                return self.asr.transcribe_np(audio)
-            else:  # get audio from the local microphone
-                print("Listening from the microphone...")
-                return self.asr.transcribe_with_local_vad()
+            # get audio from the local microphone
+            print("Listening from the microphone...")
+            return self.asr.transcribe_with_local_vad()
         else:
             return input("\n>> ")
 
@@ -328,7 +324,7 @@ class OpenLLMVTuberMain:
             return None
 
         if self.live2d:
-            sentence = self.live2d.remove_expression_from_string(sentence)
+            sentence = self.live2d.remove_emotion_keywords(sentence)
 
         if sentence.strip() == "":
             return None
@@ -352,25 +348,9 @@ class OpenLLMVTuberMain:
             sentence = ""
 
         try:
-            if self.live2d:
-                # Filter out expression keywords from the sentence
-                expression_list = self.live2d.get_expression_list(sentence)
-                if self.live2d.remove_expression_from_string(sentence).strip() == "":
-                    self.live2d.send_expressions_str(sentence, send_delay=0)
-                    self.live2d.send_text(sentence)
-                    return
-                print("streaming...")
-                # Stream the audio to the frontend
-                stream_audio.StreamAudio(
-                    filepath,
-                    display_text=sentence,
-                    expression_list=expression_list,
-                    base_url=self.live2d.base_url,
-                ).send_audio_with_volume(wait_for_audio=True)
-            else:
-                if self.verbose:
-                    print(f">> Playing {filepath}...")
-                self.tts.play_audio_file_local(filepath)
+            if self.verbose:
+                print(f">> Playing {filepath}...")
+            self.tts.play_audio_file_local(filepath)
 
             self.tts.remove_file(filepath, verbose=self.verbose)
         except ValueError as e:

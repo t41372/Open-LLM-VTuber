@@ -10,8 +10,8 @@ const live2dModule = (function() {
       view: document.getElementById("canvas"),
       autoStart: true,
       resizeTo: window,
-      backgroundColor: 0x000000,
-      transparent: true
+      transparent: true,
+      backgroundAlpha: 0,
     });
   }
 
@@ -40,15 +40,15 @@ const live2dModule = (function() {
     model2 = models[0];
     model2.x = app.view.width / 2 - model2.width / 2;
 
-    model2.on("hit", (hitAreas) => {
-      if (hitAreas.includes("body")) {
-        model2.motion("tap_body");
-      }
+    // model2.on("hit", (hitAreas) => {
+    //   if (hitAreas.includes("body")) {
+    //     model2.motion("tap_body");
+    //   }
 
-      if (hitAreas.includes("head")) {
-        model2.expression();
-      }
-    });
+    //   if (hitAreas.includes("head")) {
+    //     model2.expression();
+    //   }
+    // });
   }
 
   function draggable(model) {

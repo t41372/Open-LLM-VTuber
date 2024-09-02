@@ -5,14 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Open-LLM-VTuber</title>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script> -->
-    <script src="libs/pixi.min.js"></script>
+
+    <!-- pixi live2d dependencies -->
+    <!-- Load Cubism and PixiJS -->
     <!-- <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script> -->
     <script src="libs/live2dcubismcore.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script> -->
     <script src="libs/live2d.min.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script> -->
+    <script src="libs/pixi.min.js"></script>
+
+    <!-- <script src="https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-7/dist/index.min.js"></script> -->
     <script src="libs/index.min.js"></script>
+
+
+
     <script src="TaskQueue.js"></script>
 
     <!-- Voice Activation Detection -->
@@ -53,8 +60,9 @@
             console.log("😡👎 Interrupting conversation chain");
             ws.send(JSON.stringify({ type: "interrupt-signal" }));
             interrupted = true;
-            audioPlayer.pause();
-            audioPlayer = new Audio();
+            model2.stopSpeaking()
+            // audioPlayer.pause();
+            // audioPlayer = new Audio();
             console.log("Interrupted!!!!");
         }
 
@@ -236,26 +244,35 @@
             }
 
             audioPlayer = new Audio("data:audio/wav;base64," + audio_base64);
-            audioPlayer.play();
 
-            let i = 0;
-            const interval = setInterval(() => {
-                if (i >= volumes.length) {
-                    clearInterval(interval);
-                    return;
-                }
-                if (interrupted) {
-                    return;
-                }
-                setMouth(volumes[i]);
-                i++;
-            }, slice_length);
+            // if (expression_list) {
+            //     for (const expression of expression_list) {
+            //         console.log(">> [ ] <- add to exec queue: " + expression);
+            //         taskQueue.addTask(() => { setExpression(expression); });
+            //     }
+            // }
 
-            if (expression_list) {
-                for (const expression of expression_list) {
-                    taskQueue.addTask(() => { setExpression(expression); });
-                }
-            }
+            displayExpression = expression_list ? expression_list[0] : null;
+
+            model2.speak("data:audio/wav;base64," + audio_base64, { expression: displayExpression, resetExpression: false });
+
+            // The old implementation of playing audio and lip sync
+            // audioPlayer.play();
+
+            // let i = 0;
+            // const interval = setInterval(() => {
+            //     if (i >= volumes.length) {
+            //         clearInterval(interval);
+            //         return;
+            //     }
+            //     if (interrupted) {
+            //         return;
+            //     }
+            //     setMouth(volumes[i]);
+            //     i++;
+            // }, slice_length);
+
+
         }
 
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
