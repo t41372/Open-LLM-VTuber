@@ -1,4 +1,3 @@
-import sys
 import threading
 import queue
 from typing import Callable, Iterator, Optional
@@ -7,12 +6,10 @@ import numpy as np
 
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
-from live2d import Live2dController
 from live2d_model import Live2dModel
 from llm.llm_factory import LLMFactory
 from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
-from tts import stream_audio
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 
