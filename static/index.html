@@ -43,7 +43,7 @@
         <div class="fixed-bottom" id="message"></div>
         <div class="control-buttons">
             <button id="micToggle">🎙️Mic is On</button>
-            <button id="interruptBtn">InterruptLLM [sure but you can just talk...]</button>
+            <button id="interruptBtn">🖐️Voice Interruption On</button>
         </div>
     </div>
 
@@ -54,6 +54,7 @@
         let conversationChainStarted = false;
         let interrupted = false;
         let audioPlayer = new Audio();
+        let voiceInterruptionOn = true;
 
         // call this function to interrupt the LLM
         function interrupt() {
@@ -90,6 +91,11 @@
                 onSpeechEnd: (audio) => {
                     // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
                     interrupted = false;
+                    
+                    if (!voiceInterruptionOn) {
+                        stop_mic();
+                    }
+
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         sendAudioPartition(audio);
                     }
@@ -174,6 +180,9 @@
                             break;
                         case "conversation-chain-end":
                             conversationChainStarted = false;
+                            if (!voiceInterruptionOn) {
+                                start_mic();
+                            }
                             break;
                     }
                     break;
@@ -209,7 +218,7 @@
             console.info(`>> [x] -> Expression set to: (${expressionIndex})`);
         }
 
-        // Check if the string contains an expression. If it does, set the expression of the model2.
+        // [Deprecated] Check if the string contains an expression. If it does, set the expression of the model2.
         // @param {string} str - the string to check
         function checkStringForExpression(str) {
             console.log("emo map: ", emoMap);
@@ -222,7 +231,7 @@
                 }
             }
         }
-
+        // [Deprecated] List all supported expressions
         function listSupportedExpressions() {
             emoMap = model2.internalModel.motionManager.expressionManager.emotionMap;
             console.log(emoMap);
@@ -245,34 +254,9 @@
 
             audioPlayer = new Audio("data:audio/wav;base64," + audio_base64);
 
-            // if (expression_list) {
-            //     for (const expression of expression_list) {
-            //         console.log(">> [ ] <- add to exec queue: " + expression);
-            //         taskQueue.addTask(() => { setExpression(expression); });
-            //     }
-            // }
-
             displayExpression = expression_list ? expression_list[0] : null;
 
             model2.speak("data:audio/wav;base64," + audio_base64, { expression: displayExpression, resetExpression: false });
-
-            // The old implementation of playing audio and lip sync
-            // audioPlayer.play();
-
-            // let i = 0;
-            // const interval = setInterval(() => {
-            //     if (i >= volumes.length) {
-            //         clearInterval(interval);
-            //         return;
-            //     }
-            //     if (interrupted) {
-            //         return;
-            //     }
-            //     setMouth(volumes[i]);
-            //     i++;
-            // }, slice_length);
-
-
         }
 
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
@@ -281,30 +265,25 @@
             if (myvad == null) await init_vad();
             console.log("Mic start ");
             myvad.start();
+            micToggleState = true;
+            micToggle.textContent = "🎙️Mic is On";
         }
 
         function stop_mic() {
             console.log("Mic stop");
             myvad.pause();
+            micToggleState = false;
+            micToggle.textContent = "❌Mic is off";
         }
 
         interruptBtn.addEventListener('click', function () {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                // placeholder for interrupting the LLM
-                interrupt();
-            }
+            voiceInterruptionOn = !voiceInterruptionOn;
+            interruptBtn.textContent = voiceInterruptionOn ? "🖐️Voice Interruption On" : "❌Voice Interruption Off";
         });
 
         let micToggleState = true;
         micToggle.addEventListener('click', function () {
-            micToggleState = !micToggleState;
-            micToggle.textContent = micToggleState ? "🎙️Mic is On" : "❌Mic is off";
-
-            if (micToggleState) {
-                start_mic();
-            } else {
-                stop_mic();
-            }
+            micToggleState ? stop_mic() : start_mic();
         });
 
         // Initialize WebSocket connection
