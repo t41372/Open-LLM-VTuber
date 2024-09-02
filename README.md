@@ -21,8 +21,11 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 
 
 
-https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63a-eea5694cbb83
-- The demo video uses llama3 (Q4_0) with Ollama, edgeTTS, and WhisperCPP running the coreML version of the small model.
+
+
+https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
+
+
 
 
 
@@ -42,8 +45,9 @@ https://github.com/t41372/Open-LLM-VTuber/assets/36402030/e8931736-fb0b-4cab-a63
 
 
 
-### Basic Goals
-- [x] Chat with LLM by voice
+### Basic Features
+- [x] Chat with any LLM by voice
+- [x] Interrupt LLM with voice at any time
 - [x] Choose your own LLM backend
 - [x] Choose your own Speech Recognition & Text to Speech provider
 - [x] Long-term memory
@@ -133,11 +137,11 @@ This project, by default, launches the audio interaction mode, meaning you can t
 
 Edit the `conf.yaml` for configurations. You can follow the configuration used in the demo video.
 
-If you want to use live2d, run `server.py` to launch the WebSocket communication server and open the URL you set in `conf.yaml` (`http://HOST:PORT`). By default, go to `http://localhost:8000`.
+If you want to use live2d, run `server.py`. Open the page (that's `localhost:12393` by deafult) with your browser and you are good to go. Once the live2D model is loaded, it is ready to talk with you.
 
-Run ~~`launch.py`~~`main.py` with Python. Some models will be downloaded during your first launch, which may take a while.
+If you don't want the live2d, you can run `main.py` with Python for cli mode. 
 
-Also, the live2D models have to be fetched through the internet, so you'll have to keep your internet connected before the `index.html` is fully loaded with your desired live2D model.
+Some models will be downloaded on your first launch, which may take a while.
 
 
 
@@ -263,7 +267,7 @@ Here is a checklist:
 
 
 
-# Running in a Container
+# Running in a Container [outdated]
 
 :warning: This is highly experimental, totally untested (because I use a mac), and totally unfinished. If you are having trouble with all the dependencies, however, you can try to have trouble with the container instead, which is still a lot of trouble but is a different set of trouble, I guess.
 
