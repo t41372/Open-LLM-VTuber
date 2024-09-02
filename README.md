@@ -345,5 +345,11 @@ Awesome projects I learned from
 
 
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=t41372/open-llm-vtuber&type=Date)](https://star-history.com/#t41372/open-llm-vtuber&Date)
+
+
+
 
 
