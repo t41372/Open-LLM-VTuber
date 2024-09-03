@@ -138,15 +138,17 @@ class LLM(LLMInterface):
         return _generate_and_store_response()
     
     def handle_interrupt(self, heard_response: str) -> None:
+        print(">>>> LLM believe heard response is: ", heard_response)
         if self.memory[-1]["role"] == "assistant":
             self.memory[-1]["content"] = heard_response + "..."
         else:
-            self.memory.append(
-                {
-                    "role": "assistant",
-                    "content": heard_response + "...",
-                }
-            )
+            if heard_response:
+                self.memory.append(
+                    {
+                        "role": "assistant",
+                        "content": heard_response + "...",
+                    }
+                )
         self.memory.append(
             {
                 "role": "system",

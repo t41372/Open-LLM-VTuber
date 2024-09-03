@@ -142,9 +142,12 @@ class WebSocketServer:
                         print("Start receiving audio data from front end.")
                         if conversation_task is not None:
                             print(
-                                "\033[91mLLM hadn't finish itself. Interrupting it...\033[0m"
+                                "\033[91mLLM hadn't finish itself. Interrupting it...",
+                                "heard response: \n",
+                                data.get("text"),
+                                "\033[0m\n",
                             )
-                            self.open_llm_vtuber.interrupt()
+                            self.open_llm_vtuber.interrupt(data.get("text"))
                             # conversation_task.cancel()
 
                     elif data.get("type") == "mic-audio-data":

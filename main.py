@@ -237,7 +237,7 @@ class OpenLLMVTuberMain:
             full_response = ""
             for char in chat_completion:
                 if not self._continue_exec_flag.is_set():
-                    self._interrupt_post_processing(full_response)
+                    self._interrupt_post_processing()
                     print("\nInterrupted!")
                     return None
                 full_response += char
@@ -286,7 +286,7 @@ class OpenLLMVTuberMain:
             for char in chat_completion:
                 if not self._continue_exec_flag.is_set():
                     print("\nInterrupted!")
-                    self._interrupt_post_processing(full_response)
+                    self._interrupt_post_processing()
                     return None
                 print(char, end="")
                 full_response += char
@@ -299,7 +299,7 @@ class OpenLLMVTuberMain:
                     filepath=filename,
                 )
             else:
-                self._interrupt_post_processing(full_response)
+                self._interrupt_post_processing()
 
         return full_response
 
@@ -413,9 +413,7 @@ class OpenLLMVTuberMain:
 
             except InterruptedError:
                 print("\nProducer interrupted")
-                self._interrupt_post_processing(
-                    ""
-                )  # No sentence was heard before the interrupt
+                self._interrupt_post_processing()
             finally:
                 task_queue.put(None)  # Signal end of production
 
@@ -444,7 +442,7 @@ class OpenLLMVTuberMain:
 
             except InterruptedError:
                 print("\nConsumer interrupted")
-                self._interrupt_post_processing(heard_sentence=heard_sentence)
+                self._interrupt_post_processing()
 
         producer_thread = threading.Thread(target=producer_worker)
         consumer_thread = threading.Thread(target=consumer_worker)
@@ -466,19 +464,20 @@ class OpenLLMVTuberMain:
         print("\n\n --- Audio generation and playback completed ---")
         return full_response[0]
 
-    def interrupt(self):
-        """Set the interrupt flag to stop the conversation chain."""
-        self._continue_exec_flag.clear()
-
-    def _interrupt_post_processing(self, heard_sentence: str) -> None:
-        """Perform post-processing tasks (like updating memory or tell the LLM that it's been interrupted) after an interrupt.
-
+    def interrupt(self, heard_sentence: str = "") -> None:
+        """Set the interrupt flag to stop the conversation chain.
+        Preferably provide the sentences that were already shown or heard by the user before the interrupt so that the LLM can handle the memory properly.
+        
         Parameters:
         - heard_sentence (str): The sentence that was already shown or heard by the user before the interrupt.
             (because apparently the user won't know the rest of the response.)
-
         """
+        self._continue_exec_flag.clear()
         self.llm.handle_interrupt(heard_sentence)
+
+    def _interrupt_post_processing(self) -> None:
+        """Perform post-processing tasks (like resetting the continue flag to allow next conversation chain to start) after an interrupt.
+        """
         self._continue_exec_flag.set()  # Reset the interrupt flag
 
     def _check_interrupt(self):

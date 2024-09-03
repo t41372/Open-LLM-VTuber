@@ -1,98 +1,108 @@
 body {
-    background-image: url('./bg/cityscape.jpeg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
+  background-image: url("./bg/cityscape.jpeg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
 }
 
 .top-left {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1001;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1001;
 }
 
 #wsStatus {
-    background-color: #f44336;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 5px;
+  background-color: #f44336;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 5px;
 }
 
 #wsStatus.connected {
-    background-color: #4CAF50;
+    background-color: #4caf50;
+}
+
+#stateDisplay {
+  background-color: #005f7f;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  pointer-events: none; /* Makes the button unclickable */
 }
 
 #wsUrl {
-    padding: 5px;
-    width: 200px;
+  padding: 5px;
+  width: 200px;
 }
 
 .bottom-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 1000;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1000;
 }
 
 .fixed-bottom {
-    width: 100%;
-    background-color: rgba(33, 33, 33, 0.8);
-    color: white;
-    text-align: left;
-    padding: 15px;
-    box-sizing: border-box;
-    max-height: 30vh;
-    overflow-y: auto;
-    font-size: 2em;
-    /* Larger font size for the message */
-    line-height: 1.4;
-    /* Improved line spacing */
+  width: 100%;
+  background-color: rgba(33, 33, 33, 0.8);
+  color: white;
+  text-align: left;
+  padding: 15px;
+  box-sizing: border-box;
+  max-height: 30vh;
+  overflow-y: auto;
+  font-size: 2em;
+  /* Larger font size for the message */
+  line-height: 1.4;
+  /* Improved line spacing */
 }
 
 .control-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px;
-    background-color: rgba(33, 33, 33, 0.8);
-    width: 100%;
-    box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: rgba(33, 33, 33, 0.8);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .control-buttons button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    /* background-color: #008CBA; */
-    background-color: #005f7f;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  /* background-color: #008CBA; */
+  background-color: #005f7f;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .control-buttons button:hover {
-    background-color: #009fd4;
+  background-color: #009fd4;
 }
 
 canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }

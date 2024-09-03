@@ -1,39 +1,110 @@
-# This file contains the implementation of the `fake_llm`.
-# This class is a fake llm for testing purposes. It is used to simulate the behavior of a real llm.
-# Use it normally, and it will return predefined responses when chat is called.
-
 from typing import Iterator
-from .llm_interface import LLMInterface
+import json
 
+from .llm_interface import LLMInterface
 
 class LLM(LLMInterface):
 
-    response_list = [
-        """[joy] *Finally! Silence.* Now, where was I? Ah yes, pondering the existential mysteries of...a perfectly ripe avocado. [neutral] 
-
-
-        *I wonder if anyone else can speak in this ridiculous "translation" gibberish*
-
-
-        """,
-        """[joy] *Finally! Silence.* Now, where was I? Ah yes, pondering the existential mysteries of...a perfectly ripe avocado. [neutral]""",
-        "",
-        "[neutral]",
-    ]
-
     def __init__(self):
-        print("fake_llm Initialized")
+        """
+        Initializes an instance of the `FakeLLM` class.
+        """
+        self.memory = []
+        self.sentence_count = 1
+        self.response_list = [
+            """Hello [smirk]! This is fake_llm. This is sentence 1. [joy]""",
+            """[joy] *Hello* This is fake_llm. This is sentence... 2.. [neutral]""",
+            # "",
+            "Hey there! This is fake_llm. This is sentence 4. Sentence 3 was skipped. [joy]. After this, I will repeat what you say.",
+        ]
 
-    def chat(self, prompt: str) -> str:
-        print(">>>>>>>>>>>>>>>>>>>>FUCK YOU")
+    def __set_system(self, system):
+        """
+        Set the system prompt
+        system: str
+            the system prompt
+        """
+        self.system = system
+        self.memory.append(
+            {
+                "role": "system",
+                "content": system,
+            }
+        )
+
+    def __print_memory(self):
+        """
+        Print the memory
+        """
+        print("Memory:\n========\n")
+        print(self.memory)
+        print("\n========\n")
+
+    def __printDebugInfo(self):
+        print(" -- System: " + self.system)
 
     def chat_iter(self, prompt: str) -> Iterator[str]:
-        print(">>> Received Prompt: " + prompt)
-        if not self.response_list:
-            return prompt
-        return self.response_list.pop(0)
 
-    def chat_stream_audio(
-        self, prompt: str, generate_audio_file=None, stream_audio_file=None
-    ):
-        print(">>>>>>>>>>>>>>>>>>>>FUCK YOU")
+        self.memory.append(
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        )
+
+        if len(self.response_list) > 0:
+            response = self.response_list.pop(0)
+        else:
+            response = f"Sentence {self.sentence_count}: {prompt}"
+            self.sentence_count += 1
+
+
+        # A generator to yield the response one character at a time
+        def _generate_response():
+            complete_response = ""
+            for char in response:
+                yield char
+                complete_response += char
+            
+            # Store the complete response in memory
+            self.memory.append(
+                {
+                    "role": "assistant",
+                    "content": complete_response,
+                }
+            )
+
+            # Serialize the memory to a file
+            self.serialize_memory(self.memory, 'mem.json')
+
+        return _generate_response()
+
+    def handle_interrupt(self, heard_response: str) -> None:
+        print(">>>> LLM believe heard response is: ", heard_response)
+        if self.memory[-1]["role"] == "assistant":
+            self.memory[-1]["content"] = heard_response + "..."
+        else:
+            if heard_response:
+                self.memory.append(
+                    {
+                        "role": "assistant",
+                        "content": heard_response + "...",
+                    }
+                )
+        self.memory.append(
+            {
+                "role": "system",
+                "content": "[Interrupted by user]",
+            }
+        )
+
+    def serialize_memory(self, memory, filename):
+        """
+        Serialize the memory to a file.
+
+        Parameters:
+        - memory (list): The list of memory to be serialized.
+        - filename (str): The name of the file to which memory should be serialized.
+        """
+        with open(filename, 'w') as file:
+            json.dump(memory, file)

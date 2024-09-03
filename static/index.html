@@ -34,6 +34,7 @@
 <body>
     <div class="top-left">
         <button id="wsStatus">Disconnected</button>
+        <button id="stateDisplay">Status: loading</button>
         <input type="text" id="wsUrl" placeholder="WebSocket URL">
     </div>
 
@@ -51,19 +52,31 @@
     <script src="./live2d.js"></script>
 
     <script>
-        let conversationChainStarted = false;
-        let interrupted = false;
+        // idle: When the LLM is not thinking or speaking and is waiting for user input.
+        // thinking-speaking: When the LLM is thinking or speaking.
+        // interrupted: When the LLM is interrupted by the user.
+        let state = "idle"; // idle, thinking-speaking, interrupted
         let audioPlayer = new Audio();
         let voiceInterruptionOn = true;
+        let fullResponse = ""; // full response from the server in one conversation chain
 
-        // call this function to interrupt the LLM
+        const stateDisplay = document.getElementById('stateDisplay');
+
+        function updateStateDisplay() {
+            stateDisplay.textContent = `Status: ${state}`;
+        }
+
+        function setState(newState) {
+            state = newState;
+            updateStateDisplay();
+        }
+
         function interrupt() {
             console.log("😡👎 Interrupting conversation chain");
-            ws.send(JSON.stringify({ type: "interrupt-signal" }));
-            interrupted = true;
-            model2.stopSpeaking()
-            // audioPlayer.pause();
-            // audioPlayer = new Audio();
+            console.log("Sending: " + JSON.stringify({ type: "interrupt-signal", text: fullResponse }))
+            ws.send(JSON.stringify({ type: "interrupt-signal", text: fullResponse }));
+            setState("interrupted");
+            model2.stopSpeaking();
             console.log("Interrupted!!!!");
         }
 
@@ -74,23 +87,19 @@
                 preSpeechPadFrames: 10,
                 onSpeechStart: () => {
                     console.log("Speech start detected: " + previousTriggeredProbability);
-                    if (conversationChainStarted) {
+                    if (state === "thinking-speaking") {
                         interrupt();
-                    }
-                    else {
+                    } else {
                         console.log("😀👍 Not interrupted. Just normal conversation");
                     }
                 },
                 onFrameProcessed: (probs) => {
-                    // console.log(`Prob:`);
-                    // console.log("is speech: ", probs["isSpeech"]);
                     if (probs["isSpeech"] > previousTriggeredProbability) {
                         previousTriggeredProbability = probs["isSpeech"];
                     }
                 },
                 onSpeechEnd: (audio) => {
                     // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
-                    interrupted = false;
                     
                     if (!voiceInterruptionOn) {
                         stop_mic();
@@ -99,7 +108,6 @@
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         sendAudioPartition(audio);
                     }
-                    // myvad.pause();
                 }
             });
         }
@@ -138,14 +146,16 @@
             ws = new WebSocket(wsUrl.value);
 
             ws.onopen = function () {
-                interrupted = false;
+                // interrupted = false;
+                setState("idle");
                 console.log("Connected to WebSocket");
                 wsStatus.textContent = "Connected";
                 wsStatus.classList.add('connected');
             };
 
             ws.onclose = function () {
-                interrupt = false;
+                // interrupt = false;
+                setState("idle");
                 console.log("Disconnected from WebSocket");
                 wsStatus.textContent = "Disconnected";
                 wsStatus.classList.remove('connected');
@@ -176,10 +186,11 @@
                             stop_mic();
                             break;
                         case "conversation-chain-start":
-                            conversationChainStarted = true;
+                            setState("thinking-speaking");
+                            fullResponse = "";
                             break;
                         case "conversation-chain-end":
-                            conversationChainStarted = false;
+                            setState("idle");
                             if (!voiceInterruptionOn) {
                                 start_mic();
                             }
@@ -193,7 +204,11 @@
                     setMouth(Number(message.text));
                     break;
                 case "audio":
-                    playAudioLipSync(message.audio, message.volumes, message.slice_length, message.text, message.expressions);
+                    if (state !== "interrupted") {
+                        playAudioLipSync(message.audio, message.volumes, message.slice_length, message.text, message.expressions);
+                    } else {
+                        console.log("Audio playback intercepted. Sentence:", message.text);
+                    }
                     break;
                 case "set-model":
                     console.log("set-model: ", message.text);
@@ -248,6 +263,13 @@
         }
 
         function playAudioLipSync(audio_base64, volumes, slice_length, text = null, expression_list = null) {
+            if (state === "interrupted") {
+                console.error("Audio playback blocked. Sentence:", text);
+                return;
+            }
+
+            fullResponse += text;
+
             if (text) {
                 document.getElementById("message").textContent = text;
             }
