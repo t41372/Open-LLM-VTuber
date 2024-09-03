@@ -254,7 +254,7 @@ Here is a checklist:
 - Configure memgpt
 - Run `memgpt` using `memgpt server` command. Remember to have the server running before launching Open-LLM-VTuber.
 - Set up an agent either through its cli or web UI. Add your system prompt with the Live2D Expression Prompt and the expression keywords you want to use (find them in `model_dict.json`) into MemGPT
-- Copy the `server admin password` and the `Agent id` into `./llm/memgpt_config.yaml`
+- Copy the `server admin password` and the `Agent id` into `./llm/memgpt_config.yaml`. Btw, `agent id` is Not the name of the agent.
 - Set the `LLM_PROVIDER` to `memgpt` in `conf.yaml`. 
 - Remember, if you use `memgpt`, all LLM-related configurations in `conf.yaml` will be ignored because `memgpt` doesn't work that way.
 
