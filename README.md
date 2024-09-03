@@ -2,13 +2,16 @@
 
 [![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)
 
+> :warning: **Read this if you are updating from an old version without the voice interruption feature**:
+> The latest version changed how to open the live2d server and the backend: `server.py` now launches everything it needs (except the browser). To run with Live2D and the browser, launch `server.py` and open the web page in the browser. You no longer need to run `main.py` with the `server.py`. Running `server.py` assumes Live2D mode with the browser, and running `main.py` assumes no Live2D mode without the browser. In addition, options `MIC-IN-BROWSER` and `LIVE2D` in the configuration file no longer have any effects and have been deprecated due to the changes in the backend.
+
 > :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-> :warning: This project currently **has a lot of issues on Windows**. In theory, it should all work, but many people using Windows are having many problems with many dependencies now. Those issues will probably be fixed in the future, but Windows support currently requires testing and debugging. If you have a Mac or a Linux machine, use them instead for the time being. Join the Discord server if you are having trouble or just want to talk.
+> :warning: This project currently **has a lot of issues on Windows**. In theory, it should all work, but many people using Windows have many problems with many dependencies. I might fix those features in the future, but Windows support currently requires testing and debugging. If you have a Mac or a Linux machine, use them instead for the time being. Join the Discord server if you need help or to get updates about this project.
 
-> :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to either configure https with a reverse proxy or launch the front end locally and connects to the server via websocket (untested). Open the `static/index.html` with your browser and set the ws url on the page.
+> :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to configure https with a reverse proxy if you want to access the page on a remote machine (non-localhost).
 
-Open-LLM-VTuber allows you to talk to (and interrupt!) any LLM by voice (hands free) locally with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. 
+Open-LLM-VTuber allows you to talk to (and interrupt!) any LLM locally by voice (hands-free) with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. Online LLM/ASR/TTS options are also supported.
 
 Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
 
@@ -34,11 +37,11 @@ https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
 ### Why this project and not other similar projects on GitHub?
 - It works on macOS
   - Many existing solutions display Live2D models with VTube Studio and achieve lip sync by routing desktop internal audio into VTube Studio and controlling the lips with that. On macOS, however, there is no easy way to let VTuber Studio listen to internal audio on the desktop.
-  - Many existing solutions lack support for GPU acceleration on macOS, which makes them runs slow on mac.
+  - Many existing solutions lack support for GPU acceleration on macOS, which makes them run slow on Mac.
 - This project supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers what you've said.
 - No data leaves your computer if you wish to
-  - You can choose local LLM/voice recognition/speech synthesis solutions, and everything will work offline. Everything has been tested on macOS.
-- You can interrupt the LLM at anytime with voice without wearing a headphone.
+  - You can choose local LLM/voice recognition/speech synthesis solutions; everything works offline. Tested on macOS.
+- You can interrupt the LLM anytime with your voice without wearing headphones.
 
 
 
@@ -124,7 +127,7 @@ You need to have [Ollama](https://github.com/jmorganca/ollama) or any other Open
 Prepare the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
 
 
-This project was developed using Python `3.10.13`, and is incompatible with Python versions lower than `3.9`. I strongly recommend creating a virtual Python environment like conda for this project. 
+This project was developed using Python `3.10.13` and is incompatible with Python versions lower than `3.9`. I strongly recommend creating a virtual Python environment like conda for this project (because the dependencies are a mess!). 
 
 Run the following in the terminal to install the dependencies.
 
@@ -137,11 +140,11 @@ This project, by default, launches the audio interaction mode, meaning you can t
 
 Edit the `conf.yaml` for configurations. You can follow the configuration used in the demo video.
 
-If you want to use live2d, run `server.py`. Open the page (that's `localhost:12393` by deafult) with your browser and you are good to go. Once the live2D model is loaded, it is ready to talk with you.
+If you want to use live2d, run `server.py`. Open the page `localhost:12393` (you can change this) with your browser, and you are ready. Once the live2D model appears on the screen, it's ready to talk to you.
 
 If you don't want the live2d, you can run `main.py` with Python for cli mode. 
 
-Some models will be downloaded on your first launch, which may take a while.
+Some models will be downloaded on your first launch, which may require an internet connection and may take a while.
 
 
 
@@ -160,7 +163,7 @@ Here are the options you have for speech recognition:
 
 `FunASR` (~~local~~) (Runs very fast even on CPU. Not sure how they did it)
 - [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. The result and speed are pretty good with the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group.
-- Install with `pip install -U funasr modelscope huggingface_hub`. Also, make sure you have torch (torch>=1.13) and torchaudio. Install them with `pip install torch torchaudio`
+- Install with `pip install -U funasr modelscope huggingface_hub`. Also, ensure you have torch (torch>=1.13) and torchaudio. Install them with `pip install torch torchaudio`
 - It requires an internet connection on launch _even if the models are locally available_. See https://github.com/modelscope/FunASR/issues/1897
 
 `Faster-Whisper` (local)
@@ -177,7 +180,7 @@ WhisperCPP coreML configuration:
 - Prepare the appropriate coreML models.
   - You can either convert models to coreml according to the documentation on Whisper.cpp repo
   - ...or you can find some [magical huggingface repo](https://huggingface.co/chidiwilliams/whisper.cpp-coreml/tree/main) that happens to have those converted models. Just remember to decompress them. If the program fails to load the model, it will produce a segmentation fault.
-  - You don't need to include those weird prefixes in the model name in the `conf.yaml`. For example, if the coreml model's name looks like `ggml-base-encoder.mlmodelc`, just put `base` into the `model_name` under `WhisperCPP` settings in the `conf.yaml`.
+  - You don't need to include those weird prefixes in the model name in the `conf.yaml`. For example, if the coreML model's name looks like `ggml-base-encoder.mlmodelc`, just put `base` into the `model_name` under `WhisperCPP` settings in the `conf.yaml`.
 
 `Whisper` (local)
 - Original Whisper from OpenAI. Install it with `pip install -U openai-whisper`
@@ -197,16 +200,16 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 
 `meloTTS` (local, fast)
 
-- Install MeloTTS according to their [documentation](https://github.com/myshell-ai/MeloTTS/blob/main/docs/install.md) (don't install via docker) (A nice place to clone the repo is submodule folder, but you can put it wherever you want). If you encounter a problem related to `mecab-python`, try this [fork](https://github.com/polm/MeloTTS) (hasn't been merge into main as of July 16, 2024).
-- It's not the best, but it's definitely better than pyttsx3TTS, and it's pretty fast on my mac. Probably what I would choose for now if I can't access the internet.
+- Install MeloTTS according to their [documentation](https://github.com/myshell-ai/MeloTTS/blob/main/docs/install.md) (don't install via docker) (A nice place to clone the repo is the submodule folder, but you can put it wherever you want). If you encounter a problem related to `mecab-python`, try this [fork](https://github.com/polm/MeloTTS) (hasn't been merging into the main as of July 16, 2024).
+- It's not the best, but it's definitely better than pyttsx3TTS, and it's pretty fast on my mac. I would choose this for now if I can't access the internet (and I would use edgeTTS if I have the internet).
 
 `barkTTS` (local, slow)
 - Install the pip package with this command `pip install git+https://github.com/suno-ai/bark.git` and turn it on in `conf.yaml`.
 - The required models will be downloaded on the first launch.
 
 `cosyvoiceTTS` (local, slow)
-- Configure [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) and launch the webui demo according to their documentation. 
-- Edit `conf.yaml` to match your desired configurations. Check their webui and the API documentation on the webui to see the meaning of the configurations under the setting `cosyvoiceTTS` in the `conf.yaml`.
+- Configure [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) and launch the WebUI demo according to their documentation. 
+- Edit `conf.yaml` to match your desired configurations. Check their WebUI and the API documentation on the WebUI to see the meaning of the configurations under the setting `cosyvoiceTTS` in the `conf.yaml`.
 
 `edgeTTS` (online, no API key required)
 - Install the pip package with this command `pip install edge-tts` and turn it on in `conf.yaml`.
@@ -254,7 +257,7 @@ Here is a checklist:
 - Configure memgpt
 - Run `memgpt` using `memgpt server` command. Remember to have the server running before launching Open-LLM-VTuber.
 - Set up an agent either through its cli or web UI. Add your system prompt with the Live2D Expression Prompt and the expression keywords you want to use (find them in `model_dict.json`) into MemGPT
-- Copy the `server admin password` and the `Agent id` into `./llm/memgpt_config.yaml`. Btw, `agent id` is Not the name of the agent.
+- Copy the `server admin password` and the `Agent id` into `./llm/memgpt_config.yaml`. *By the way, `agent id` is not the agent's name*.
 - Set the `LLM_PROVIDER` to `memgpt` in `conf.yaml`. 
 - Remember, if you use `memgpt`, all LLM-related configurations in `conf.yaml` will be ignored because `memgpt` doesn't work that way.
 
@@ -321,7 +324,7 @@ Some abbreviations used in this project:
 
 ### Regarding sample rates
 
-You can assume that the sample rate is 16000 thorughout this project.
+You can assume that the sample rate is 16000 throughout this project.
 
 ### Add support for new TTS providers
 1. Implement `TTSInterface` defined in `tts/tts_interface.py`.
