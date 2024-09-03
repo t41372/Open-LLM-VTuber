@@ -16,7 +16,6 @@ from tts.tts_interface import TTSInterface
 import yaml
 import random
 
-
 class OpenLLMVTuberMain:
     """
     The main class for the OpenLLM VTuber.
@@ -560,12 +559,17 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     vtuber_main = OpenLLMVTuberMain(config)
-    while True:
+    
+    def _run_conversation_chain():
         try:
-            threading.Thread(target=vtuber_main.conversation_chain).start()
-
-            if input(">>> say i to interrupt: ") == "i":
-                print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
-                vtuber_main.interrupt()
+            vtuber_main.conversation_chain()
         except InterruptedError as e:
             print(f"😢Conversation was interrupted. {e}")
+            
+    while True:
+        threading.Thread(target=_run_conversation_chain).start()
+
+        if input(">>> say i and press enter to interrupt: ") == "i":
+            print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
+            vtuber_main.interrupt()
+        
