@@ -192,8 +192,8 @@ class WebSocketServer:
                                 print("One Conversation Loop Completed")
                             except asyncio.CancelledError:
                                 print("Conversation task was cancelled.")
-                            except InterruptedError:
-                                print("😢Conversation was interrupted.")
+                            except InterruptedError as e:
+                                print(f"😢Conversation was interrupted. {e}")
 
                         conversation_task = asyncio.create_task(_run_conversation())
                     else:

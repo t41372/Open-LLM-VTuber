@@ -201,10 +201,16 @@ class OpenLLMVTuberMain:
         Returns:
         - str: The full response from the LLM
         """
-        
-        if not self._continue_exec_flag.wait(timeout=self.EXEC_FLAG_CHECK_TIMEOUT):  # Wait for the flag to be set
-            print(">> Execution flag not set. In interruption state for too long. Exiting conversation chain.")
-            raise InterruptedError("Conversation chain interrupted. Wait flag timeout reached.")
+
+        if not self._continue_exec_flag.wait(
+            timeout=self.EXEC_FLAG_CHECK_TIMEOUT
+        ):  # Wait for the flag to be set
+            print(
+                ">> Execution flag not set. In interruption state for too long. Exiting conversation chain."
+            )
+            raise InterruptedError(
+                "Conversation chain interrupted. Wait flag timeout reached."
+            )
 
         # Generate a random number between 0 and 3
         color_code = random.randint(0, 3)
@@ -365,6 +371,7 @@ class OpenLLMVTuberMain:
         """
         task_queue = queue.Queue()
         full_response = [""]  # Use a list to store the full response
+        interrupted_error_event = threading.Event()
 
         def producer_worker():
             try:
@@ -413,53 +420,53 @@ class OpenLLMVTuberMain:
 
             except InterruptedError:
                 print("\nProducer interrupted")
-                self._interrupt_post_processing()
+                interrupted_error_event.set()
+                return # Exit the function
             finally:
                 task_queue.put(None)  # Signal end of production
 
         def consumer_worker():
             heard_sentence = ""
-            try:
-                while True:
+
+            while True:
+
+                try:
                     if not self._continue_exec_flag.is_set():
-                        raise InterruptedError("Consumer interrupted")
+                        raise InterruptedError("😱Consumer interrupted")
+                    
+                    audio_info = task_queue.get(
+                        timeout=0.1
+                    )  # Short timeout to check for interrupts
+                    if audio_info is None:
+                        break  # End of production
+                    if audio_info:
+                        heard_sentence += audio_info["sentence"]
+                        self._play_audio_file(
+                            sentence=audio_info["sentence"],
+                            filepath=audio_info["audio_filepath"],
+                        )
+                    task_queue.task_done()
+                except queue.Empty:
+                    continue  # No item available, continue checking for interrupts
+                except InterruptedError as e:
+                    print(f"\n{str(e)}, stopping worker threads")
+                    interrupted_error_event.set()
+                    return  # Exit the function
 
-                    try:
-                        audio_info = task_queue.get(
-                            timeout=0.1
-                        )  # Short timeout to check for interrupts
-                        if audio_info is None:
-                            break  # End of production
-                        if audio_info:
-                            heard_sentence += audio_info["sentence"]
-                            self._play_audio_file(
-                                sentence=audio_info["sentence"],
-                                filepath=audio_info["audio_filepath"],
-                            )
-                        task_queue.task_done()
-                    except queue.Empty:
-                        continue  # No item available, continue checking for interrupts
-
-            except InterruptedError:
-                print("\nConsumer interrupted")
-                self._interrupt_post_processing()
-
+        
         producer_thread = threading.Thread(target=producer_worker)
         consumer_thread = threading.Thread(target=consumer_worker)
 
         producer_thread.start()
         consumer_thread.start()
 
-        try:
-            while producer_thread.is_alive() or consumer_thread.is_alive():
-                producer_thread.join(0.1)  # Check interrupt every 0.1 seconds
-                consumer_thread.join(0.1)
-                self._check_interrupt()  # This will raise InterruptedError if interrupt is set
-        except InterruptedError:
-            print("\nMain thread interrupted, stopping worker threads")
-
         producer_thread.join()
         consumer_thread.join()
+        
+        if interrupted_error_event.is_set():
+            self._interrupt_post_processing()
+            raise InterruptedError("Conversation chain interrupted: consumer model interrupted")
+        
 
         print("\n\n --- Audio generation and playback completed ---")
         return full_response[0]
@@ -467,7 +474,7 @@ class OpenLLMVTuberMain:
     def interrupt(self, heard_sentence: str = "") -> None:
         """Set the interrupt flag to stop the conversation chain.
         Preferably provide the sentences that were already shown or heard by the user before the interrupt so that the LLM can handle the memory properly.
-        
+
         Parameters:
         - heard_sentence (str): The sentence that was already shown or heard by the user before the interrupt.
             (because apparently the user won't know the rest of the response.)
@@ -476,14 +483,13 @@ class OpenLLMVTuberMain:
         self.llm.handle_interrupt(heard_sentence)
 
     def _interrupt_post_processing(self) -> None:
-        """Perform post-processing tasks (like resetting the continue flag to allow next conversation chain to start) after an interrupt.
-        """
+        """Perform post-processing tasks (like resetting the continue flag to allow next conversation chain to start) after an interrupt."""
         self._continue_exec_flag.set()  # Reset the interrupt flag
 
     def _check_interrupt(self):
         """Check if we are in an interrupt state and raise an exception if we are."""
         if not self._continue_exec_flag.is_set():
-            raise InterruptedError("Conversation chain interrupted.")
+            raise InterruptedError("Conversation chain interrupted: checked")
 
     def is_complete_sentence(self, text: str):
         """
@@ -546,8 +552,11 @@ if __name__ == "__main__":
 
     vtuber_main = OpenLLMVTuberMain(config)
     while True:
-        threading.Thread(target=vtuber_main.conversation_chain).start()
+        try:
+            threading.Thread(target=vtuber_main.conversation_chain).start()
 
-        if input(">>> say i to interrupt: ") == "i":
-            print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
-            vtuber_main.interrupt()
+            if input(">>> say i to interrupt: ") == "i":
+                print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
+                vtuber_main.interrupt()
+        except InterruptedError as e:
+            print(f"😢Conversation was interrupted. {e}")
