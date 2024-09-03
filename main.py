@@ -421,7 +421,13 @@ class OpenLLMVTuberMain:
             except InterruptedError:
                 print("\nProducer interrupted")
                 interrupted_error_event.set()
-                return # Exit the function
+                return  # Exit the function
+            except Exception as e:
+                print(
+                    f"Producer error: Error generating audio for sentence: '{sentence_buffer}'.\n{e}",
+                    "Producer stopped\n",
+                )
+                return
             finally:
                 task_queue.put(None)  # Signal end of production
 
@@ -433,7 +439,7 @@ class OpenLLMVTuberMain:
                 try:
                     if not self._continue_exec_flag.is_set():
                         raise InterruptedError("😱Consumer interrupted")
-                    
+
                     audio_info = task_queue.get(
                         timeout=0.1
                     )  # Short timeout to check for interrupts
@@ -452,8 +458,10 @@ class OpenLLMVTuberMain:
                     print(f"\n{str(e)}, stopping worker threads")
                     interrupted_error_event.set()
                     return  # Exit the function
+                except Exception as e:
+                    print(f"Consumer error: Error playing sentence '{audio_info["sentence"]}'.\n {e}")
+                    continue
 
-        
         producer_thread = threading.Thread(target=producer_worker)
         consumer_thread = threading.Thread(target=consumer_worker)
 
@@ -462,11 +470,12 @@ class OpenLLMVTuberMain:
 
         producer_thread.join()
         consumer_thread.join()
-        
+
         if interrupted_error_event.is_set():
             self._interrupt_post_processing()
-            raise InterruptedError("Conversation chain interrupted: consumer model interrupted")
-        
+            raise InterruptedError(
+                "Conversation chain interrupted: consumer model interrupted"
+            )
 
         print("\n\n --- Audio generation and playback completed ---")
         return full_response[0]
