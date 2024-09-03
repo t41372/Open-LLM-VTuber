@@ -459,7 +459,7 @@ class OpenLLMVTuberMain:
                     interrupted_error_event.set()
                     return  # Exit the function
                 except Exception as e:
-                    print(f"Consumer error: Error playing sentence '{audio_info["sentence"]}'.\n {e}")
+                    print(f"Consumer error: Error playing sentence '{audio_info['sentence']}'.\n {e}")
                     continue
 
         producer_thread = threading.Thread(target=producer_worker)
