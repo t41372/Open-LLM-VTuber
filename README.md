@@ -1,6 +1,6 @@
 # Open-LLM-VTuber
 
-[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)
+[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx) ![Static Badge](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue&link=https%3A%2F%2Fhub.docker.com%2Fr%2Ft41372%2Fopen-llm-vtuber)
 
 > :warning: **Read this if you are updating from an old version without the voice interruption feature**:
 > The latest version changed how to open the live2d server and the backend: `server.py` now launches everything it needs (except the browser). To run with Live2D and the browser, launch `server.py` and open the web page in the browser. You no longer need to run `main.py` with the `server.py`. Running `server.py` assumes Live2D mode with the browser, and running `main.py` assumes no Live2D mode without the browser. In addition, options `MIC-IN-BROWSER` and `LIVE2D` in the configuration file no longer have any effects and have been deprecated due to the changes in the backend.
@@ -272,11 +272,18 @@ Here is a checklist:
 
 # Running in a Container [highly experimental]
 
-:warning: This is highly experimental, totally untested (because I use a mac), and totally unfinished. If you are having trouble with all the dependencies, however, you can try to have trouble with the container instead, which is still a lot of trouble but is a different set of trouble, I guess.
+:warning: This is highly experimental, but I think it works. Most of the time.
+
+You can either build the image youself or pull it from the docker hub. ![Static Badge](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue&link=https%3A%2F%2Fhub.docker.com%2Fr%2Ft41372%2Fopen-llm-vtuber)
+
+- (but the image size is crazy large)
+- The image on the docker hub might not updated as regularly as it can be. GitHub action can't build an image as big as this. I might look into other options.
+
+
 
 Current issues:
 
-- Large image size (~20GB), and will require more space because some models are optional.
+- Large image size (~20GB), and will require more space because some models are optional and will be downloaded only when used.
 - Nvidia GPU required (GPU passthrough limitation)
 - [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) needs to be configured for GPU passthrough.
 - Some models will have to be downloaded again if you stop the container. (will be fixed)
