@@ -54,16 +54,30 @@ class TTSEngine(TTSInterface):
         str: the path to the generated audio file
 
         """
+        try: 
+            file_name = "temp"
+            if file_name_no_ext is None:
+                file_name = self.temp_audio_file
+            else:
+                file_name = file_name_no_ext
 
-        file_name = "temp"
-        if file_name_no_ext is None:
-            file_name = self.temp_audio_file
-        else:
-            file_name = file_name_no_ext
+            file_name = str(Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}")
 
-        file_name = str(Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}")
+            # Default accent
+            self.model.tts_to_file(text, self.speaker_id, f"{file_name}", speed=self.speed)
 
-        # Default accent
-        self.model.tts_to_file(text, self.speaker_id, f"{file_name}", speed=self.speed)
+            return file_name
+        except LookupError:
+            import nltk
+            import ssl
 
-        return file_name
+            try:
+                _create_unverified_https_context = ssl._create_unverified_context
+            except AttributeError:
+                pass
+            else:
+                ssl._create_default_https_context = _create_unverified_https_context
+
+            nltk.download('averaged_perceptron_tagger_eng')
+            return self.generate_audio(text, file_name_no_ext)
+
