@@ -15,4 +15,4 @@ scipy
 onnxruntime
 openai
 fastapi
-uvicorn
+uvicorn[standard]
