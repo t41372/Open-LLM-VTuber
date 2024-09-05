@@ -1,42 +1,43 @@
+FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu24.04
 
-FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04
-
-
+# Set noninteractive mode for apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-
+# Update and install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-    python3.11 \
-    python3.11-distutils \
-    python3.11-dev \
     git \
     curl \
     ffmpeg \
     libportaudio2 \
+    g++ \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install g++ -y --no-install-recommends
+# Create and activate virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
+# Install pip for the pre-installed Python 3.12
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py && rm get-pip.py
 
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.11 get-pip.py && rm get-pip.py
-
-
+# Copy requirements and install dependencies
 COPY requirements.txt /tmp/
 
-RUN pip3.11 install --no-cache-dir -r /tmp/requirements.txt
-RUN pip3.11 install edge-tts azure-cognitiveservices-speech
-RUN pip3.11 install git+https://github.com/suno-ai/bark.git
-RUN pip3.11 install pywhispercpp openai-whisper
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Install additional Python packages
+RUN pip install edge-tts azure-cognitiveservices-speech
+RUN pip install git+https://github.com/suno-ai/bark.git
+RUN pip install pywhispercpp openai-whisper
+
+# Copy application code to the container
 COPY . /app
 
+# Set working directory
 WORKDIR /app
 
-EXPOSE 8000
+# Expose port 12393 (the new default port)
+EXPOSE 12393
 
-# You need to run the server.py file AND the launch.py for now, so you will need to get into the container and execute `python launch.py` by yourself. lol
-CMD ["python3.11", "server.py"]
+CMD ["python3", "server.py"]

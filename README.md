@@ -287,30 +287,26 @@ Setup guide:
 
 1. Review `conf.yaml` before building (currently burned into the image, I'm sorry):
 
-   - Set `MIC_IN_BROWSER` to true (required because your mic doesn't live inside the container)
-
 2. Build the image:
 
  ```
  docker build -t open-llm-vtuber .
  ```
 
- (Grab a drink, this may take a while)
+ (Grab a drink, this will take a while)
 
-3. Run the container:
+3. Grab a `conf.yaml` configuration file.
+ Grab a `conf.yaml` file from this repo. Or you can get it directly from this [link](https://raw.githubusercontent.com/t41372/Open-LLM-VTuber/main/conf.yaml).
+
+4. Run the container:
+
+`$(pwd)/conf.yaml` should be the path of your `conf.yaml` file.
 
  ```
- docker run -it --net=host -p 8000:8000 open-llm-vtuber "sh"
+ docker run -it --net=host --rm -v $(pwd)/conf.yaml:/app/conf.yaml -p 12393:12393 open-llm-vtuber
  ```
 
-4. Inside the container, run:
-
-   - `server.py`
-   - Open the frontend website in your browser
-   - ~~`launch.py`~~ `main.py`
- (Use screen, tmux, or similar to run server.py and main.py simultaneously)
-
-5. Open localhost:8000 to test
+5. Open localhost:12393 to test
 
 # Development
 (this project is in the active prototyping stage, so many things will change)
