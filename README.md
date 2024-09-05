@@ -270,18 +270,20 @@ Here is a checklist:
 
 
 
-# Running in a Container [outdated]
+# Running in a Container [highly experimental]
 
 :warning: This is highly experimental, totally untested (because I use a mac), and totally unfinished. If you are having trouble with all the dependencies, however, you can try to have trouble with the container instead, which is still a lot of trouble but is a different set of trouble, I guess.
 
 Current issues:
 
-- Large image size (7-13GB)
+- Large image size (~20GB), and will require more space because some models are optional.
 - Nvidia GPU required (GPU passthrough limitation)
 - [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) needs to be configured for GPU passthrough.
-- You can't run it on a remote server unless you have configured SSL for the front end (it's not a feature of this project quite yet, so you may do a reverse proxy). That's because the web mic on the front end will only launch in a secure context (which refers to localhost or https environment). 
-- I'm not sure if it works (because I use mac and the added complexity caused by the reason mentioned above)
+- Some models will have to be downloaded again if you stop the container. (will be fixed)
 - Don't build the image on an Arm machine. One of the dependencies (grpc, to be exact) will fail for some reason https://github.com/grpc/grpc/issues/34998. 
+- And as mentioned before, you can't run it on a remote server unless the web page has https. That's because the web mic on the front end will only launch in a secure context (which means localhost or https environment only). 
+
+Most of the asr and tts will be pre-installed. However, bark TTS and the original OpenAI Whisper (`Whisper`, not WhisperCPP) are NOT included in the default build process because they are huge (~8GB, which makes the whole container about 25GB). In addition, they don't deliver the best performance either. To include bark and/or whisper in the image, add the argument `--build-arg INSTALL_ORIGINAL_WHISPER=true --build-arg INSTALL_BARK=true` to the image build command.
 
 Setup guide:
 
