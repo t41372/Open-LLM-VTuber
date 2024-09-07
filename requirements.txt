@@ -16,3 +16,4 @@ onnxruntime
 openai
 fastapi
 uvicorn[standard]
+groq

@@ -2,9 +2,6 @@ from pywhispercpp.model import Model
 
 import numpy as np
 from .asr_interface import ASRInterface
-from .asr_with_vad import VoiceRecognitionVAD
-
-
 
 
 class VoiceRecognition(ASRInterface):
@@ -15,9 +12,10 @@ class VoiceRecognition(ASRInterface):
         model_dir="asr/models",
         language: str = "en",
         print_realtime=False,
-        print_progress=False, **kwargs
+        print_progress=False,
+        **kwargs
     ) -> None:
-        
+
         self.model = Model(
             model=model_name,
             models_dir=model_dir,
@@ -27,11 +25,9 @@ class VoiceRecognition(ASRInterface):
             **kwargs
         )
         self.asr_with_vad = None
-        
-    def transcribe_with_local_vad(self) -> str:
-        if self.asr_with_vad is None:
-            self.asr_with_vad = VoiceRecognitionVAD(self.transcribe_np)
-        return self.asr_with_vad.start_listening()
+
+    # Implemented in asr_interface.py
+    # def transcribe_with_local_vad(self) -> str:
 
     def transcribe_np(self, audio: np.ndarray) -> str:
         segments = self.model.transcribe(audio, new_segment_callback=print)
@@ -39,4 +35,3 @@ class VoiceRecognition(ASRInterface):
         for segment in segments:
             full_text += segment.text
         return full_text
-

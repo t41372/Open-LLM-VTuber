@@ -329,7 +329,8 @@ Some abbreviations used in this project:
 
 ### Regarding sample rates
 
-You can assume that the sample rate is 16000 throughout this project.
+You can assume that the sample rate is `16000` throughout this project.
+The frontend stream chunks of `Float32Array` with a sample rate of `16000` to the backend.
 
 ### Add support for new TTS providers
 1. Implement `TTSInterface` defined in `tts/tts_interface.py`.

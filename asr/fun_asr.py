@@ -12,8 +12,6 @@ import torch
 # use vad, punc, spk or not as you need
 
 
-
-
 class VoiceRecognition(ASRInterface):
 
     def __init__(
@@ -28,7 +26,7 @@ class VoiceRecognition(ASRInterface):
         sample_rate: int = 16000,
         use_itn: bool = False,
     ) -> None:
-        
+
         self.model = AutoModel(
             model=model_name,
             vad_model=vad_model,
@@ -38,28 +36,26 @@ class VoiceRecognition(ASRInterface):
             punc_model=punc_model,
             # spk_model="cam++",
         )
-        self.sample_rate = sample_rate
+        self.SAMPLE_RATE = sample_rate
         self.use_itn = use_itn
         self.language = language
 
         self.asr_with_vad = None
 
-    def transcribe_with_local_vad(self) -> str:
-        if self.asr_with_vad is None:
-            self.asr_with_vad = VoiceRecognitionVAD(self.transcribe_np)
-        return self.asr_with_vad.start_listening()
-    
+    # Implemented in asr_interface.py
+    # def transcribe_with_local_vad(self) -> str:
+
     def transcribe_np(self, audio: np.ndarray) -> str:
-        
+
         audio_tensor = torch.tensor(audio, dtype=torch.float32)
-        
+
         res = self.model.generate(
             input=audio_tensor,
             batch_size_s=300,
             use_itn=self.use_itn,
             language=self.language,
         )
-        
+
         full_text = res[0]["text"]
 
         # SenseVoiceSmall may spits out some tags
@@ -67,16 +63,16 @@ class VoiceRecognition(ASRInterface):
         # we should remove those tags from the result
 
         # remove tags
-        full_text = re.sub(r'<\|.*?\|>', '', full_text)
+        full_text = re.sub(r"<\|.*?\|>", "", full_text)
         # the tags can also look like '< | en | > < | EMO _ UNKNOWN | > < | S pe ech | > < | wo itn | > ', so...
-        full_text = re.sub(r'< \|.*?\| >', '', full_text)
-        
+        full_text = re.sub(r"< \|.*?\| >", "", full_text)
+
         return full_text.strip()
 
     def _numpy_to_wav_in_memory(self, numpy_array: np.ndarray, sample_rate):
 
         memory_file = io.BytesIO()
-        sf.write(memory_file, numpy_array, sample_rate, format='WAV')
+        sf.write(memory_file, numpy_array, sample_rate, format="WAV")
         memory_file.seek(0)
-        
+
         return memory_file

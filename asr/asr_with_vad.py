@@ -42,6 +42,7 @@ from loguru import logger
 
 import sys
 import os
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
@@ -58,10 +59,12 @@ WAKE_WORD = "computer"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 
-
 class VoiceRecognitionVAD:
     def __init__(
-        self, asr_transcribe_func: Callable, wake_word: str | None = None, function: Callable = print
+        self,
+        asr_transcribe_func: Callable,
+        wake_word: str | None = None,
+        function: Callable = print,
     ) -> None:
         """
         Initializes the VoiceRecognition class, setting up necessary models, streams, and queues.
@@ -113,7 +116,6 @@ class VoiceRecognitionVAD:
         Loads the Voice Activity Detection (VAD) model.
         """
         self.vad_model = vad.VAD(model_path=VAD_MODEL_PATH)
-        
 
     def audio_callback(self, indata, frames, time, status):
         """
@@ -132,13 +134,13 @@ class VoiceRecognitionVAD:
         self.input_stream.start()
         logger.info("Listening Running")
         return self._listen_and_respond()
-    
+
     def start_listening(self) -> str:
         """
         Start listening for audio input and responds appropriately when active voice is detected.
         This function will return the transcribed text once a pause is detected.
         It uses the `transcribe` function provided in the constructor to transcribe the audio.
-        
+
         Returns:
             str: The transcribed text
         """
@@ -223,7 +225,6 @@ class VoiceRecognitionVAD:
 
         logger.info("Stopping listening...")
         self.input_stream.stop()
-        
 
         detected_text = self.asr(self.samples)
 
@@ -255,12 +256,3 @@ class VoiceRecognitionVAD:
         self.gap_counter = 0
         with self.buffer.mutex:
             self.buffer.queue.clear()
-
-
-
-
-if __name__ == "__main__":
-    demo = VoiceRecognition()
-    demo.start()
-    # text = demo.transcribe_once()
-    # print(text)

@@ -1,13 +1,12 @@
 import numpy as np
 from faster_whisper import WhisperModel
 from .asr_interface import ASRInterface
-from .asr_with_vad import VoiceRecognitionVAD
 
 
 class VoiceRecognition(ASRInterface):
 
     BEAM_SEARCH = True
-    SAMPLE_RATE = 16000  # Sample rate for input stream
+    # SAMPLE_RATE # Defined in asr_interface.py
 
     def __init__(
         self,
@@ -19,13 +18,16 @@ class VoiceRecognition(ASRInterface):
         self.MODEL_PATH = model_path
         self.LANG = language
 
-        self.model = WhisperModel(model_path, download_root=download_root, device=device, compute_type="float32")
+        self.model = WhisperModel(
+            model_path,
+            download_root=download_root,
+            device=device,
+            compute_type="float32",
+        )
         self.asr_with_vad = None
 
-    def transcribe_with_local_vad(self) -> str:
-        if self.asr_with_vad is None:
-            self.asr_with_vad = VoiceRecognitionVAD(self.transcribe_np)
-        return self.asr_with_vad.start_listening()
+    # Implemented in asr_interface.py
+    # def transcribe_with_local_vad(self) -> str:
 
     def transcribe_np(self, audio: np.ndarray) -> str:
 
