@@ -99,7 +99,7 @@
                     }
                 },
                 onSpeechEnd: (audio) => {
-                    // do something with `audio` (Float32Array of audio samples at sample rate 16000)...
+                    // audio: (Float32Array of audio samples at sample rate 16000)...
                     
                     if (!voiceInterruptionOn) {
                         stop_mic();
@@ -115,7 +115,7 @@
         const chunkSize = 4096;
         async function sendAudioPartition(audio) {
             console.log(audio)
-            // send the audio, a Float32Array of audio, to the back end by chunks
+            // send the audio, a Float32Array of audio samples at sample rate 16000, to the back end by chunks
             for (let index = 0; index < audio.length; index += chunkSize) {
                 const endIndex = Math.min(index + chunkSize, audio.length);
                 const chunk = audio.slice(index, endIndex);
