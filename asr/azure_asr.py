@@ -1,7 +1,6 @@
 import azure.cognitiveservices.speech as speechsdk
 from .asr_interface import ASRInterface
 from typing import Callable
-from halo import Halo
 import os
 from rich import print
 import numpy as np
@@ -51,10 +50,8 @@ class VoiceRecognition(ASRInterface):
 
     def transcribe_with_local_vad(self) -> str:
         speech_recognizer = self._create_speech_recognizer()
-        spinner = Halo(text="AI is listening...", spinner="dots")
-        spinner.start()
+        print("Azure Listening...")
         result = speech_recognizer.recognize_once()
-        spinner.stop()
 
         if result.reason == speechsdk.ResultReason.RecognizedSpeech:
             self.callback(result.text)
