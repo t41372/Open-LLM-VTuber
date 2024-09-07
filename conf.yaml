@@ -54,7 +54,7 @@ VOICE_INPUT_ON: True
 # Put your mic in the browser or in the terminal? (would increase latency)
 MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
-# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR"
+# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR"
 ASR_MODEL: "Faster-Whisper"
 
 # Faster whisper config
@@ -86,7 +86,12 @@ FunASR:
   ncpu: 4 # number of threads for CPU internal operations.
   hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
   use_itn: False
-  language: "auto" # zh, en, auto
+  language: "zh" # zh, en, auto
+
+GroqWhisperASR:
+  api_key: ""
+  model: "distil-whisper-large-v3-en" # use "whisper-large-v3" instead for multi-lingual
+  lang: "en" # or put nothing in it and it will be auto
 
 # set azure speech recognition configuration in api_keys.py
 
