@@ -62,6 +62,8 @@ https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
 - Windows
 
 ### Recent Feature Updates
+- [Sep 6, 2024] Added GroqWhisperASR
+- [Sep 5, 2024] Better Docker support
 - [Sep 1, 2024] Added voice interruption (and refactored the backend)
 - [Jul 15, 2024] Added MeloTTS
 - [Jul 15, 2024] Refactored llm and launch.py and reduced TTS latency
@@ -86,6 +88,7 @@ Currently supported Speech recognition backend
 - [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
 - [Whisper-CPP](https://github.com/ggerganov/whisper.cpp) using the python binding [pywhispercpp](https://github.com/abdeladim-s/pywhispercpp) (Local, mac GPU acceleration can be configured)
 - [Whisper](https://github.com/openai/whisper) (local)
+- [Groq Whisper](https://groq.com/) (API Key required). This is a hosted Whisper endpoint, which is fast and has a generous free limit every day.
 - [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
 - The microphone in the server terminal will be used by default. You can change the setting `MIC_IN_BROWSER` in the `conf.yaml` to move the microphone (and voice activation detection) to the browser (at the cost of latency, for now). You might want to use the microphone on your client (the browser) rather than the one on your server if you run the backend on a different machine or inside a VM or docker.
 
@@ -186,7 +189,13 @@ WhisperCPP coreML configuration:
 - Original Whisper from OpenAI. Install it with `pip install -U openai-whisper`
 - The slowest of all. Added as an experiment to see if it can utilize macOS GPU. It didn't.
 
+`GroqWhisperASR` (online, API Key required)
+
+- Whisper endpoint from Groq. It's very fast and has a lot of free usage every day. It's pre-installed. Get an API key from [groq](https://console.groq.com/keys) and add it into the GroqWhisper setting in the `conf.yaml`.
+- API key and internet connection are required.
+
 `AzureASR` (online, API Key required)
+
 - Azure Speech Recognition. Install with `pip install azure-cognitiveservices-speech`.
 - API key and internet connection are required.
 
