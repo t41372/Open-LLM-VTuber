@@ -98,8 +98,8 @@ GroqWhisperASR:
 
 # ============== Text to Speech ==============
 TTS_ON: True
-# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS"
-TTS_MODEL: "edgeTTS"
+# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS"
+TTS_MODEL: "piperTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
 # if turned on, the timing and order of the facial expression will be more accurate
@@ -133,6 +133,10 @@ meloTTS:
   language: "EN" # ZH
   device: "auto" # You can set it manually to 'cpu' or 'cuda' or 'cuda:0' or 'mps'
   speed: 1.0
+
+piperTTS:
+  voice_model_path: "./models/piper_voice/en_US-amy-medium.onnx"
+  verbose: False
 
 #  ============== Other Settings ==============
 

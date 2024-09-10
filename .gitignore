@@ -29,6 +29,9 @@ tts/config
 asr/models*
 !asr/models/silero_vad.onnx
 asset
+models/*
+!models/piper_voice
+models/piper_voice/*
 
 
 # Legacy and specific directories
