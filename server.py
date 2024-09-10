@@ -1,3 +1,6 @@
+import os
+import shutil
+import atexit
 import yaml
 import json
 import numpy as np
@@ -230,9 +233,18 @@ class WebSocketServer:
         import uvicorn
 
         uvicorn.run(self.app, host=host, port=port, log_level=log_level)
+        
+    def clean_cache():
+        cache_dir = "./cache"
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+            os.makedirs(cache_dir)
 
 
 if __name__ == "__main__":
+    
+    atexit.register(WebSocketServer.clean_cache)
+    
     # Load configurations from yaml file
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)

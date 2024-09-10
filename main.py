@@ -1,3 +1,6 @@
+import os
+import shutil
+import atexit
 import threading
 import queue
 from typing import Callable, Iterator, Optional
@@ -556,12 +559,19 @@ class OpenLLMVTuberMain:
         ]
         return any(text.strip().endswith(punct) for punct in punctuation_blacklist)
 
+    def clean_cache():
+        cache_dir = "./cache"
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+            os.makedirs(cache_dir)
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
 
     vtuber_main = OpenLLMVTuberMain(config)
+    
+    atexit.register(vtuber_main.clean_cache)
 
     def _run_conversation_chain():
         try:
