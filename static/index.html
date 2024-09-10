@@ -98,6 +98,13 @@
                         previousTriggeredProbability = probs["isSpeech"];
                     }
                 },
+                onVADMisfire: () => {
+                    console.log("VAD Misfire. The LLM can't hear you.");
+                    if (state === "interrupted") {
+                        state = "idle";
+                    }
+                    document.getElementById("message").textContent = "The LLM can't hear you.";
+                },
                 onSpeechEnd: (audio) => {
                     // audio: (Float32Array of audio samples at sample rate 16000)...
                     
