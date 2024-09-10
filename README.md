@@ -22,13 +22,17 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 
 
 
+### Demo
 
-
-
+English demo:
 
 https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
 
 
+
+中文 demo:
+
+[BiliBili](https://www.bilibili.com/video/BV1krHUeRE98/), [YouTube](https://youtu.be/cb5anPTNklw)
 
 
 
