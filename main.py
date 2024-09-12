@@ -580,8 +580,13 @@ if __name__ == "__main__":
             print(f"😢Conversation was interrupted. {e}")
 
     while True:
-        threading.Thread(target=_run_conversation_chain).start()
+        print("tts on: ", vtuber_main.config.get("TTS_ON", False))
+        if vtuber_main.config.get("TTS_ON", False) == False:
+            print("its indeed off")
+            vtuber_main.conversation_chain()
+        else:
+            threading.Thread(target=_run_conversation_chain).start()
 
-        if input(">>> say i and press enter to interrupt: ") == "i":
-            print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
-            vtuber_main.interrupt()
+            if input(">>> say i and press enter to interrupt: ") == "i":
+                print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
+                vtuber_main.interrupt()
