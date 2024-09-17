@@ -15,6 +15,8 @@ from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
+from translate.translate_interface import TranslateInterface
+from translate.translate_factory import TranslateFactory
 
 import yaml
 import random
@@ -37,6 +39,7 @@ class OpenLLMVTuberMain:
     llm: LLMInterface
     asr: ASRInterface
     tts: TTSInterface
+    translator: TranslateInterface | None
     live2d: Live2dModel | None
     _continue_exec_flag: threading.Event
     EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
@@ -76,6 +79,21 @@ class OpenLLMVTuberMain:
                 self.tts = custom_tts
         else:
             self.tts = None
+
+        # Init Translator if enabled
+        if self.config.get("TRANSLATE_AUDIO", False):
+            try:
+                translate_provider = self.config.get("TRANSLATE_PROVIDER", "DeepLX")
+                self.translator = TranslateFactory.get_translator(
+                    translate_provider=translate_provider,
+                    **self.config.get(translate_provider, {}),
+                )
+            except Exception as e:
+                print(f"Error initializing Translator: {e}")
+                print("Proceed without Translator.")
+                self.translator = None
+        else:
+            self.translator = None
 
         self.llm = self.init_llm()
 
@@ -394,9 +412,21 @@ class OpenLLMVTuberMain:
                                 print("\n")
                             if not self._continue_exec_flag.is_set():
                                 raise InterruptedError("Producer interrupted")
+                            tts_target_sentence = sentence_buffer
+
+                            if self.translator and self.config.get(
+                                "TRANSLATE_AUDIO", False
+                            ):
+                                print("Translating...")
+                                tts_target_sentence = self.translator.translate(
+                                    tts_target_sentence
+                                )
+                                print(f"Translated: {tts_target_sentence}")
+
                             audio_filepath = self._generate_audio_file(
-                                sentence_buffer, file_name_no_ext=f"temp-{index}"
+                                tts_target_sentence, file_name_no_ext=f"temp-{index}"
                             )
+
                             if not self._continue_exec_flag.is_set():
                                 raise InterruptedError("Producer interrupted")
                             audio_info = {
@@ -565,12 +595,13 @@ class OpenLLMVTuberMain:
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
 
     vtuber_main = OpenLLMVTuberMain(config)
-    
+
     atexit.register(vtuber_main.clean_cache)
 
     def _run_conversation_chain():
