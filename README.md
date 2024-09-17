@@ -206,7 +206,10 @@ WhisperCPP coreML configuration:
 ## Install Speech Synthesis (text to speech)
 Install the respective package and turn it on using the `TTS_MODEL` option in `conf.yaml`.
 
-`pyttsx3TTS` (local, fast)
+**Runs fast with just CPU:**
+
+`pyttsx3TTS` (local, fast, sounds horrible, have bugs now)
+
 - Install with the command `pip install py3-tts`.
 - This package will use the default TTS engine on your system. It uses `sapi5` on Windows, `nsss` on Mac, and `espeak` on other platforms.
 - `py3-tts` is used instead of the more famous `pyttsx3` because `pyttsx3` seems unmaintained, and I couldn't get the latest version of `pyttsx3` working.
@@ -216,21 +219,33 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 - Install MeloTTS according to their [documentation](https://github.com/myshell-ai/MeloTTS/blob/main/docs/install.md) (don't install via docker) (A nice place to clone the repo is the submodule folder, but you can put it wherever you want). If you encounter a problem related to `mecab-python`, try this [fork](https://github.com/polm/MeloTTS) (hasn't been merging into the main as of July 16, 2024).
 - It's not the best, but it's definitely better than pyttsx3TTS, and it's pretty fast on my mac. I would choose this for now if I can't access the internet (and I would use edgeTTS if I have the internet).
 
+`PiperTTS` (have bugs right now. I'm fixing it)
+
+- It automatically install everything for you, so just turn it on in `conf.yaml`.
+- Download voice model (a `.onnx` file and a `.oonx.json` file) from [here](https://github.com/rhasspy/piper/blob/master/VOICES.md) and put them in `models/piper_voice/` directory. Change the voice model path config in `conf.yaml` to the path of the onnx file. If nothing is provided, `en_US-amy-medium` will be automatically downloaded for you.
+
+**Runs fast with internet connection**
+
+`edgeTTS` (online, no API key required, the current default).
+
+- This is the default TTS option. Do nothing to enable it.
+- Change the voice (speaker) in `conf.yaml`.
+- It sounds pretty good. Runs pretty fast. Needs internet. Costs nothing.
+
+`AzureTTS` (online, API key required)
+
+- See below
+
+**Runs slow unless you have a beefy Nvidia GPU:**
+
 `barkTTS` (local, slow)
+
 - Install the pip package with this command `pip install git+https://github.com/suno-ai/bark.git` and turn it on in `conf.yaml`.
 - The required models will be downloaded on the first launch.
 
 `cosyvoiceTTS` (local, slow)
 - Configure [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) and launch the WebUI demo according to their documentation. 
 - Edit `conf.yaml` to match your desired configurations. Check their WebUI and the API documentation on the WebUI to see the meaning of the configurations under the setting `cosyvoiceTTS` in the `conf.yaml`.
-
-`edgeTTS` (online, no API key required)
-- Install the pip package with this command `pip install edge-tts` and turn it on in `conf.yaml`.
-- It sounds pretty good. Runs pretty fast.
-- Remember to connect to the internet when using edge tts.
-
-`AzureTTS` (online, API key required)
-- See below
 
 ### Azure API for Speech Recognition and Speech to Text, API key needed
 
