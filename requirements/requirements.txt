@@ -16,3 +16,5 @@ openai
 fastapi
 uvicorn[standard]
 groq
+edge-tts
+httpx

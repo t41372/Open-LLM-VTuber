@@ -1,6 +1,6 @@
 # Open-LLM-VTuber
 
-[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)  [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber)
+[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)  [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) [![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)
 
 > :warning: **Read this if you are updating from an old version without the voice interruption feature**:
 > The latest version changed how to open the live2d server and the backend: `server.py` now launches everything it needs (except the browser). To run with Live2D and the browser, launch `server.py` and open the web page in the browser. You no longer need to run `main.py` with the `server.py`. Running `server.py` assumes Live2D mode with the browser, and running `main.py` assumes no Live2D mode without the browser. In addition, options `MIC-IN-BROWSER` and `LIVE2D` in the configuration file no longer have any effects and have been deprecated due to the changes in the backend.
@@ -66,6 +66,7 @@ https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
 - Windows
 
 ### Recent Feature Updates
+- [Sep 17, 2024] Added DeepLX translation to change the language for audio
 - [Sep 6, 2024] Added GroqWhisperASR
 - [Sep 5, 2024] Better Docker support
 - [Sep 1, 2024] Added voice interruption (and refactored the backend)
@@ -250,6 +251,23 @@ AZURE_VOICE="en-US-AshleyNeural"
 
 
 If you're using macOS, you need to enable the microphone permission of your terminal emulator (you run this program inside your terminal, right? Enable the microphone permission for your terminal). If you fail to do so, the speech recognition will not be able to hear you because it does not have permission to use your microphone.
+
+
+
+## Translation
+
+DeepLX translation was implemented to let the program speaks in a language different from the conversation language. For example, the LLM might be thinking in English, the subtitle is in English, and you are speaking English, but the voice of the LLM is in Japanese. This is achieved by translating the sentence before it was sent for audio generation.
+
+DeepLX is the only supported translation backend for now. Other providers will be implemented soon.
+
+### Enable Audio Translation
+
+1. Set `TRANSLATE_AUDIO` in `conf.yaml` to True
+2. Set `DEEPLX_TARGET_LANG` to your desired language. Make sure this language matches the language of the TTS speaker (for example, if the `DEEPLX_TARGET_LANG` is "JA", which is Japanese, the TTS should also be speaking Japanese.).
+
+
+
+
 
 
 ## MemGPT

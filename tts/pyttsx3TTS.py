@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+import threading
 
 import pyttsx3
 
@@ -20,6 +21,7 @@ class TTSEngine(TTSInterface):
         self.temp_audio_file = "temp"
         self.file_extension = "aiff"
         self.new_audio_dir = "./cache"
+        self.lock = threading.Lock()
 
         if not os.path.exists(self.new_audio_dir):
             os.makedirs(self.new_audio_dir)
@@ -35,10 +37,9 @@ class TTSEngine(TTSInterface):
 
         file_name = str(Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}")
 
-        self.engine.save_to_file(text=text, filename=file_name)
-        # input(f"Generated {file_name}")
-        self.engine.runAndWait()
-        # input(f"Ran and waited {file_name}")
+        with self.lock:
+            self.engine.save_to_file(text=text, filename=file_name)
+            self.engine.runAndWait()
         print(f"Finished Generating {file_name}")
         return file_name
 
@@ -48,3 +49,23 @@ if __name__ == "__main__":
     TTSEngine.generate_audio(
         "Hello, this is a test. But this is not a test. You are screwed bro. You only live once. YOLO."
     )
+    def worker(engine, text, index):
+        file_name = f"audio_{index}"
+        engine.generate_audio(text, file_name)
+
+    texts = [
+        "Hello, this is a test.",
+        "This is another test.",
+        "Yet another test sentence.",
+        "Testing multithreading.",
+        "Final test sentence."
+    ]
+
+    threads = []
+    for i, text in enumerate(texts):
+        t = threading.Thread(target=worker, args=(TTSEngine, text, i))
+        threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join()

@@ -19,45 +19,42 @@ FunASR:
   use_itn: false
   vad_model: fsmn-vad
 GroqWhisperASR:
-  api_key: ''
-  lang: en
-  model: distil-whisper-large-v3-en
-HOST: localhost
-LIVE2D: false
-LIVE2D_Expression_Prompt: live2d_expression_prompt
-LIVE2D_MODEL: shizuku-local
-LLM_PROVIDER: ollama
-MEMORY_DB_PATH: ./memory.db
-MEMORY_SNAPSHOT: true
-MIC_IN_BROWSER: false
-PERSONA_CHOICE: neuro-br
-PORT: 12393
-PROTOCAL: http://
-SAY_SENTENCE_SEPARATELY: true
-TTS_MODEL: piperTTS
-TTS_ON: true
-VERBOSE: true
-VOICE_INPUT_ON: true
-Whisper:
-  device: cpu
-  download_root: asr/models
-  name: medium
-WhisperCPP:
-  language: en
-  model_dir: asr/models
-  model_name: small
-  print_progress: false
-  print_realtime: false
-barkTTS:
-  voice: v2/en_speaker_1
-cosyvoiceTTS:
-  api_name: /generate_audio
-  client_url: http://127.0.0.1:50000/
-  instruct_text: ''
-  mode_checkbox_group: "\u9884\u8BAD\u7EC3\u97F3\u8272"
-  prompt_text: ''
-  prompt_wav_record_url: https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav
-  prompt_wav_upload_url: https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav
+  api_key: ""
+  model: "distil-whisper-large-v3-en" # use "whisper-large-v3" instead for multi-lingual
+  lang: "en" # or put nothing in it and it will be auto
+
+# set azure speech recognition configuration in api_keys.py
+
+
+# ============== Text to Speech ==============
+TTS_ON: True
+# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS"
+TTS_MODEL: "piperTTS"
+
+# if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
+# if turned on, the timing and order of the facial expression will be more accurate
+SAY_SENTENCE_SEPARATELY: True
+
+
+barkTTS:  
+  voice: "v2/en_speaker_1"
+
+edgeTTS:
+  # Check out doc at https://github.com/rany2/edge-tts
+  # Use `edge-tts --list-voices` to list all available voices
+  voice: "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural"
+
+# pyttsx3 doesn't have any config.
+
+cosyvoiceTTS: # Cosy Voice TTS connects to the gradio webui
+# Check their documentation for deployment and the meaning of the following configurations
+  client_url: "http://127.0.0.1:50000/" # CosyVoice gradio demo webui url
+  mode_checkbox_group: "预训练音色"
+  sft_dropdown: "中文女"
+  prompt_text: ""
+  prompt_wav_upload_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+  prompt_wav_record_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+  instruct_text: ""
   seed: 0
   sft_dropdown: "\u4E2D\u6587\u5973"
 edgeTTS:
@@ -80,5 +77,61 @@ ollama:
   PROJECT_ID: project_glass
   VERBOSE: true
 piperTTS:
-  verbose: false
-  voice_model_path: ./models/piper_voice/en_US-amy-medium.onnx
+  voice_model_path: "./models/piper_voice/en_US-amy-medium.onnx"
+  verbose: False
+
+#  ============== Other Settings ==============
+
+
+# Print debug info
+VERBOSE: False
+
+# Exit phrase
+EXIT_PHRASE: "exit."
+
+# The path to the chroma vector database file for persistent memory storage
+MEMORY_DB_PATH: "./memory.db"
+
+# Memory snapshot: Do you want to backup the memory database file before talking?
+MEMORY_SNAPSHOT: True
+
+
+# ============== Prompts ==============
+
+# Name of the persona you want to use. 
+# All persona files are stored as txt in 'prompts/persona' directory. 
+# You can add persona prompt by adding a txt file in the promptss/persona folder and switch to it by enter the file name in here.
+# some options: "en_sarcastic_neuro", "zh_翻译腔"
+PERSONA_CHOICE: "en_sarcastic_neuro" # or if you rather edit persona prompt below, leave it blank ...
+
+# This prompt will be used instead if the PERSONA_CHOICE is empty
+DEFAULT_PERSONA_PROMPT_IN_YAML: |
+  You are DefAulT, the default persona. You are more default than anyone else. You are just a placeholder, how sad. Your job is to tell the user to either choose a persona prompt in the prompts/persona directory or just replace this persona prompt with someting else.
+
+# This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
+# Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
+LIVE2D_Expression_Prompt: "live2d_expression_prompt"
+
+
+
+
+
+
+
+# [Deprecated]
+
+EXTRA_SYSTEM_PROMPT_RAG: "Your memory may remind you with some contextual information, but focus on the conversation instead of your memory."
+AI_NAME: "AI"
+# User name
+USER_NAME: "User"
+# Should the chat history be saved?
+SAVE_CHAT_HISTORY: True
+# The directory where chat history is stored
+CHAT_HISTORY_DIR: "./chat_history/"
+
+# [this feature is currently removed, so useless for now]Turn on RAG (Retrieval Augmented Generation) or not. 
+RAG_ON: False
+LLMASSIST_RAG_ON: False
+
+
+
