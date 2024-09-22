@@ -1,5 +1,4 @@
 import os
-import threading
 import subprocess
 import platform
 from .tts_interface import TTSInterface
@@ -18,8 +17,6 @@ class TTSEngine(TTSInterface):
         """Initialize the Piper TTS client."""
         self.verbose = verbose
         self.voice_model_path = voice_path
-
-        print("Initializing TTSEngine...")  # Log de início de inicialização
 
         if not self.voice_model_path or not os.path.exists(self.voice_model_path):
             print(
@@ -40,8 +37,6 @@ class TTSEngine(TTSInterface):
             else os.path.join("models", "piper_tts", "piper")
         )
 
-        print(f"Piper binary path: {self.piper_binary_path}")  # Log caminho do binário
-
         if not os.path.exists(self.piper_binary_path):
             print(f"Piper TTS binary not found at {self.piper_binary_path}")
             print("Installing Piper TTS...")
@@ -57,8 +52,10 @@ class TTSEngine(TTSInterface):
             # Construct and execute the Piper TTS command
             command = [
                 self.piper_binary_path,
-                "-m", self.voice_model_path,
-                "-d", self.new_audio_dir,
+                "-m",
+                self.voice_model_path,
+                "-d",
+                self.new_audio_dir,
             ]
             return subprocess.Popen(
                 command,
@@ -72,35 +69,37 @@ class TTSEngine(TTSInterface):
             raise e
 
     def generate_audio(self, text: str, file_name_no_ext=None):
-        def run_piper_tts():
-            with self.initialize_piper_cli() as process:
-                try:
-                    stdout, stderr = process.communicate(input=text)
 
-                    if process.returncode != 0:
-                        if self.verbose:
-                            print(f"Error running Piper TTS command: {stderr}")
-                        return None
+        with self.initialize_piper_cli() as process:
 
-                    output = stdout.strip()
+            # if file_name_no_ext and self.verbose:
+            #     print(
+            #         "Piper TTS does not support custom file names. Ignoring the provided file name."
+            #     )
 
-                    if not output.endswith(".wav"):
-                        if self.verbose:
-                            print(f"Error running Piper TTS command:")
-                            print(f"Unexpected output: {output}")
-                        return None
+            try:
 
-                    print(f'\n\nGenerated audio file: ""{output}""\n\n')
-                    return output
+                # Send the text to the process and get the output
+                stdout, stderr = process.communicate(input=text)
 
-                except subprocess.CalledProcessError as e:
+                if process.returncode != 0:
                     if self.verbose:
-                        print(f"Error running Piper TTS command: {e}")
+                        print(f"Error running Piper TTS command: {stderr}")
                     return None
-                finally:
-                    process.kill()
-                    process.wait()
 
-        thread = threading.Thread(target=run_piper_tts)
-        thread.start()
-        thread.join()
+                output = stdout.strip()
+                # print(f"Output: {output}")
+
+                if not output.endswith(".wav"):
+                    if self.verbose:
+                        print(f"Error running Piper TTS command:")
+                        print(f"Unexpected output: {output}")
+                    return None
+
+                print(f"\n\nGenerated audio file: {output}\n\n")
+                return output
+
+            except subprocess.CalledProcessError as e:
+                if self.verbose:
+                    print(f"Error running Piper TTS command: {e}")
+                return None

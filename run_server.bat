@@ -1,9 +1,9 @@
 @echo off
-REM Ativa o ambiente Conda
+REM Activates the Conda environment
 call conda activate iavtuber
 
-REM Executa o script Python server.py
+REM Runs the Python script server.py
 python server.py
 
-REM Mantém a janela aberta após a execução
+REM Keeps the window open after execution
 pause

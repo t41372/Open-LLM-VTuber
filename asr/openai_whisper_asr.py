@@ -19,16 +19,12 @@ class VoiceRecognition(ASRInterface):
         )
         self.asr_with_vad = None
 
-    def transcribe_np(self, audio: np.ndarray, sample_rate: int = 16000) -> str:
-        # Whisper espera um caminho de arquivo ou bytes de áudio
-        # Convertemos o array NumPy para bytes e utilizamos a função transcribe corretamente
-        audio = whisper.pad_or_trim(audio)
+    # Implemented in asr_interface.py
+    # def transcribe_with_local_vad(self) -> str: 
 
-        # Normalizar o áudio para corresponder ao formato que Whisper espera
-        mel = whisper.log_mel_spectrogram(audio).to(self.model.device)
-
-        # Realizar a transcrição
-        result = self.model.transcribe(mel)
-
-        # O texto transcrito está dentro da chave 'text'
-        return result['text']
+    def transcribe_np(self, audio: np.ndarray) -> str:
+        segments = self.model.transcribe(audio)
+        full_text = ""
+        for segment in segments:
+            full_text += segment
+        return full_text
