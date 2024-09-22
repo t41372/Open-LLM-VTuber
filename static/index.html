@@ -107,7 +107,7 @@
                 },
                 onSpeechEnd: (audio) => {
                     // audio: (Float32Array of audio samples at sample rate 16000)...
-                    
+
                     if (!voiceInterruptionOn) {
                         stop_mic();
                     }
@@ -211,10 +211,11 @@
                     setMouth(Number(message.text));
                     break;
                 case "audio":
-                    if (state !== "interrupted") {
-                        playAudioLipSync(message.audio, message.volumes, message.slice_length, message.text, message.expressions);
-                    } else {
+                    if (state == "interrupted") {
                         console.log("Audio playback intercepted. Sentence:", message.text);
+                    } else {
+                        addAudioTask(message.audio, message.volumes, message.slice_length, message.text, message.expressions);
+                        // playAudioLipSync(message.audio, message.volumes, message.slice_length, message.text, message.expressions);
                     }
                     break;
                 case "set-model":
@@ -269,22 +270,46 @@
             }
         }
 
+        audioTaskQueue = new TaskQueue(100); // 100ms delay between tasks
+        async function addAudioTask(audio_base64, volumes, slice_length, text = null, expression_list = null) {
+            console.log(`1. Adding audio task ${text} to queue`);
+
+            // calculate the total duration of the audio
+            audioLength = await getAudioLength(audio_base64);
+            console.log(`2. Audio length: ${audioLength}`);
+
+            audioTaskQueue.addTask(async () => {
+                playAudioLipSync(audio_base64, volumes, slice_length, text, expression_list);
+                await new Promise(resolve => setTimeout(resolve, audioLength));
+                console.log(`3. Audio task ${text} completed`);
+            });
+        }
+
+        async function getAudioLength(audio_base64) {
+            return new Promise((resolve) => {
+                const audio = new Audio("data:audio/wav;base64," + audio_base64);
+                audio.onloadedmetadata = () => {
+                    const audioDur = audio.duration * 1000;
+                    resolve(audioDur);
+                };
+            });
+        }
+
+
         function playAudioLipSync(audio_base64, volumes, slice_length, text = null, expression_list = null) {
+
             if (state === "interrupted") {
                 console.error("Audio playback blocked. Sentence:", text);
                 return;
             }
 
             fullResponse += text;
-
             if (text) {
                 document.getElementById("message").textContent = text;
             }
 
-            audioPlayer = new Audio("data:audio/wav;base64," + audio_base64);
-
-            displayExpression = expression_list ? expression_list[0] : null;
-
+            const displayExpression = expression_list ? expression_list[0] : null;
+            console.log("Start playing audio: ", text);
             model2.speak("data:audio/wav;base64," + audio_base64, { expression: displayExpression, resetExpression: false });
         }
 

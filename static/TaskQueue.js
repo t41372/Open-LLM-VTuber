@@ -1,8 +1,8 @@
 class TaskQueue {
-    constructor() {
+    constructor(taskIntervalms=3000) {
         this.queue = [];
         this.running = false;
-        this.taskInterval = 3000;
+        this.taskInterval = taskIntervalms;
     }
 
     addTask(task) {
