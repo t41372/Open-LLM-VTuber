@@ -24,7 +24,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py && rm get-pip.py
 
 # Copy requirements and install common dependencies
-COPY requirements.txt /tmp/
+COPY requirements/requirements.txt /tmp/
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Install common Python packages
@@ -66,4 +66,4 @@ WORKDIR /app
 # Expose port 12393 (the new default port)
 EXPOSE 12393
 
-CMD ["python3", "server.py"]
+CMD ["python3", "ui.py"]

@@ -12,7 +12,7 @@ import asyncio
 project_root = os.path.dirname(os.path.abspath(__file__))
 @st.cache_data
 def get_envs():
-    # Executa o comando 'conda env list' e captura a saída
+    # Executes the 'Conda env list' command and captures the output
     result = subprocess.run(["conda", "env", "list"], capture_output=True, text=True, shell=True)
     envs_list = result.stdout.splitlines()
     return envs_list
@@ -23,6 +23,9 @@ def save_persona(name, content):
     file_path = os.path.join(folder_path, f"{name}.txt")
     with open(file_path, 'w') as f:
         f.write(content)
+        st.success("Persona saved successfully!")
+        time.sleep(1)
+        st.rerun(scope="app")
 
 def delete_persona(name):
     folder_path = os.path.join(project_root, "prompts", "persona")
@@ -30,6 +33,9 @@ def delete_persona(name):
     conf = load_config()
     if os.path.exists(file_path) and conf["PERSONA_CHOICE"] != name:
         os.remove(file_path)
+        st.success("Persona deleted successfully!")
+        time.sleep(1)
+        st.rerun(scope="app")
         return True
     return False
 
@@ -56,75 +62,75 @@ def save_config(config):
         yaml.dump(config, file, default_flow_style=False)
 
 
-# Variável para armazenar o PID do processo
+# Variable to store the process pid
 if 'process_pid' not in st.session_state:
     st.session_state['process_pid'] = None
 
-# Função para iniciar o processo
+# Function to start the process
 def start_process():
     if st.session_state['process_pid'] is None:
-        st.sidebar.write("Ativando ambiente Conda e executando server.py...")
+        st.sidebar.write("Activating environment and performing server.py ...")
         process = subprocess.Popen(
-            ['cmd', '/c', 'call conda activate iavtuber && python server.py'],
+            ['cmd', '/c', 'call conda activate openllmvtuber && python server.py'],
             shell=True
         )
-        st.session_state['process_pid'] = process.pid  # Armazena o PID
+        st.session_state['process_pid'] = process.pid  # Stores the pid
         st.spinner('Mission operation...')
-        st.sidebar.success(f"Processo iniciado com PID: {process.pid}")
+        st.sidebar.success(f"Process started with pid: {process.pid}")
         return True
     else:
-        st.sidebar.warning("O processo já está em execução.")
+        st.sidebar.warning("The process is already under execution.")
 
-# Função para finalizar o processo e todos seus subprocessos
+# Function to finish the process and all its subprocesses
 def stop_process():
     if st.session_state['process_pid'] is not None:
         try:
-            # Usa taskkill para encerrar o processo e todos os subprocessos
+            # Uses Taskkill to end the process and all subprocesses
             subprocess.run(
                 ['taskkill', '/F', '/T', '/PID', str(st.session_state['process_pid'])], 
                 shell=True
             )
-            st.sidebar.success(f"Processo com PID {st.session_state['process_pid']} e subprocessos foram finalizados.")
+            st.sidebar.success(f"Process with pid {st.session_state['process_pid']} and subprocesses were completed.")
             st.session_state['process_pid'] = None
             time.sleep(1)
             st.rerun()
         except Exception as e:
-            st.sidebar.error(f"Erro ao finalizar o processo: {e}")
+            st.sidebar.error(f"Error when finalizing the process: {e}")
     else:
-        st.sidebar.warning("Nenhum processo em execução.")
+        st.sidebar.warning("No process under execution.")
 
 
-# Função para instalar a biblioteca, caso o usuário aceite
+# Function to install the library, if the user accepts
 def install_package(package_name):
-    if st.button(f"Deseja instalar a biblioteca {package_name}?"):
+    if st.button(f"Want to install the library {package_name}?"):
         try:
             subprocess.check_call(['pip', 'install', package_name])
-            st.success(f"A biblioteca {package_name} foi instalada com sucesso.")
-            st.session_state[package_name] = True  # Atualiza o estado para instalado
+            st.success(f"The library {package_name} foi instalada com sucesso.")
+            st.session_state[package_name] = True  # Updates the state to installed
             st.rerun()
         except subprocess.CalledProcessError:
-            st.error(f"Falha ao instalar a biblioteca {package_name}.")
+            st.error(f"Failure to install the library {package_name}.")
 
-# Função para verificar se o pacote está instalado
+# Function to verify that the package is installed
 def check_package_installed(package_name):
     if package_name in st.session_state:
         if st.session_state[package_name]:
-            st.success(f"A biblioteca {package_name} está instalada.")
+            st.success(f"The library {package_name} It is installed.")
             return True
         else:
-            st.error(f"A biblioteca {package_name} não está instalada.")
+            st.error(f"The library {package_name} It is not installed.")
             install_package(package_name)
             return False
     else:
-        # Se o pacote não estiver no estado, faz a verificação
+        # If the package is not in the state, it checks
         try:
             subprocess.check_call(['pip', 'show', package_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            st.success(f"A biblioteca {package_name} está instalada.")
-            st.session_state[package_name] = True  # Atualiza o estado para instalado
+            st.success(f"The library {package_name} está instalada.")
+            st.session_state[package_name] = True  # Updates the state to installed
             return True
         except subprocess.CalledProcessError:
-            st.error(f"A biblioteca {package_name} não está instalada.")
-            st.session_state[package_name] = False  # Atualiza o estado para não instalado
+            st.error(f"The library {package_name} It is not installed.")
+            st.session_state[package_name] = False  # Updates the state not to be installed
             install_package(package_name)
             return False
 
@@ -132,9 +138,8 @@ def check_package_installed(package_name):
 def main():
         
     st.set_page_config(
-        page_title='AI-Vtuber',
+        page_title='Open-LLM-Vtuber Congigurator',
         layout="wide",
-        page_icon='assets/icon/ComfyUI_00011_.png',
         initial_sidebar_state="expanded",
         menu_items={
             'Get help': "http://www.worldline-fantasy.top",
@@ -145,28 +150,28 @@ def main():
 
     st.sidebar.title("Navigation")
 
-    # Botão para iniciar o processo
+    # Button to start the process
     if st.sidebar.button('Execut Script'):
         start_process()
 
     if st.session_state['process_pid'] != None:
         st.sidebar.success("Vtuber running. http://localhost:12393 ")
 
-    # Botão para finalizar o processo
+    # Button to finish the process
     if st.sidebar.button('Exit Script'):
         stop_process()
 
-    # Dicionário para mapear rótulos para identificadores imutáveis
+    # Dictionary for mapping labels for immutable identifiers
     pages = {
         "Configuration": "config",
         "Environment": "env",
         "AI-VTuber": "persona"
     }
 
-    # Sidebar com os rótulos visíveis, mas retornando os identificadores
+    # Sidebar with labels visible, but returning identifiers
     selected_label = st.sidebar.radio("Page navigation", list(pages.keys()))
 
-    # Recupera o valor imutável correspondente ao rótulo selecionado
+    # Retrieves the immutable value corresponding to the selected label
     selected_page = pages[selected_label]
 
 #--------------------------------------------------
@@ -219,8 +224,7 @@ def main():
             st.header("Live2D Settings")
             st.markdown("Deprecated and useless now. Do not enable it. Bad things will happen.")
             config['LIVE2D'] = st.checkbox("LIVE2D", config.get('LIVE2D', False), key="LIVE2D")
-            if  config['LIVE2D']:
-                config['LIVE2D_MODEL'] = st.text_input("LIVE2D_MODEL", config.get('LIVE2D_MODEL', "shizuku-local"), key="LIVE2D_MODEL")
+            config['LIVE2D_MODEL'] = st.text_input("LIVE2D_MODEL", config.get('LIVE2D_MODEL', "shizuku-local"), key="LIVE2D_MODEL")
 
         # Voice Interaction Settings
         with st.expander("Voice Interaction Settings"):
@@ -305,18 +309,18 @@ def main():
                     config['barkTTS'] = config.get('barkTTS', {})
                     config['barkTTS']['voice'] = st.text_input("voice", config['barkTTS'].get('voice', "v2/en_speaker_1"), key="barkTTS_voice")
 
-                # Verifica se o TTS_MODEL está configurado como "edgeTTS"
+                # Check if TTS_MODEL is set to "edgeTTS"
                 if config['TTS_MODEL'] == "edgeTTS":
                     st.subheader("edgeTTS Settings")
                     st.markdown("Check out doc at https://github.com/rany2/edge-tts")
                     config['edgeTTS'] = config.get('edgeTTS', {})
 
-                    # Exibe as opções de configuração da biblioteca, se ela estiver instalada
+                    # Displays the library configuration options, if it is installed
                     if check_package_installed('edge-tts'):
                         import edge_tts
-                        # Função para rodar coroutines em um ambiente síncrono
+                        # Function to run coroutines in a synchronous environment
                         async def get_edge_tts_voices():
-                            voices = await edge_tts.list_voices()  # Espera pela lista de vozes
+                            voices = await edge_tts.list_voices()  # Wait for voice list
                             return voices
                         
                         @st.cache_data
@@ -326,10 +330,10 @@ def main():
                                 voices_data = asyncio.run(get_edge_tts_voices())
                                 return [voice['ShortName'] for voice in voices_data]  # Extraímos apenas os nomes curtos
                             except Exception as e:
-                                st.error(f"Erro ao listar as vozes do edgeTTS: {e}")
+                                st.error(f"Error listing edgeTTS voices: {e}")
                                 return []
 
-                        # Carrega as vozes disponíveis
+                        # Load available voices
                         voice_options = fetch_voices()
 
                         if voice_options:
@@ -341,19 +345,19 @@ def main():
                             config['edgeTTS']['voice'] = selected_voice
 
                             # Adiciona um campo de texto personalizado para o usuário testar o TTS
-                            usertext = st.text_input("Digite o texto para testar o edgeTTS", "Olá, este é um teste de voz.")
+                            usertext = st.text_input("Enter text to test edgeTTS", "Hello, this is a voice test.")
 
                             # Botão para testar a voz
-                            if st.button("Testar Voz"):
+                            if st.button("Test Voice"):
                                 async def gerar_audio(texto, voz):
                                     comunicador = edge_tts.Communicate(texto, voz)
                                     await comunicador.save("cache/voiceteste.mp3")
 
                                 try:
-                                    # Gera o áudio e salva o arquivo
+                                    # Generate the audio and save the file
                                     asyncio.run(gerar_audio(usertext, selected_voice))
 
-                                    # Exibe o player de áudio no Streamlit
+                                    # Display the audio player in Streamlit
                                     with open("cache/voiceteste.mp3", "rb") as audio_file:
                                         audio_bytes = audio_file.read()
                                         st.audio(audio_bytes, format="audio/mp3")
@@ -419,7 +423,7 @@ def main():
 
 
             envs_list = get_envs()
-            # Exibe os ambientes em um selectbox no Streamlit
+            # Displays environments in a selectbox in Streamlit
             env_name = st.selectbox("Choose a virtual environment:", envs_list, index=0)
 
             folder_path = os.path.join(project_root, "requirements")
@@ -427,15 +431,15 @@ def main():
             file_name_list = [file_name for file_name in file_names]
             selected_requirement = st.selectbox("Select environment -dependent configuration file:", file_name_list, index=0)
 
-            # Instalação de dependências
+            # Installing dependencies
             if st.button("Installation dependence"):
                 command = f"conda activate {env_name} && pip install -r {project_root }\\requirements\\{selected_requirement}"
                 
-                # Executa o comando em um novo terminal
+                # Run the command on a new terminal
                 subprocess.Popen(['start', 'cmd', '/k', command], shell=True)
                 
-                # Exibe o comando no Streamlit
-                st.write(f"Comando executado: {command}")
+                # Display the command in Streamlit
+                st.write(f"Command executed: {command}")
 
             package = st.text_input("Install a specified package:",placeholder="pip install ...")
             if st.button("Installation dependence",key=2):
@@ -452,23 +456,23 @@ def main():
             st.header("Create or Edit Persona")
             persona_list = ["Create New Perona"] + [file.replace(".txt", "") for file in os.listdir(os.path.join(project_root, "prompts", "persona"))]
 
-            # st.selectbox retorna o nome da persona, então podemos pegar o índice do selecionado
+            # st.selectbox returns the name of the persona, so we can get the index of the selected one
             selected_index = st.selectbox("Select Persona to Edit (Leave blank to create new)", range(len(persona_list)), format_func=lambda x: persona_list[x])
 
             if selected_index != 0:
-                # Se o índice for diferente de 0 (que é "Create"), carregue o conteúdo para edição
+                # If index is different from 0 (which is "Create"), load the content for editing
                 selected_persona = persona_list[selected_index]
                 persona_content = load_persona_content(selected_persona)
                 st.info(f"Editing Persona: {selected_persona}")
 
                 # Delete persona option
                 if st.button("Delete Selected Persona"):
-                    if delete_persona(config['PERSONA_CHOICE']):
-                        st.success(f"Persona '{config['PERSONA_CHOICE']}' deleted successfully!")
+                    if delete_persona(persona_list[selected_index]):
+                        st.success(f"Persona '{persona_list[selected_index]}' deleted successfully!")
                     else:
-                        st.error(f"Could not delete persona '{config['PERSONA_CHOICE']}'. Maybe it is in use.")
+                        st.error(f"Could not delete persona '{persona_list[selected_index]}'. Maybe it is in use.")
             else:
-                # Criação de nova persona
+                # Creation of new persona
                 selected_persona = st.text_input("Persona Name")
                 persona_content = ""
 

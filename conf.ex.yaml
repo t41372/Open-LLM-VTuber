@@ -99,7 +99,7 @@ GroqWhisperASR:
 # ============== Text to Speech ==============
 TTS_ON: True
 # text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS"
-TTS_MODEL: "barkTTS"
+TTS_MODEL: "edgeTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
 # if turned on, the timing and order of the facial expression will be more accurate
@@ -112,7 +112,7 @@ barkTTS:
 edgeTTS:
   # Check out doc at https://github.com/rany2/edge-tts
   # Use `edge-tts --list-voices` to list all available voices
-  voice: "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural"
+  voice: "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural" # "ja-JP-NanamiNeural"
 
 # pyttsx3 doesn't have any config.
 
@@ -138,11 +138,23 @@ piperTTS:
   voice_model_path: "./models/piper_voice/en_US-amy-medium.onnx"
   verbose: False
 
+
+#  ============== Translate (to only change the language for TTS) ==============
+# Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
+
+TRANSLATE_AUDIO: False
+TRANSLATE_PROVIDER: "DeepLX"
+
+DeepLX:
+  DEEPLX_TARGET_LANG: "JA"
+  DEEPLX_API_ENDPOINT: "http://localhost:1188/v2/translate"
+
+
 #  ============== Other Settings ==============
 
 
 # Print debug info
-VERBOSE: True
+VERBOSE: False
 
 # Exit phrase
 EXIT_PHRASE: "exit."
@@ -190,5 +202,3 @@ CHAT_HISTORY_DIR: "./chat_history/"
 # [this feature is currently removed, so useless for now]Turn on RAG (Retrieval Augmented Generation) or not. 
 RAG_ON: False
 LLMASSIST_RAG_ON: False
-
-

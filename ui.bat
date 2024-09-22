@@ -1,9 +1,9 @@
 @echo off
-REM Ativa o ambiente Conda
-call conda activate iavtuber
+REM Activate the Conda environment
+call conda activate openllmvtuber
 
-REM Executa o script Python ui.py com Streamlit
+REM Run the Python script ui.py with Streamlit
 streamlit run ui.py
 
-REM Mantém a janela aberta após a execução
+REM Keep the window open after execution
 cmd /k
