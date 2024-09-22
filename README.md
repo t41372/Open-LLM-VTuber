@@ -1,6 +1,6 @@
 # Open-LLM-VTuber
 
-[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)  [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber)
+[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)  [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) [![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)
 
 > :warning: **Read this if you are updating from an old version without the voice interruption feature**:
 > The latest version changed how to open the live2d server and the backend: `server.py` now launches everything it needs (except the browser). To run with Live2D and the browser, launch `server.py` and open the web page in the browser. You no longer need to run `main.py` with the `server.py`. Running `server.py` assumes Live2D mode with the browser, and running `main.py` assumes no Live2D mode without the browser. In addition, options `MIC-IN-BROWSER` and `LIVE2D` in the configuration file no longer have any effects and have been deprecated due to the changes in the backend.
