@@ -197,8 +197,14 @@ def setup_piper_tts():
 def download_default_model():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
-    voice_model_path = os.path.join(parent_dir, "models", "piper_voice", "en_US-amy-medium.onnx")
-    voice_model_json_path = os.path.join(parent_dir, "models", "piper_voice", "en_US-amy-medium.onnx.json")
+    download_dir = os.path.join(parent_dir, "models", "piper_voice")
+    if not os.path.exists(download_dir):
+        os.makedirs(download_dir)
+    
+    voice_model_path = os.path.join(download_dir, "en_US-amy-medium.onnx")
+    voice_model_json_path = os.path.join(download_dir, "en_US-amy-medium.onnx.json")
+    
+    print(f"Downloading the default voice model for Piper TTS to {voice_model_path}")
     
     download_file(default_voice_model_url, voice_model_path)
     download_file(default_voice_model_json_url, voice_model_json_path)
