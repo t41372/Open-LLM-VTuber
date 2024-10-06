@@ -55,7 +55,7 @@ VOICE_INPUT_ON: True
 MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR"
-ASR_MODEL: "Faster-Whisper"
+ASR_MODEL: "FunASR"
 
 # Faster whisper config
 Faster-Whisper:
@@ -99,7 +99,7 @@ GroqWhisperASR:
 # ============== Text to Speech ==============
 TTS_ON: True
 # text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS"
-TTS_MODEL: "edgeTTS"
+TTS_MODEL: "xTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
 # if turned on, the timing and order of the facial expression will be more accurate
@@ -137,6 +137,12 @@ meloTTS:
 piperTTS:
   voice_model_path: "./models/piper_voice/en_US-amy-medium.onnx"
   verbose: False
+
+xTTS:
+  api_url: "http://127.0.0.1:8020/tts_to_audio"
+  speaker_wav: "female"
+  language: "en"
+
 
 
 #  ============== Translate (to only change the language for TTS) ==============
