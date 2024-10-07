@@ -138,6 +138,12 @@ piperTTS:
   voice_model_path: "./models/piper_voice/en_US-amy-medium.onnx"
   verbose: False
 
+xTTS:
+  api_url: "http://127.0.0.1:8020/tts_to_audio"
+  speaker_wav: "female"
+  language: "en"
+
+
 
 #  ============== Translate (to only change the language for TTS) ==============
 # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things

@@ -41,7 +41,10 @@ class TTSFactory:
         elif engine_type == "piperTTS":
             from .piperTTS import TTSEngine as PiperTTSEngine
             return PiperTTSEngine(voice_path=kwargs.get("voice_model_path"), verbose=kwargs.get("verbose"))
-            
+        elif engine_type == "xTTS":
+            from .xTTS import TTSEngine as XTTSEngine
+            return XTTSEngine(api_url=kwargs.get("api_url"), speaker_wav=kwargs.get("speaker_wav"), language=kwargs.get("language"))
+
         else:
             raise ValueError(f"Unknown TTS engine type: {engine_type}")
 
