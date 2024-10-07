@@ -9,7 +9,6 @@ lab.py
 
 # Virtual environment
 .conda
-.openllm_env/
 
 # Sensitive data
 .env

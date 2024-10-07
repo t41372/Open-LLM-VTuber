@@ -55,7 +55,7 @@ VOICE_INPUT_ON: True
 MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR"
-ASR_MODEL: "FunASR"
+ASR_MODEL: "Faster-Whisper"
 
 # Faster whisper config
 Faster-Whisper:
@@ -99,7 +99,7 @@ GroqWhisperASR:
 # ============== Text to Speech ==============
 TTS_ON: True
 # text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS"
-TTS_MODEL: "xTTS"
+TTS_MODEL: "edgeTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
 # if turned on, the timing and order of the facial expression will be more accurate
