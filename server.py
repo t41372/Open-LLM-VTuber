@@ -6,7 +6,7 @@ import asyncio
 from typing import List, Dict
 import yaml
 import numpy as np
-from fastapi import FastAPI, WebSocket, APIRouter, Body
+from fastapi import FastAPI, WebSocket, APIRouter
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 from main import OpenLLMVTuberMain
@@ -39,6 +39,7 @@ class WebSocketServer:
         self.open_llm_vtuber_config: Dict | None = open_llm_vtuber_config
         self._setup_routes()
         self._mount_static_files()
+        self.app.include_router(self.router)
 
     def _setup_routes(self):
         """Sets up the WebSocket and broadcast routes."""
@@ -46,7 +47,7 @@ class WebSocketServer:
         # the connection between this server and the frontend client
         # The version 2 of the client-ws. Introduces breaking changes.
         # This route will initiate its own main.py instance and conversation loop
-        @self.router.websocket("/client-ws")
+        @self.app.websocket("/client-ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
             await websocket.send_text(
@@ -170,7 +171,6 @@ class WebSocketServer:
             except WebSocketDisconnect:
                 self.connected_clients.remove(websocket)
                 open_llm_vtuber = None
-
 
     def _mount_static_files(self):
         """Mounts static file directories."""
