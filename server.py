@@ -43,41 +43,6 @@ class WebSocketServer:
     def _setup_routes(self):
         """Sets up the WebSocket and broadcast routes."""
 
-        # the connection between this server and the python backend
-        @self.router.websocket("/server-ws")
-        async def server_websocket_endpoint(websocket: WebSocket):
-            await websocket.accept()
-            self.server_ws_clients.append(websocket)
-            # When a connection is established, send a specific payload to all clients connected to "/client-ws"
-            control_message = {"type": "control", "text": "start-mic"}
-            for client in self.connected_clients:
-                await client.send_json(control_message)
-            try:
-                while True:
-                    # Receive messages from "/server-ws" clients
-                    message = await websocket.receive_text()
-                    # Forward received messages to all clients connected to "/client-ws"
-                    for client in self.connected_clients:
-                        await client.send_text(message)
-            except WebSocketDisconnect:
-                self.server_ws_clients.remove(websocket)
-
-        # the connection between this server and the frontend client
-        @self.router.websocket("/legacy-ws")
-        async def websocket_endpoint(websocket: WebSocket):
-            await websocket.accept()
-            self.connected_clients.append(websocket)
-            try:
-                while True:
-                    # Receive messages from "/client-ws" clients
-                    message = await websocket.receive_text()
-                    # do some funny thing here...
-                    # Forward received messages to all clients connected to "/server-ws"
-                    for server_client in self.server_ws_clients:
-                        await server_client.send_text(message)
-            except WebSocketDisconnect:
-                self.connected_clients.remove(websocket)
-
         # the connection between this server and the frontend client
         # The version 2 of the client-ws. Introduces breaking changes.
         # This route will initiate its own main.py instance and conversation loop
@@ -91,7 +56,7 @@ class WebSocketServer:
             self.connected_clients.append(websocket)
             print("Connection established")
             l2d = Live2dModel(self.open_llm_vtuber_config["LIVE2D_MODEL"])
-            self.open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_config)
+            open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_config)
             audio_payload_preparer = AudioPayloadPreparer()
 
             def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
@@ -120,7 +85,7 @@ class WebSocketServer:
 
                 print("Audio played.")
 
-            self.open_llm_vtuber.set_audio_output_func(_play_audio_file)
+            open_llm_vtuber.set_audio_output_func(_play_audio_file)
 
             await websocket.send_text(
                 json.dumps({"type": "set-model", "text": l2d.model_info})
@@ -150,7 +115,7 @@ class WebSocketServer:
                                 data.get("text"),
                                 "\033[0m\n",
                             )
-                            self.open_llm_vtuber.interrupt(data.get("text"))
+                            open_llm_vtuber.interrupt(data.get("text"))
                             # conversation_task.cancel()
 
                     elif data.get("type") == "mic-audio-data":
@@ -181,7 +146,7 @@ class WebSocketServer:
                                     )
                                 )
                                 await asyncio.to_thread(
-                                    self.open_llm_vtuber.conversation_chain,
+                                    open_llm_vtuber.conversation_chain,
                                     user_input=audio,
                                 )
                                 await websocket.send_text(
@@ -204,20 +169,8 @@ class WebSocketServer:
 
             except WebSocketDisconnect:
                 self.connected_clients.remove(websocket)
-                self.open_llm_vtuber = None
+                open_llm_vtuber = None
 
-        @self.router.post("/broadcast")
-        async def broadcast_message(message: str = Body(..., embed=True)):
-            disconnected_clients = []
-            for client in self.connected_clients:
-                try:
-                    await client.send_text(message)
-                except WebSocketDisconnect:
-                    disconnected_clients.append(client)
-            for client in disconnected_clients:
-                self.connected_clients.remove(client)
-
-        self.app.include_router(self.router)
 
     def _mount_static_files(self):
         """Mounts static file directories."""
