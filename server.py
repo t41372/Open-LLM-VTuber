@@ -1,14 +1,14 @@
 import os
 import shutil
 import atexit
-import yaml
 import json
-import numpy as np
 import asyncio
+from typing import List, Dict
+import yaml
+import numpy as np
 from fastapi import FastAPI, WebSocket, APIRouter, Body
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
-from typing import List, Dict
 from main import OpenLLMVTuberMain
 from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer
@@ -233,8 +233,8 @@ class WebSocketServer:
         import uvicorn
 
         uvicorn.run(self.app, host=host, port=port, log_level=log_level)
-        
-    def clean_cache():
+
+    def clean_cache(self):
         cache_dir = "./cache"
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
@@ -242,9 +242,9 @@ class WebSocketServer:
 
 
 if __name__ == "__main__":
-    
+
     atexit.register(WebSocketServer.clean_cache)
-    
+
     # Load configurations from yaml file
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)

@@ -1,22 +1,20 @@
-import requests
-import json
 from typing import Iterator
+import json
+import requests
 from rich.console import Console
-
 from .llm_interface import LLMInterface
 
 console = Console()
-
 
 
 class LLM(LLMInterface):
 
     def __init__(
         self,
-        base_url:str,
-        server_admin_token:str,
-        agent_id:str,
-        verbose:str=False,
+        base_url: str,
+        server_admin_token: str,
+        agent_id: str,
+        verbose: str = False,
     ) -> None:
 
         self.base_url = base_url
@@ -34,15 +32,15 @@ class LLM(LLMInterface):
         }
         self.verbose = verbose
 
-    
     def chat_iter(self, prompt) -> Iterator[str]:
         full_response = self._send_message_to_agent(prompt, callback_function=print)
         # memGPT will handle the memory, so no need to deal with it here
         return full_response
-    
-    def handle_interrupt(self, heard_response: str) -> None:
-        print("\n>> (MemGPT doesn't know you interrupted it for now. I don't know how to tell it about the interruption.) \n")
 
+    def handle_interrupt(self, heard_response: str) -> None:
+        print(
+            "\n>> (MemGPT doesn't know you interrupted it for now. I don't know how to tell it about the interruption.) \n"
+        )
 
     def _send_message_to_agent(self, message, callback_function=print):
         """
@@ -69,7 +67,7 @@ class LLM(LLMInterface):
             "role": "user",
         }
         response = requests.post(
-            url, headers=self.headers, data=json.dumps(data), stream=True
+            url, headers=self.headers, data=json.dumps(data), stream=True, timeout=30
         )
 
         if response.status_code != 200:
@@ -98,13 +96,3 @@ class LLM(LLMInterface):
                     print("Received an empty line or non-JSON data.")
 
         return result
-
-
-if __name__ == "__main__":
-
-    llm = LLM(
-        verbose=True,
-    )
-    # while True:
-    # llm.send_message_to_agent(message=input(">> "))
-    # print(llm.split_sentences(input(">> ")))

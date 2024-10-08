@@ -36,7 +36,6 @@ class TTSEngine(TTSInterface):
             use_default_speaker=True
         )
 
-
     def generate_audio(self, text, file_name_no_ext=None):
         """
         Generate speech audio file using TTS.

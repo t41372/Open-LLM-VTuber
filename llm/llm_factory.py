@@ -1,8 +1,8 @@
-from llm.llm_interface import LLMInterface
-from llm.ollama import LLM as OllamaLLM
-from llm.memGPT import LLM as MemGPTLLM
-from llm.fake_llm import LLM as FakeLLM
 from typing import Type
+from .llm_interface import LLMInterface
+from .ollama import LLM as OllamaLLM
+from .memGPT import LLM as MemGPTLLM
+from .fake_llm import LLM as FakeLLM
 
 
 class LLMFactory:
@@ -17,20 +17,20 @@ class LLMFactory:
                 llm_api_key=kwargs.get("LLM_API_KEY"),
                 project_id=kwargs.get("PROJECT_ID"),
                 organization_id=kwargs.get("ORGANIZATION_ID"),
-                verbose=kwargs.get("VERBOSE", False)
-
+                verbose=kwargs.get("VERBOSE", False),
             )
         elif llm_provider == "memgpt":
             return MemGPTLLM(
                 base_url=kwargs.get("BASE_URL"),
                 server_admin_token=kwargs.get("ADMIN_TOKEN"),
                 agent_id=kwargs.get("AGENT_ID"),
-                verbose=kwargs.get("VERBOSE", False)
+                verbose=kwargs.get("VERBOSE", False),
             )
         elif llm_provider == "fakellm":
             return FakeLLM()
         else:
             raise ValueError(f"Unsupported LLM provider: {llm_provider}")
+
 
 # 使用工廠創建 LLM 實例
 # llm_instance = LLMFactory.create_llm("ollama", **config_dict)

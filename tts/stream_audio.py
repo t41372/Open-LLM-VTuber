@@ -1,6 +1,6 @@
+import base64
 from pydub import AudioSegment
 from pydub.utils import make_chunks
-import base64
 
 
 class AudioPayloadPreparer:

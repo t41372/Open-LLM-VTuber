@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-import soundfile as sf
 
 from melo.api import TTS
 
@@ -9,8 +8,6 @@ from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
-
-
 
 
 class TTSEngine(TTSInterface):
@@ -39,8 +36,6 @@ class TTSEngine(TTSInterface):
         if not os.path.exists(self.new_audio_dir):
             os.makedirs(self.new_audio_dir)
 
-
-
     def generate_audio(self, text, file_name_no_ext=None):
         """
         Generate speech audio file using TTS.
@@ -54,17 +49,21 @@ class TTSEngine(TTSInterface):
         str: the path to the generated audio file
 
         """
-        try: 
+        try:
             file_name = "temp"
             if file_name_no_ext is None:
                 file_name = self.temp_audio_file
             else:
                 file_name = file_name_no_ext
 
-            file_name = str(Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}")
+            file_name = str(
+                Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}"
+            )
 
             # Default accent
-            self.model.tts_to_file(text, self.speaker_id, f"{file_name}", speed=self.speed)
+            self.model.tts_to_file(
+                text, self.speaker_id, f"{file_name}", speed=self.speed
+            )
 
             return file_name
         except LookupError:
@@ -78,6 +77,5 @@ class TTSEngine(TTSInterface):
             else:
                 ssl._create_default_https_context = _create_unverified_https_context
 
-            nltk.download('averaged_perceptron_tagger_eng')
+            nltk.download("averaged_perceptron_tagger_eng")
             return self.generate_audio(text, file_name_no_ext)
-

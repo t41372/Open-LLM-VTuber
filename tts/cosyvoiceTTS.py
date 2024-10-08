@@ -1,8 +1,6 @@
 from gradio_client import Client, file
 from .tts_interface import TTSInterface
 
-import os
-
 
 class TTSEngine(TTSInterface):
 
@@ -28,7 +26,6 @@ class TTSEngine(TTSInterface):
         self.instruct_text = instruct_text
         self.seed = seed
         self.api_name = api_name
-
 
     def generate_audio(self, text, file_name_no_ext=None):
 

@@ -49,6 +49,7 @@ if __name__ == "__main__":
     TTSEngine.generate_audio(
         "Hello, this is a test. But this is not a test. You are screwed bro. You only live once. YOLO."
     )
+
     def worker(engine, text, index):
         file_name = f"audio_{index}"
         engine.generate_audio(text, file_name)
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         "This is another test.",
         "Yet another test sentence.",
         "Testing multithreading.",
-        "Final test sentence."
+        "Final test sentence.",
     ]
 
     threads = []

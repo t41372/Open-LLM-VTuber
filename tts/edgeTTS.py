@@ -49,9 +49,9 @@ class TTSEngine(TTSInterface):
         try:
             communicate = edge_tts.Communicate(text, self.voice)
             communicate.save_sync(file_name)
-        except:
+        except Exception as e:
             print(
-                "No audio was received. Please verify that your parameters are correct."
+                f"No audio was received. Please verify that your parameters are correct. Error: {e}"
             )
             return None
 

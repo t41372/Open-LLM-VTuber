@@ -1,26 +1,29 @@
-# Description: This file contains the implementation of the `ollama` class.
-# This class is responsible for handling the interaction with the OpenAI API for language generation.
-# And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
+""" Description: This file contains the implementation of the `ollama` class.
+This class is responsible for handling the interaction with the OpenAI API for 
+language generation.
+And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, 
+OpenAI, and more.
+"""
 
 from typing import Iterator
+import json
 from openai import OpenAI
 
 from .llm_interface import LLMInterface
-import json
 
 
 class LLM(LLMInterface):
 
     def __init__(
         self,
-        base_url:str,
-        model:str,
-        system:str,
+        base_url: str,
+        model: str,
+        system: str,
         callback=print,
-        organization_id:str="z",
-        project_id:str="z",
-        llm_api_key:str="z",
-        verbose:bool=False,
+        organization_id: str = "z",
+        project_id: str = "z",
+        llm_api_key: str = "z",
+        verbose: bool = False,
     ):
         """
         Initializes an instance of the `ollama` class.
@@ -82,9 +85,7 @@ class LLM(LLMInterface):
         print(" -- Model: " + self.model)
         print(" -- System: " + self.system)
 
-
-
-    def chat_iter(self, prompt:str) -> Iterator[str]:
+    def chat_iter(self, prompt: str) -> Iterator[str]:
 
         self.memory.append(
             {
@@ -112,7 +113,7 @@ class LLM(LLMInterface):
             self.__printDebugInfo()
             return "Error calling the chat endpoint: " + str(e)
 
-        # a generator to give back an iterator to the response that will store 
+        # a generator to give back an iterator to the response that will store
         # the complete response in memory once the iteration is done
         def _generate_and_store_response():
             complete_response = ""
@@ -121,22 +122,23 @@ class LLM(LLMInterface):
                     chunk.choices[0].delta.content = ""
                 yield chunk.choices[0].delta.content
                 complete_response += chunk.choices[0].delta.content
-                
+
             self.memory.append(
                 {
                     "role": "assistant",
                     "content": complete_response,
                 }
             )
+
             def serialize_memory(memory, filename):
-                with open(filename, 'w') as file:
+                with open(filename, "w") as file:
                     json.dump(memory, file)
 
-            serialize_memory(self.memory, 'mem.json')
+            serialize_memory(self.memory, "mem.json")
             return
 
         return _generate_and_store_response()
-    
+
     def handle_interrupt(self, heard_response: str) -> None:
         if self.memory[-1]["role"] == "assistant":
             self.memory[-1]["content"] = heard_response + "..."

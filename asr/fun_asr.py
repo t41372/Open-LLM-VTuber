@@ -1,7 +1,6 @@
 import numpy as np
 from funasr import AutoModel
 from .asr_interface import ASRInterface
-from .asr_with_vad import VoiceRecognitionVAD
 
 import re
 import soundfile as sf

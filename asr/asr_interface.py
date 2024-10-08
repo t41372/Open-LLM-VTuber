@@ -10,7 +10,6 @@ class ASRInterface(metaclass=abc.ABCMeta):
     NUM_CHANNELS = 1
     SAMPLE_WIDTH = 2
 
-    # @abc.abstractmethod
     def transcribe_with_local_vad(self) -> str:
         """Activate the microphone on this device, transcribe audio when a pause in speech is detected using VAD, and return the transcription.
 
@@ -30,7 +29,7 @@ class ASRInterface(metaclass=abc.ABCMeta):
         Args:
             audio: The numpy array of the audio data to transcribe.
         """
-        pass
+        raise NotImplementedError
 
     def nparray_to_audio_file(
         self, audio: np.ndarray, sample_rate: int, file_path: str
