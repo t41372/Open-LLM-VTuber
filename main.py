@@ -1,11 +1,14 @@
 import os
+import random
 import shutil
 import atexit
 import threading
 import queue
+import uuid
 from typing import Callable, Iterator, Optional
 from fastapi import WebSocket
 import numpy as np
+import yaml
 
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
@@ -17,9 +20,6 @@ from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 from translate.translate_interface import TranslateInterface
 from translate.translate_factory import TranslateFactory
-
-import yaml
-import random
 
 
 class OpenLLMVTuberMain:
@@ -424,7 +424,7 @@ class OpenLLMVTuberMain:
                                 print(f"Translated: {tts_target_sentence}")
 
                             audio_filepath = self._generate_audio_file(
-                                tts_target_sentence, file_name_no_ext=f"temp-{index}"
+                                tts_target_sentence, file_name_no_ext=uuid.uuid4()
                             )
 
                             if not self._continue_exec_flag.is_set():
@@ -443,7 +443,7 @@ class OpenLLMVTuberMain:
                         raise InterruptedError("Producer interrupted")
                     print("\n")
                     audio_filepath = self._generate_audio_file(
-                        sentence_buffer, file_name_no_ext=f"temp-{index}"
+                        sentence_buffer, file_name_no_ext=uuid.uuid4()
                     )
                     audio_info = {
                         "sentence": sentence_buffer,
@@ -589,7 +589,7 @@ class OpenLLMVTuberMain:
         ]
         return any(text.strip().endswith(punct) for punct in punctuation_blacklist)
 
-    def clean_cache():
+    def clean_cache(self):
         cache_dir = "./cache"
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
