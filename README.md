@@ -102,6 +102,7 @@ Currently supported Text to Speech backend
 - [meloTTS](https://github.com/myshell-ai/MeloTTS) (Local, fast)
 - [bark](https://github.com/suno-ai/bark) (Local, very resource-consuming)
 - [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) (Local, very resource-consuming)
+- [xTTSv2](https://github.com/daswer123/xtts-api-server) (Local, very resource-consuming)
 - [Edge TTS](https://github.com/rany2/edge-tts) (online, no API key required)
 - [Azure Text-to-Speech](https://azure.microsoft.com/en-us/products/ai-services/text-to-speech) (online, API Key required)
 
@@ -224,6 +225,9 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 `cosyvoiceTTS` (local, slow)
 - Configure [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) and launch the WebUI demo according to their documentation. 
 - Edit `conf.yaml` to match your desired configurations. Check their WebUI and the API documentation on the WebUI to see the meaning of the configurations under the setting `cosyvoiceTTS` in the `conf.yaml`.
+
+`xTTSv2` (local, slow)
+- Recommend to use xtts-api-server, it has clear api docs and relative easy to deploy.
 
 `edgeTTS` (online, no API key required)
 - Install the pip package with this command `pip install edge-tts` and turn it on in `conf.yaml`.
