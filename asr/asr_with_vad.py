@@ -37,7 +37,6 @@ from pathlib import Path
 from typing import Callable, List
 
 import numpy as np
-import sounddevice as sd
 from loguru import logger
 
 import sys
@@ -104,6 +103,7 @@ class VoiceRecognitionVAD:
         """
         Sets up the audio input stream with sounddevice.
         """
+        import sounddevice as sd
         self.input_stream = sd.InputStream(
             samplerate=SAMPLE_RATE,
             channels=1,
