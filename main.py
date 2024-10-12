@@ -37,6 +37,7 @@ class OpenLLMVTuberMain:
     """
 
     config: dict
+    session_id: str
     llm: LLMInterface
     asr: ASRInterface
     tts: TTSInterface
@@ -58,6 +59,7 @@ class OpenLLMVTuberMain:
         self.live2d = self.init_live2d()
         self._continue_exec_flag = threading.Event()
         self._continue_exec_flag.set()  # Set the flag to continue execution
+        self.session_id = str(uuid.uuid4().hex)
 
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
@@ -632,7 +634,7 @@ def load_config_with_env(path) -> dict:
 
 if __name__ == "__main__":
 
-    config = yaml.safe_load(load_config_with_env("config.yaml"))
+    config = load_config_with_env("conf.yaml")
 
     vtuber_main = OpenLLMVTuberMain(config)
 

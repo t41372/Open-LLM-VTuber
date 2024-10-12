@@ -188,7 +188,7 @@ class WebSocketServer:
 
         uvicorn.run(self.app, host=host, port=port, log_level=log_level)
 
-    def clean_cache(self):
+    def clean_cache():
         cache_dir = "./cache"
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     atexit.register(WebSocketServer.clean_cache)
 
     # Load configurations from yaml file
-    config = load_config_with_env("config.yaml")
+    config = load_config_with_env("conf.yaml")
 
     config["LIVE2D"] = True  # make sure the live2d is enabled
 
