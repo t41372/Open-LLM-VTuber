@@ -44,6 +44,7 @@ class OpenLLMVTuberMain:
     translator: TranslateInterface | None
     live2d: Live2dModel | None
     _continue_exec_flag: threading.Event
+    heard_sentence: str | None
     EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
 
     def __init__(
@@ -468,7 +469,7 @@ class OpenLLMVTuberMain:
                 task_queue.put(None)  # Signal end of production
 
         def consumer_worker():
-            heard_sentence = ""
+            self.heard_sentence = ""
 
             while True:
 
@@ -482,7 +483,7 @@ class OpenLLMVTuberMain:
                     if audio_info is None:
                         break  # End of production
                     if audio_info:
-                        heard_sentence += audio_info["sentence"]
+                        self.heard_sentence += audio_info["sentence"]
                         self._play_audio_file(
                             sentence=audio_info["sentence"],
                             filepath=audio_info["audio_filepath"],
@@ -646,14 +647,18 @@ if __name__ == "__main__":
         except InterruptedError as e:
             print(f"😢Conversation was interrupted. {e}")
 
-    while True:
-        print("tts on: ", vtuber_main.config.get("TTS_ON", False))
-        if vtuber_main.config.get("TTS_ON", False) == False:
-            print("its indeed off")
-            vtuber_main.conversation_chain()
-        else:
-            threading.Thread(target=_run_conversation_chain).start()
+    def _interrupt_on_i():
+        while input(">>> say i and press enter to interrupt: ") == "i":
+            print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
+            print("Heard sentence: ", vtuber_main.heard_sentence)
+            vtuber_main.interrupt(vtuber_main.heard_sentence)
 
-            if input(">>> say i and press enter to interrupt: ") == "i":
-                print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
-                vtuber_main.interrupt()
+    threading.Thread(target=_interrupt_on_i).start()
+
+    print("tts on: ", vtuber_main.config.get("TTS_ON", False))
+    while True:
+        try:
+            vtuber_main.conversation_chain()
+        except InterruptedError as e:
+            print(f"😢Conversation was interrupted. {e}")
+            continue
