@@ -14,7 +14,7 @@ class TTSEngine(TTSInterface):
     file_extension = "wav"
     new_audio_dir = "./cache"
 
-    def __init__(self, sub_key, region, voice):
+    def __init__(self, api_key, region, voice, pitch=0, rate=1.0):
         """
         Initialize the Azure Text-to-Speech service
         api_key: str
@@ -23,16 +23,24 @@ class TTSEngine(TTSInterface):
             the Azure region. Default is the value in api_keys.py
         voice: str
             the voice to use. Default is the value in api_keys.py
+        pitch: int
+            the pitch adjustment. (percentage, from -100 to 100) Default is 0 (no adjustment)
+        rate: float
+            the speaking rate. Default is 1.0 (normal speed)
         """
         # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
-        self.speech_config = speechsdk.SpeechConfig(subscription=sub_key, region=region)
+        self.speech_config = speechsdk.SpeechConfig(subscription=api_key, region=region)
         # The language of the voice that speaks.
         self.speech_config.speech_synthesis_voice_name = voice
+
+        # Initialize pitch and rate
+        self.pitch = pitch
+        self.rate = rate
 
         if not os.path.exists(self.new_audio_dir):
             os.makedirs(self.new_audio_dir)
 
-        self.speakerAudioConfig = speechsdk.audio.AudioOutputConfig(
+        self.speaker_audio_config = speechsdk.audio.AudioOutputConfig(
             use_default_speaker=True
         )
 
@@ -44,10 +52,8 @@ class TTSEngine(TTSInterface):
         file_name_no_ext: str
             name of the file without extension
 
-
         Returns:
         str: the path to the generated audio file
-
         """
 
         file_name = "temp"
@@ -58,9 +64,9 @@ class TTSEngine(TTSInterface):
 
         file_name = str(Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}")
 
-        fileAudioConfig = speechsdk.audio.AudioOutputConfig(filename=file_name)
+        file_audio_config = speechsdk.audio.AudioOutputConfig(filename=file_name)
 
-        self.__speak_with_audio_config(text, audio_config=fileAudioConfig)
+        self.__speak_with_audio_config(text, audio_config=file_audio_config)
         return file_name
 
     def __speak_with_audio_config(
@@ -88,7 +94,7 @@ class TTSEngine(TTSInterface):
         # check if the text is empty or not a string
         if not isinstance(text, str):
             print("AzureTTS: The text cannot be non-string.")
-            print("Received type: {} and value: {}".format(type(text), text))
+            print(f"Received type: {type(text)} and value: {text}")
             return
         text = text.strip()
 
@@ -97,11 +103,21 @@ class TTSEngine(TTSInterface):
             print(f"Received text: {text}")
             return
 
-        # speech_synthesis_result = speech_synthesizer.speak_text_async(text).get()
+        # Wrap the text with SSML to adjust pitch and rate
+        ssml_text = f"""
+        <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+            <voice name="{self.speech_config.speech_synthesis_voice_name}">
+                <prosody pitch="{self.pitch}%" rate="{self.rate}">
+                    {text}
+                </prosody>
+            </voice>
+        </speak>
+        """
+
         if on_speak_start_callback is not None:
             on_speak_start_callback()
 
-        speech_synthesis_result = speech_synthesizer.speak_text(text)
+        speech_synthesis_result = speech_synthesizer.speak_ssml(ssml_text)
 
         if on_speak_end_callback is not None:
             on_speak_end_callback()
@@ -112,28 +128,29 @@ class TTSEngine(TTSInterface):
         ):
             if on_speak_end_callback is not None:
                 on_speak_end_callback()
-            print(">> Speech synthesized for text [{}]".format(text))
+            print(f">> Speech synthesized for text [{text}]")
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
-            print("Speech synthesis canceled: {}".format(cancellation_details.reason))
+            print(f"Speech synthesis canceled: {cancellation_details.reason}")
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    print(
-                        "Error details: {}".format(cancellation_details.error_details)
-                    )
+                    print(f"Error details: {cancellation_details.error_details}")
                     print("Did you set the speech resource key and region values?")
 
 
 if __name__ == "__main__":
     tts = TTSEngine(
-        input("Enter the Azure API key: "),
-        input("Enter the Azure region: "),
-        input("Enter the voice: "),
+        api_key="test-api-key",
+        region="eastus",
+        voice="en-US-AshleyNeural",
+        pitch=26,
+        rate=1.0,
     )
-    tts.speak(
-        "Testing, testing... finne.",
-        on_speak_start_callback=lambda: print("<<Synthesis started.>>"),
-        on_speak_end_callback=lambda: print("<<Synthesis ended.>>"),
+
+    tts.generate_audio(
+        "Hello, how are you? Hey! Tell me a story of a super intelligent person and a stupid AI fight together and eventuall killed each other",
+        "hello",
     )
+
     # tts.speak("I am fine, thank you.")
     # tts.speak("Goodbye!")

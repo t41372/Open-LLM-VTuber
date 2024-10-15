@@ -143,18 +143,7 @@ class OpenLLMVTuberMain:
     def init_tts(self) -> TTSInterface:
         tts_model = self.config.get("TTS_MODEL", "pyttsx3TTS")
         tts_config = self.config.get(tts_model, {})
-
-        if tts_model == "AzureTTS":
-            import api_keys
-
-            tts_config = {
-                "api_key": api_keys.AZURE_API_Key,
-                "region": api_keys.AZURE_REGION,
-                "voice": api_keys.AZURE_VOICE,
-            }
-        tts = TTSFactory.get_tts_engine(tts_model, **tts_config)
-
-        return tts
+        return TTSFactory.get_tts_engine(tts_model, **tts_config)
 
     def set_audio_output_func(
         self, audio_output_func: Callable[[Optional[str], Optional[str]], None]

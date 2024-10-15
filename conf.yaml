@@ -106,6 +106,13 @@ TTS_MODEL: "edgeTTS"
 SAY_SENTENCE_SEPARATELY: True
 
 
+AzureTTS:
+  api_key: "azure-api-key"
+  region: "eastus"
+  voice: "en-US-AshleyNeural"
+  pitch: "26" # percentage of the pitch adjustment
+  rate: "1" # rate of speak
+
 barkTTS:  
   voice: "v2/en_speaker_1"
 

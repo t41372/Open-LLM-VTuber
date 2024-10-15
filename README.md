@@ -204,6 +204,7 @@ WhisperCPP coreML configuration:
 
 - Azure Speech Recognition. Install with `pip install azure-cognitiveservices-speech`.
 - API key and internet connection are required.
+- **⚠️ ‼️ The `api_key.py` was deprecated in `v0.2.5`. Please set api keys in `conf.yaml`.**
 
 ## Install Speech Synthesis (text to speech)
 Install the respective package and turn it on using the `TTS_MODEL` option in `conf.yaml`.
@@ -234,23 +235,12 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 - It sounds pretty good. Runs pretty fast.
 - Remember to connect to the internet when using edge tts.
 
-`AzureTTS` (online, API key required)
-- See below
+`AzureTTS` (online, API key required) (This is the exact same TTS used by neuro-sama)
 
-### Azure API for Speech Recognition and Speech to Text, API key needed
-
-Create a file named `api_keys.py` in the project directory, paste the following text into the file, and fill in the API keys and region you gathered from your Azure account.
-
-~~~python
-# Azure API key
-AZURE_API_Key="YOUR-API-KEY-GOES-HERE"
-
-# Azure region
-AZURE_REGION="YOUR-REGION"
-
-# Choose the Text to speech model you want to use
-AZURE_VOICE="en-US-AshleyNeural"
-~~~
+- Install the Azure SDK with the command`pip install azure-cognitiveservices-speech`.
+- Get an API key (for text to speech) from Azure.
+- **⚠️ ‼️ The `api_key.py` was deprecated in `v0.2.5`. Please set api keys in `conf.yaml`.**
+- The default settings in the `conf.yaml` is the voice used by neuro-sama.
 
 
 

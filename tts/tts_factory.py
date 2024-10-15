@@ -9,7 +9,11 @@ class TTSFactory:
             from .azureTTS import TTSEngine as AzureTTSEngine
 
             return AzureTTSEngine(
-                kwargs.get("api_key"), kwargs.get("region"), kwargs.get("voice")
+                kwargs.get("api_key"),
+                kwargs.get("region"),
+                kwargs.get("voice"),
+                kwargs.get("pitch"),
+                kwargs.get("rate"),
             )
         elif engine_type == "barkTTS":
             from .barkTTS import TTSEngine as BarkTTSEngine
