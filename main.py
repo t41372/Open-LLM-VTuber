@@ -44,7 +44,7 @@ class OpenLLMVTuberMain:
     translator: TranslateInterface | None
     live2d: Live2dModel | None
     _continue_exec_flag: threading.Event
-    heard_sentence: str | None
+    heard_sentence: str = ""
     EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
 
     def __init__(
