@@ -40,9 +40,8 @@ class ASRFactory:
             from .azure_asr import VoiceRecognition as AzureASR
 
             return AzureASR(
-                subscription_key=kwargs.get("subscription_key"),
+                subscription_key=kwargs.get("api_key"),
                 region=kwargs.get("region"),
-                callback=kwargs.get("callback"),
             )
         elif system_name == "GroqWhisperASR":
             from .groq_whisper_asr import VoiceRecognition as GroqWhisperASR

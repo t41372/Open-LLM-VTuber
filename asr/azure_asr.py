@@ -87,4 +87,3 @@ class VoiceRecognition(ASRInterface):
 
 if __name__ == "__main__":
     service = VoiceRecognition()
-    service.launch()

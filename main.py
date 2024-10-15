@@ -128,15 +128,6 @@ class OpenLLMVTuberMain:
     def init_asr(self) -> ASRInterface:
         asr_model = self.config.get("ASR_MODEL")
         asr_config = self.config.get(asr_model, {})
-        if asr_model == "AzureASR":
-            import api_keys
-
-            asr_config = {
-                "callback": print,
-                "subscription_key": api_keys.AZURE_API_Key,
-                "region": api_keys.AZURE_REGION,
-            }
-
         asr = ASRFactory.get_asr_system(asr_model, **asr_config)
         return asr
 

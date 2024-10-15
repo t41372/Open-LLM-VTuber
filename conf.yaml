@@ -57,6 +57,10 @@ MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR"
 ASR_MODEL: "Faster-Whisper"
 
+AzureASR:
+  api_key: "azure_api_key"
+  region: "eastus"
+
 # Faster whisper config
 Faster-Whisper:
   model_path: "distil-medium.en"
