@@ -13,6 +13,7 @@ from loguru import logger
 import numpy as np
 import yaml
 
+import __init__
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
 from live2d_model import Live2dModel
@@ -56,6 +57,8 @@ class OpenLLMVTuberMain:
         custom_tts: TTSInterface | None = None,
         websocket: WebSocket | None = None,
     ) -> None:
+        logger.info(f"t41372/Open-LLM-VTuber, version {__init__.__version__}")
+        
         self.config = configs
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
