@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import random
 import shutil
@@ -8,6 +9,7 @@ import queue
 import uuid
 from typing import Callable, Iterator, Optional
 from fastapi import WebSocket
+from loguru import logger
 import numpy as np
 import yaml
 
@@ -614,6 +616,8 @@ def load_config_with_env(path) -> dict:
 
 
 if __name__ == "__main__":
+    
+    logger.add(sys.stderr, level="DEBUG")
 
     config = load_config_with_env("conf.yaml")
 
@@ -633,7 +637,8 @@ if __name__ == "__main__":
             print("Heard sentence: ", vtuber_main.heard_sentence)
             vtuber_main.interrupt(vtuber_main.heard_sentence)
 
-    threading.Thread(target=_interrupt_on_i).start()
+    if config.get("VOICE_INPUT_ON", False):
+        threading.Thread(target=_interrupt_on_i).start()
 
     print("tts on: ", vtuber_main.config.get("TTS_ON", False))
     while True:
