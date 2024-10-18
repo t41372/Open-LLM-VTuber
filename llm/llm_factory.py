@@ -19,6 +19,20 @@ class LLMFactory:
                 organization_id=kwargs.get("ORGANIZATION_ID"),
                 verbose=kwargs.get("VERBOSE", False),
             )
+        elif llm_provider == "mem0":
+            from llm.mem0 import LLM as Mem0LLM
+            return Mem0LLM(
+                user_id=kwargs.get("USER_ID"),
+                system=kwargs.get("SYSTEM_PROMPT"),
+                base_url=kwargs.get("BASE_URL"),
+                model=kwargs.get("MODEL"),
+                llm_api_key=kwargs.get("LLM_API_KEY"),
+                project_id=kwargs.get("PROJECT_ID"),
+                organization_id=kwargs.get("ORGANIZATION_ID"),
+                mem0_config=kwargs.get("MEM0_CONFIG"),
+                verbose=kwargs.get("VERBOSE", False)
+
+            )
         elif llm_provider == "memgpt":
             return MemGPTLLM(
                 base_url=kwargs.get("BASE_URL"),

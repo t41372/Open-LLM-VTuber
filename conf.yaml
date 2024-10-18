@@ -7,7 +7,8 @@ PORT: 12393
 
 #  ============== LLM Backend Settings ===================
 
-# Provider of LLM. Choose either "ollama" or "memgpt" (or "fakellm for debug purposes")
+# Provider of LLM. Options available: "ollama", "memgpt"m "mem0" 
+#   (or "fakellm for debug purposes")
 # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
 LLM_PROVIDER: "ollama"
 
@@ -24,7 +25,41 @@ ollama:
   # system prompt is at the very end of this file
   VERBOSE: False
 
+mem0:
+  USER_ID: "user-0"
+  # BASE_URL: "http://localhost:11434"
+  BASE_URL: "http://localhost:11434/v1"
+  LLM_API_KEY: "somethingelse"
+  ORGANIZATION_ID: "org_eternity"
+  PROJECT_ID: "project_glass"
+  ## LLM name
+  MODEL: "llama3.1:latest"
+  # system prompt is at the very end of this file
+  VERBOSE: False
 
+  MEM0_CONFIG:
+    vector_store:
+      provider: qdrant
+      config:
+        collection_name: test
+        host: localhost
+        port: 6333
+        embedding_model_dims: 1024  # Change this according to your local model's dimensions
+
+    llm:
+      provider: ollama
+      config:
+        model: llama3.1:latest
+        temperature: 0
+        max_tokens: 8000
+        ollama_base_url: http://localhost:11434  # Ensure this URL is correct
+
+    embedder:
+      provider: ollama
+      config:
+        model: mxbai-embed-large:latest
+        # Alternatively, you can use "snowflake-arctic-embed:latest"
+        ollama_base_url: http://localhost:11434
 
 # MemGPT Configurations
 ## Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)

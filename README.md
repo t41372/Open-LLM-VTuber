@@ -263,8 +263,10 @@ DeepLX is the only supported translation backend for now. Other providers will b
 
 
 
+## MemGPT (Probably broken)
 
-## MemGPT
+> :warning: MemGPT has been renamed to Letta and changed a bunch of things related to its API and how things functions. As of now, the integration of MemGPT in this project is not updated with the latest changes.
+
 > MemGPT integration is very experimental and requires quite a lot of setup. In addition, MemGPT requires a powerful LLM (larger than 7b and quantization above Q5) with a lot of token footprint, which means it's a lot slower.
 > MemGPT does have its own LLM endpoint for free, though. You can test things with it. Check their docs.
 
@@ -285,6 +287,25 @@ Here is a checklist:
 - Copy the `server admin password` and the `Agent id` into `./llm/memgpt_config.yaml`. *By the way, `agent id` is not the agent's name*.
 - Set the `LLM_PROVIDER` to `memgpt` in `conf.yaml`. 
 - Remember, if you use `memgpt`, all LLM-related configurations in `conf.yaml` will be ignored because `memgpt` doesn't work that way.
+
+
+
+## Mem0 (Experimental)
+
+Another long term memory solution.
+
+Pro
+
+- It's easier to set up compare to MemGPT
+- It's a bit faster than MemGPT (but still would take quite a lot more LLM tokens to process)
+
+Cons
+
+- It remembers your preference and thoughts, nothing else. It doesn't remember what the LLM said.
+- It doesn't always put stuff into memory.
+- It sometimes remember wrong stuff
+- It requires an LLM with very good function calling capability, which is quite difficult for smaller models
+- 
 
 
 
