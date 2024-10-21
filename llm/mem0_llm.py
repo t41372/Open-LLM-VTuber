@@ -1,7 +1,8 @@
-# Description: This file contains the implementation of the `ollama` class.
-# This class is responsible for handling the interaction with the OpenAI API for language generation.
-# And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
-import os
+"""Description: This file contains the implementation of the `ollama` class.
+This class is responsible for handling the interaction with the OpenAI API for language generation.
+Compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
+"""
+
 from typing import Iterator
 from mem0 import Memory
 from openai import OpenAI
@@ -164,7 +165,7 @@ class LLM(LLMInterface):
             logger.debug(self.mem0.add(this_conversation_mem, user_id=self.user_id))
 
             logger.debug(f"Mem0 Added... {this_conversation_mem}")
-            
+
             logger.debug("All Mem:")
             logger.debug(self.mem0.get_all(user_id=self.user_id))
 
