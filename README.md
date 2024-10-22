@@ -290,9 +290,9 @@ Here is a checklist:
 
 
 
-## Mem0 (Experimental)
+## Mem0 (In development)
 
-Another long term memory solution.
+Another long term memory solution. Still in development. Highly experimental.
 
 Pro
 
