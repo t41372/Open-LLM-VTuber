@@ -1,7 +1,8 @@
 import threading
 import queue
 
-class TaskQueue:
+
+class InferenceQueue:
     """
     A TaskQueue class that manages tasks in a separate thread.
 
@@ -18,6 +19,7 @@ class TaskQueue:
         _worker(self): The worker method that runs in a separate thread and executes tasks from the queue.
         add_task(self, task): Adds a task to the queue for execution by the worker thread.
     """
+
     def __init__(self):
         """
         Initializes a new instance of the TaskQueue class.
@@ -56,25 +58,23 @@ class TaskQueue:
         self.tasks.put(task)
 
 
-
-
-
-
 # Example usage:
 import time
+
 
 def example_task(num):
     print(f"\nTask {num} is running")
     time.sleep(2)
     print(f"Task {num} is done")
 
+
 if __name__ == "__main__":
-    task_queue = TaskQueue()
+    task_queue = InferenceQueue()
     i = 0
 
     while True:
         input(">> ")
         task_queue.add_task(example_task(i))
         i += 1
-    
+
     print("Tasks have been added")

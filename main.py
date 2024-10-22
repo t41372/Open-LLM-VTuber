@@ -10,12 +10,14 @@ from fastapi import WebSocket
 import numpy as np
 import yaml
 
+from Behavior.TalkBehavior import TalkBehavior
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
 from live2d_model import Live2dModel
 from llm.llm_factory import LLMFactory
 from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
+from queue.ActionSelectionQueue import ActionSelectionQueue
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 from translate.translate_interface import TranslateInterface
@@ -603,6 +605,7 @@ if __name__ == "__main__":
     vtuber_main = OpenLLMVTuberMain(config)
 
     atexit.register(vtuber_main.clean_cache)
+    main_queue = ActionSelectionQueue(default_behavior=TalkBehavior())
 
     def _run_conversation_chain():
         try:
@@ -621,3 +624,5 @@ if __name__ == "__main__":
             if input(">>> say i and press enter to interrupt: ") == "i":
                 print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
                 vtuber_main.interrupt()
+
+
