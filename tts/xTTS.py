@@ -1,4 +1,4 @@
-import uuid
+import os
 import requests
 from tts.tts_interface import TTSInterface
 
@@ -13,13 +13,15 @@ class TTSEngine(TTSInterface):
         self.api_url = api_url
         self.speaker_wav = speaker_wav
         self.language = language
+        self.new_audio_dir = "./cache"
+        self.file_extension = "wav"
 
     def generate_audio(self, text, file_name_no_ext=None):
-        if file_name_no_ext is None:
-            # Generate a unique filename using uuid4
-            file_name = f"{uuid.uuid4()}.wav"
-        else:
-            file_name = file_name_no_ext
+        file_name = "temp"
+        if file_name_no_ext is not None:
+            file_name = f"{file_name_no_ext}.{self.file_extension}"
+
+        file_name = os.path.join(self.new_audio_dir, file_name)
 
         # Prepare the data for the POST request
         data = {

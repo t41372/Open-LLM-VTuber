@@ -58,15 +58,6 @@ class TTSEngine(TTSInterface):
         return file_name
 
 
-if __name__ == "__main__":
-    tts = TTSEngine()
-    tts.speak(
-        "Hello World! You no, this is a very interesting phenomenoooooon that somebody is reading this stupid code",
-        lambda: print(">> Start"),
-        lambda: print(">> End"),
-    )
-
-
 # en-US-AvaMultilingualNeural
 # en-US-EmmaMultilingualNeural
 # en-US-JennyNeural
