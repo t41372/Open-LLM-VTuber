@@ -2,6 +2,9 @@
 
 [![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)  [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) [![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)  (QQ群: 792615362）
 
+> User Survey: https://forms.gle/w6Y6PiHTZr1nzbtWA
+
+
 > :warning: **Read this if you are updating from an old version without the voice interruption feature**:
 > The latest version changed how to open the live2d server and the backend: `server.py` now launches everything it needs (except the browser). To run with Live2D and the browser, launch `server.py` and open the web page in the browser. You no longer need to run `main.py` with the `server.py`. Running `server.py` assumes Live2D mode with the browser, and running `main.py` assumes no Live2D mode without the browser. In addition, options `MIC-IN-BROWSER` and `LIVE2D` in the configuration file no longer have any effects and have been deprecated due to the changes in the backend.
 
@@ -10,6 +13,10 @@
 > :warning: This project currently **has a lot of issues on Windows**. In theory, it should all work, but many people using Windows have many problems with many dependencies. I might fix those features in the future, but Windows support currently requires testing and debugging. If you have a Mac or a Linux machine, use them instead for the time being. Join the Discord server if you need help or to get updates about this project.
 
 > :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to configure https with a reverse proxy if you want to access the page on a remote machine (non-localhost).
+
+
+### What is this project?
+
 
 Open-LLM-VTuber allows you to talk to (and interrupt!) any LLM locally by voice (hands-free) with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. Online LLM/ASR/TTS options are also supported.
 
