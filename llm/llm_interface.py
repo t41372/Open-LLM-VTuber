@@ -30,3 +30,13 @@ class LLMInterface(metaclass=abc.ABCMeta):
         - heard_response (str): The last response from the LLM before it was interrupted. The only content that the user can hear before the interruption.
         """
         raise NotImplementedError
+
+    def pause_execution(self, heard_response: str) -> None:
+        """
+        This function will be called when the LLM is generation is paused by the user for performing actions..
+        The function needs to let the LLM know that it was paused and there is content yet to be generated..
+        The function should either (consider that some LLM provider may not support editing past memory):
+        Parameters:
+        - heard_response (str): The last response from the LLM before it was paused. The only content that the user can hear before the interruption.
+        """
+        raise NotImplementedError

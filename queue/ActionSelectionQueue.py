@@ -4,6 +4,7 @@ import time
 from torch.multiprocessing import queue
 
 from Behavior.generic_behavior import GenericBehavior
+from Emotion.EmotionHandler import EmotionHandler
 from actions import ActionInterface
 
 
@@ -14,8 +15,6 @@ class ActionSelectionQueue:
         self.thread = threading.Thread(target=self.run)
         self.stop_event = threading.Event()
         self.default_behavior = default_behavior  # Default action to be executed if the queue is empty
-        self.rewards = {'action1': 1.0, 'action2': 2.0}
-        self.biases = {'action1': 0.5, 'action2': 1.0}
 
     def start(self):
         """Starts the queue processing thread."""
@@ -40,17 +39,17 @@ class ActionSelectionQueue:
                 # If the queue is empty, use the default action
                 if self.queue.empty():
                     print("Queue is empty. Executing default action.")
-                    result = self.default_behavior.fetch_new_action(self.rewards, self.biases)
+                    result = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
+
                     print(f"Default action result: {result}")
                 else:
                     # Fetch the next action from the queue
                     action = self.queue.get()  # Wait for 1 second
+                    result = action.start_action()
                     print(f"Processing action: {action.__class__.__name__}")
-                    result = action.fetch_new_action(self.rewards, self.biases)
                     print(f"Action result: {result}")
             except queue.Empty:
                 # If no action is in the queue, just pass and continue
                 pass
 
             # Simulate some delay between actions
-            time.sleep(0.5)

@@ -5,9 +5,8 @@ from playsound3 import playsound
 
 class TTSInterface(metaclass=abc.ABCMeta):
 
-
     @abc.abstractmethod
-    def generate_audio(self, text:str, file_name_no_ext=None):
+    def generate_audio(self, text: str, file_name_no_ext=None):
         """
         Generate speech audio file using TTS.
         text: str

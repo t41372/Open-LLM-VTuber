@@ -11,8 +11,6 @@ import numpy as np
 import yaml
 
 from Behavior.TalkBehavior import TalkBehavior
-from asr.asr_factory import ASRFactory
-from asr.asr_interface import ASRInterface
 from live2d_model import Live2dModel
 from llm.llm_factory import LLMFactory
 from llm.llm_interface import LLMInterface
@@ -22,6 +20,7 @@ from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 from translate.translate_interface import TranslateInterface
 from translate.translate_factory import TranslateFactory
+from utils.VoiceListener import VoiceListener
 
 
 class OpenLLMVTuberMain:
@@ -37,43 +36,46 @@ class OpenLLMVTuberMain:
     - tts (TTSInterface): The TTS instance.
     """
 
+    _instance = None  # Class variable to store the singleton instance
+    _lock = threading.Lock()  # Lock for thread-safe singleton creation
+
     config: dict
-    llm: LLMInterface
-    asr: ASRInterface
-    tts: TTSInterface
-    translator: TranslateInterface | None
-    live2d: Live2dModel | None
+    llm: "LLMInterface"
+    tts: "TTSInterface"
+    translator: Optional["TranslateInterface"]
+    live2d: Optional["Live2dModel"]
     _continue_exec_flag: threading.Event
     EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
 
+    def __new__(cls, *args, **kwargs):
+        with cls._lock:  # Ensure thread-safe singleton creation
+            if cls._instance is None:
+                cls._instance = super(OpenLLMVTuberMain, cls).__new__(cls)
+        return cls._instance
+
     def __init__(
-        self,
-        configs: dict,
-        custom_asr: ASRInterface | None = None,
-        custom_tts: TTSInterface | None = None,
-        websocket: WebSocket | None = None,
+            self,
+            configs: dict,
+            custom_tts: "TTSInterface" = None,
+            websocket: Optional["WebSocket"] = None,
     ) -> None:
+        if hasattr(self, "_initialized") and self._initialized:
+            return  # Skip reinitialization in singleton
+        self._initialized = True  # Mark as initialized
+
         self.config = configs
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
         self.live2d = self.init_live2d()
         self._continue_exec_flag = threading.Event()
+        self.is_blocking_event = threading.Event()
+        # clear
+        self.is_blocking_event.clear()
         self._continue_exec_flag.set()  # Set the flag to continue execution
 
-        # Init ASR if voice input is on.
-        if self.config.get("VOICE_INPUT_ON", False):
-            # if custom_asr is provided, don't init asr and use it instead.
-            if custom_asr is None:
-                self.asr = self.init_asr()
-            else:
-                print("Using custom ASR")
-                self.asr = custom_asr
-        else:
-            self.asr = None
-
-        # Init TTS if TTS is on.
+        # Init TTS if TTS is on
         if self.config.get("TTS_ON", False):
-            # if custom_tts is provided, don't init tts and use it instead.
+            # Use custom TTS if provided
             if custom_tts is None:
                 self.tts = self.init_tts()
             else:
@@ -97,6 +99,7 @@ class OpenLLMVTuberMain:
         else:
             self.translator = None
 
+        # Initialize the LLM instance
         self.llm = self.init_llm()
 
     # Initialization methods
@@ -123,21 +126,6 @@ class OpenLLMVTuberMain:
         )
         return llm
 
-    def init_asr(self) -> ASRInterface:
-        asr_model = self.config.get("ASR_MODEL")
-        asr_config = self.config.get(asr_model, {})
-        if asr_model == "AzureASR":
-            import api_keys
-
-            asr_config = {
-                "callback": print,
-                "subscription_key": api_keys.AZURE_API_Key,
-                "region": api_keys.AZURE_REGION,
-            }
-
-        asr = ASRFactory.get_asr_system(asr_model, **asr_config)
-        return asr
-
     def init_tts(self) -> TTSInterface:
         tts_model = self.config.get("TTS_MODEL", "pyttsx3TTS")
         tts_config = self.config.get(tts_model, {})
@@ -155,7 +143,7 @@ class OpenLLMVTuberMain:
         return tts
 
     def set_audio_output_func(
-        self, audio_output_func: Callable[[Optional[str], Optional[str]], None]
+            self, audio_output_func: Callable[[Optional[str], Optional[str]], None]
     ) -> None:
         """
         Set the audio output function to be used for playing audio files.
@@ -226,7 +214,7 @@ class OpenLLMVTuberMain:
         """
 
         if not self._continue_exec_flag.wait(
-            timeout=self.EXEC_FLAG_CHECK_TIMEOUT
+                timeout=self.EXEC_FLAG_CHECK_TIMEOUT
         ):  # Wait for the flag to be set
             print(
                 ">> Execution flag not set. In interruption state for too long. Exiting conversation chain."
@@ -248,13 +236,7 @@ class OpenLLMVTuberMain:
         print(f"{c[color_code]}New Conversation Chain started!")
 
         # if user_input is not string, make it string
-        if user_input is None:
-            user_input = self.get_user_input()
-        elif isinstance(user_input, np.ndarray):
-            print("transcribing...")
-            user_input = self.asr.transcribe_np(user_input)
-
-        if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower():
+        if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower() or user_input is None:
             print("Exiting...")
             exit()
 
@@ -279,23 +261,6 @@ class OpenLLMVTuberMain:
 
         print(f"{c[color_code]}Conversation completed.")
         return full_response
-
-    def get_user_input(self) -> str:
-        """
-        Get user input using the method specified in the configuration file.
-        It can be from the console, local microphone, or the browser microphone.
-
-        Returns:
-        - str: The user input
-        """
-        # for live2d with browser, their input are now injected by the server class
-        # and they no longer use this method
-        if self.config.get("VOICE_INPUT_ON", False):
-            # get audio from the local microphone
-            print("Listening from the microphone...")
-            return self.asr.transcribe_with_local_vad()
-        else:
-            return input("\n>> ")
 
     def speak(self, chat_completion: Iterator[str]) -> str:
         """
@@ -417,7 +382,7 @@ class OpenLLMVTuberMain:
                             tts_target_sentence = sentence_buffer
 
                             if self.translator and self.config.get(
-                                "TRANSLATE_AUDIO", False
+                                    "TRANSLATE_AUDIO", False
                             ):
                                 print("Translating...")
                                 tts_target_sentence = self.translator.translate(
@@ -603,15 +568,20 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     vtuber_main = OpenLLMVTuberMain(config)
-
+    listener = VoiceListener()
+    listener.start()
     atexit.register(vtuber_main.clean_cache)
     main_queue = ActionSelectionQueue(default_behavior=TalkBehavior())
+
 
     def _run_conversation_chain():
         try:
             vtuber_main.conversation_chain()
         except InterruptedError as e:
             print(f"😢Conversation was interrupted. {e}")
+            listener.stop()
+            listener.join()  # Ensure the thread has fully stopped
+
 
     while True:
         print("tts on: ", vtuber_main.config.get("TTS_ON", False))
@@ -624,5 +594,3 @@ if __name__ == "__main__":
             if input(">>> say i and press enter to interrupt: ") == "i":
                 print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
                 vtuber_main.interrupt()
-
-

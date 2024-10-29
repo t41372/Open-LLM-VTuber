@@ -1,7 +1,9 @@
 from abc import abstractmethod
 
+from actions.ActionsMeta import ActionsMeta
 
-class ActionInterface:
+
+class ActionInterface(metaclass=ActionsMeta):
 
     @abstractmethod
     def start_action(self, prompt_file: str) -> str:
@@ -12,19 +14,3 @@ class ActionInterface:
         """
         pass
 
-    @abstractmethod
-    def execute_action(self, prompt: str) -> str:
-        """
-        Executes the action by interacting with the LLM and generating a message.
-        :param prompt: The prompt to pass to the LLM.
-        :return: The generated message.
-        """
-        pass
-
-    @abstractmethod
-    def finish_action(self, interrupt: bool = False):
-        """
-        Ends the action, with optional support for interrupting the generation.
-        :param interrupt: If True, the action will be interrupted. Default is False.
-        """
-        pass

@@ -4,7 +4,7 @@ from .asr_interface import ASRInterface
 
 class ASRFactory:
     @staticmethod
-    def get_asr_system(system_name: str, **kwargs) -> Type[ASRInterface]:
+    def get_asr_system(system_name: str, **kwargs) -> ASRInterface:
         if system_name == "Faster-Whisper":
             from .faster_whisper_asr import VoiceRecognition as FasterWhisperASR
 

@@ -86,7 +86,7 @@ FunASR:
   ncpu: 4 # number of threads for CPU internal operations.
   hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
   use_itn: False
-  language: "zh" # zh, en, auto
+  language: "en" # zh, en, auto
 
 GroqWhisperASR:
   api_key: ""

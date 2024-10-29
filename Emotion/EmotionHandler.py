@@ -1,9 +1,17 @@
+from typing import Any, List
+
 import numpy as np
 import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from collections import deque
+
+from transformers import pipeline
+
+emotions = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
+state_size = len(emotions) * 2  # Both emotion rewards and initiatives as part of the state
+action_size = 3
 
 
 # Define the Deep Q-Network (DQN) architecture
@@ -20,17 +28,34 @@ class DQN(nn.Module):
         return self.fc3(x)
 
 
-class EmotionHandlerDQN:
-    def __init__(self, emotions, state_size, action_size, gamma=0.95, epsilon=1.0, epsilon_min=0.01,
-                 epsilon_decay=0.995, learning_rate=0.001):
+class EmotionHandler:
+    _instance = None  # Class variable to hold the singleton instance
+
+    def __new__(cls, *args, **kwargs):
+        # Ensure only one instance of EmotionHandler is created
+        if cls._instance is None:
+            cls._instance = super(EmotionHandler, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self, emotions=emotions, state_size=state_size, action_size=action_size, gamma=0.95, epsilon=1.0,
+                 epsilon_min=0.01, epsilon_decay=0.995, learning_rate=0.001):
+        if hasattr(self, '_initialized') and self._initialized:
+            return  # Skip reinitialization if already initialized
+        self._initialized = True  # Mark as initialized
+
+        # Initialize class attributes
         self.emotions = emotions
         self.emotion_reward_map = {emotion: 1 for emotion in emotions}
         self.initiative_map = {emotion: 1 for emotion in emotions}
         self.repeated_tone_count = 0
         self.random_factor = 0.3  # Starting at 30% for randomness
-        self.high_initiative_threshold = 1.5  # Threshold for high initiatives
+        self.high_initiative_threshold = 1.3  # Threshold for high initiatives
+        self.classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base",
+                                   return_all_scores=True)
 
         # Q-learning parameters
+        self.current_user_emotion = 'neutral'
+        self.current_llm_emotion = ['neutral']
         self.state_size = state_size
         self.action_size = action_size
         self.gamma = gamma  # Discount factor
@@ -40,7 +65,7 @@ class EmotionHandlerDQN:
         self.learning_rate = learning_rate
 
         # Replay buffer
-        self.memory = deque(maxlen=2000)
+        self.memory = deque(maxlen=4000)
 
         # Initialize Q-networks
         self.model = DQN(state_size, action_size)
@@ -49,9 +74,8 @@ class EmotionHandlerDQN:
 
     def classify_emotion(self, input_text):
         """Stub for emotion classifier."""
-        classified_emotion = random.choice(self.emotions)
-        print(f"Classified emotion: {classified_emotion}")
-        return classified_emotion
+        classified_emotion = sorted(self.classifier(input_text), key=lambda x: x['score'])
+        return classified_emotion[0].key()
 
     def choose_emotions_based_on_initiative(self):
         """
@@ -63,7 +87,7 @@ class EmotionHandlerDQN:
         action = self.act(state)  # Use DQN to choose an action
         return self.map_action_to_emotions(action)
 
-    def get_current_state(self):
+    def get_current_state(self) -> List[Any]:
         """
         Get the current state based on the emotion reward map and initiative map.
         Example state: [anger_reward, disgust_reward, ..., anger_initiative, disgust_initiative, ...]
@@ -125,17 +149,14 @@ class EmotionHandlerDQN:
         """Store experiences in memory."""
         self.memory.append((state, action, reward, next_state, done))
 
-    def get_llm_response_emotion(self, user_prompt_emotion: str) -> str:
+    def get_llm_response_emotion(self, user_prompt_emotion: str) -> list[Any]:
         """
         Simulates generating an LLM response based on the chosen emotions.
         """
         # Choose emotions based on the Q-learning model
         emotions_to_use = self.choose_emotions_based_on_initiative()
-
-        # Simulate response
-        response = f"LLM responds with emotions: {', '.join(emotions_to_use)}"
-        print(response)
-        return response
+        self.learn_from_inference()
+        return emotions_to_use
 
     def update_emotion_and_initiative(self, user_prompt_emotion: str, feedback: float):
         """
@@ -146,29 +167,16 @@ class EmotionHandlerDQN:
         self.emotion_reward_map[user_prompt_emotion] += feedback  # Update rewards
         self.initiative_map[user_prompt_emotion] += 0.1  # Increase initiative for that emotion
 
-
-# Example usage
-if __name__ == "__main__":
-    emotions = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
-    state_size = len(emotions) * 2  # Both emotion rewards and initiatives as part of the state
-    action_size = 3  # 0 = single strong emotion, 1 = two emotions, 2 = three emotions
-
-    handler = EmotionHandlerDQN(emotions, state_size, action_size)
-
-    # Simulate some interactions
-    for episode in range(10):
-        user_emotion = handler.classify_emotion("User prompt")  # Classify user's emotion
-        handler.get_llm_response_emotion(user_emotion)  # Generate LLM response
-
+    def learn_from_inference(self):
+        # 0 = single strong emotion, 1 = two emotions, 2 = three emotions
+        user_emotion = self.current_user_emotion  # Classify user's emotion
         # Simulate feedback (reward), and update the emotion maps
         feedback = random.uniform(-1, 1)  # Reward could be based on external feedback or satisfaction
-        handler.update_emotion_and_initiative(user_emotion, feedback)
+        self.update_emotion_and_initiative(user_emotion, feedback)
 
         # Store state, action, and reward for replay
-        state = handler.get_current_state()
-        action = handler.act(state)
-        next_state = handler.get_current_state()
-        handler.remember(state, action, feedback, next_state, done=False)
-
+        state = self.get_current_state()
+        action = self.act(state)
+        next_state = self.get_current_state()
+        self.remember(state, action, feedback, next_state, done=False)
         # Perform replay to learn from the experiences
-        handler.replay(batch_size=32)
