@@ -55,7 +55,7 @@ class OpenLLMVTuberMain:
 
     def __init__(
             self,
-            configs: dict,
+            configs: dict | None,
             custom_tts: "TTSInterface" = None,
             websocket: Optional["WebSocket"] = None,
     ) -> None:

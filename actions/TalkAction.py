@@ -1,4 +1,6 @@
 from actions.ActionInterface import ActionInterface
+from llm.llm_factory import LLMFactory
+from main import OpenLLMVTuberMain
 
 
 class TalkAction(ActionInterface):
@@ -7,8 +9,9 @@ class TalkAction(ActionInterface):
         self.prompt = None
         self.prompt_file = ""
         self.generating = False
+        self.is_blocking_action = False
 
-    def start_action(self,prompt_file=None) -> str:
+    def start_action(self, prompt_file=None) -> str:
         """
         Starts the action by loading a prompt from the specified file.
         """
@@ -23,3 +26,12 @@ class TalkAction(ActionInterface):
             self.prompt = "Default prompt"
         return self.prompt
 
+    def finish_action(self):
+        """
+        Starts the action by loading a prompt from the specified file.
+        """
+        return None
+
+    def block_llm_generation(self):
+        OpenLLMVTuberMain().is_blocking_event.set()
+        return None

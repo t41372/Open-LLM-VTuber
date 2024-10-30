@@ -42,6 +42,12 @@ class LLM(LLMInterface):
             "\n>> (MemGPT doesn't know you interrupted it for now. I don't know how to tell it about the interruption.) \n"
         )
 
+    def pause_execution(self, heard_response: str) -> None:
+        print(
+            "\n>> Pausing generation till locking action complete \n"
+        )
+
+
     def _send_message_to_agent(self, message, callback_function=print):
         """
         Sends a message to the specified agent, invokes the callback with the assistant's full message if given, and return the assistant's full response. The response will NOT be streamed back word by word.

@@ -157,6 +157,11 @@ class LLM(LLMInterface):
             }
         )
 
+    def pause_execution(self, heard_response: str) -> None:
+        print(
+            "\n>> Pausing generation till locking action complete \n"
+        )
+
 
 def test():
     llm = LLM(
