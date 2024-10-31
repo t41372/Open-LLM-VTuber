@@ -396,7 +396,7 @@ class OpenLLMVTuberMain:
                         print(char, end="", flush=True)
                         sentence_buffer += char
                         full_response[0] += char
-                        if self.is_complete_sentence(char):
+                        if self.is_complete_sentence(sentence_buffer):
                             if self.verbose:
                                 print("\n")
                             if not self._continue_exec_flag.is_set():
