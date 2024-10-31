@@ -11,7 +11,7 @@ class ActionsMeta(SingletonMeta):
     """
     def __new__(cls, name, bases, class_dict):
         required_methods = ['start_action','finish_action','block_llm_generation']
-        required_attributes = ['is_blocking_action']
+        required_attributes = ['not_is_blocking_action']
         if bases:
             for method in required_methods:
                 if method not in class_dict or not callable(class_dict[method]):

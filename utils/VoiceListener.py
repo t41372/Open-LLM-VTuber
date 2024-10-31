@@ -6,19 +6,17 @@ from websocket import WebSocket
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
 
-from translate.translate_factory import TranslateFactory
 from translate.translate_interface import TranslateInterface
-from tts.tts_interface import TTSInterface
 
 
 class VoiceListener(threading.Thread):
-    config: dict
+    config: dict | None
     asr: ASRInterface | None
     translator: TranslateInterface | None
     _continue_exec_flag: threading.Event
     EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
 
-    def __init__(self, configs: dict,
+    def __init__(self, configs: dict | None = None,
                  custom_asr: ASRInterface | None = None,
                  websocket: WebSocket | None = None, pause_threshold=0.8) -> None:
         """

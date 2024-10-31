@@ -68,9 +68,9 @@ class OpenLLMVTuberMain:
         self.websocket = websocket
         self.live2d = self.init_live2d()
         self._continue_exec_flag = threading.Event()
-        self.is_blocking_event = threading.Event()
+        self.not_is_blocking_event = threading.Event()
         # clear
-        self.is_blocking_event.clear()
+        self.not_is_blocking_event.clear()
         self._continue_exec_flag.set()  # Set the flag to continue execution
 
         # Init TTS if TTS is on
@@ -239,9 +239,9 @@ class OpenLLMVTuberMain:
         if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower() or user_input is None:
             print("Exiting...")
             exit()
-
         print(f"User input: {user_input}")
-
+        if not self.not_is_blocking_event.is_set():
+            self.not_is_blocking_event.wait()
         chat_completion: Iterator[str] = self.llm.chat_iter(user_input)
 
         if not self.config.get("TTS_ON", False):
@@ -369,7 +369,6 @@ class OpenLLMVTuberMain:
                 for char in chat_completion:
                     if not self._continue_exec_flag.is_set():
                         raise InterruptedError("Producer interrupted")
-
                     if char:
                         print(char, end="", flush=True)
                         sentence_buffer += char
@@ -439,6 +438,8 @@ class OpenLLMVTuberMain:
                 try:
                     if not self._continue_exec_flag.is_set():
                         raise InterruptedError("😱Consumer interrupted")
+                    if not self.not_is_blocking_event.is_set():
+                        self.not_is_blocking_event.wait()
 
                     audio_info = task_queue.get(
                         timeout=0.1
@@ -464,12 +465,11 @@ class OpenLLMVTuberMain:
                     )
                     continue
 
-        producer_thread = threading.Thread(target=producer_worker)
-        consumer_thread = threading.Thread(target=consumer_worker)
+        producer_thread = threading.Thread(name='Speech Producer Thread', target=producer_worker)
+        consumer_thread = threading.Thread(name='Speech Consumer Thread', target=consumer_worker)
 
         producer_thread.start()
         consumer_thread.start()
-
         producer_thread.join()
         consumer_thread.join()
 
@@ -585,11 +585,12 @@ if __name__ == "__main__":
 
     while True:
         print("tts on: ", vtuber_main.config.get("TTS_ON", False))
-        if vtuber_main.config.get("TTS_ON", False) == False:
+        if not vtuber_main.config.get("TTS_ON", False):
             print("its indeed off")
             vtuber_main.conversation_chain()
+            listener.start()
         else:
-            threading.Thread(target=_run_conversation_chain).start()
+            threading.Thread(name='Mail LLM Thread', target=_run_conversation_chain).start()
 
             if input(">>> say i and press enter to interrupt: ") == "i":
                 print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
