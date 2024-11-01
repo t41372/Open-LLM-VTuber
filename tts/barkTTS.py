@@ -46,7 +46,7 @@ class TTSEngine(TTSInterface):
 
         """
 
-        file_name = self.__format_filename(file_name_no_ext)
+        file_name = self.generate_cache_file_name(file_name_no_ext, self.file_extension)
 
         start_time = time.time()
 
@@ -66,17 +66,6 @@ class TTSEngine(TTSInterface):
             execution_time / 60,
             "minutes",
         )
-
-        return file_name
-
-    def __format_filename(self, file_name_no_ext=None):
-        file_name = "temp"
-        if file_name_no_ext is None:
-            file_name = self.temp_audio_file
-        else:
-            file_name = file_name_no_ext
-
-        file_name = str(Path(self.new_audio_dir) / f"{file_name}.{self.file_extension}")
 
         return file_name
 
