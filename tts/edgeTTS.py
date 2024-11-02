@@ -20,7 +20,7 @@ class TTSEngine(TTSInterface):
 
         self.temp_audio_file = "temp"
         self.file_extension = "mp3"
-        self.new_audio_dir = "./cache"
+        self.new_audio_dir = "cache"
 
         if not os.path.exists(self.new_audio_dir):
             os.makedirs(self.new_audio_dir)

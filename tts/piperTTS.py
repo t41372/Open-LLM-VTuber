@@ -8,7 +8,7 @@ from .tts_interface import TTSInterface
 class TTSEngine(TTSInterface):
 
     file_extension: str = "wav"
-    new_audio_dir: str = "./cache"
+    new_audio_dir: str = "cache"
     # process: subprocess.Popen = None
 
     # Voice path (the path of the .onnx file (the .onnx.json file needs to be present as well) for the voice model)

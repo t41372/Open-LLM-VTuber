@@ -13,7 +13,7 @@ class TTSEngine(TTSInterface):
         self.api_url = api_url
         self.speaker_wav = speaker_wav
         self.language = language
-        self.new_audio_dir = "./cache"
+        self.new_audio_dir = "cache"
         self.file_extension = "wav"
 
     def generate_audio(self, text, file_name_no_ext=None):

@@ -12,7 +12,7 @@ class TTSEngine(TTSInterface):
 
     temp_audio_file = "temp"
     file_extension = "wav"
-    new_audio_dir = "./cache"
+    new_audio_dir = "cache"
 
     def __init__(self, api_key, region, voice, pitch=0, rate=1.0):
         """

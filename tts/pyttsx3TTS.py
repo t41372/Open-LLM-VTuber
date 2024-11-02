@@ -20,7 +20,7 @@ class TTSEngine(TTSInterface):
         self.engine = pyttsx3.init()
         self.temp_audio_file = "temp"
         self.file_extension = "aiff"
-        self.new_audio_dir = "./cache"
+        self.new_audio_dir = "cache"
         self.lock = threading.Lock()
 
         if not os.path.exists(self.new_audio_dir):
