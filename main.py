@@ -39,15 +39,6 @@ class OpenLLMVTuberMain:
     - tts (TTSInterface): The TTS instance.
     """
 
-    config: dict
-    session_id: str
-    llm: LLMInterface
-    asr: ASRInterface
-    tts: TTSInterface
-    translator: TranslateInterface | None
-    live2d: Live2dModel | None
-    _continue_exec_flag: threading.Event
-    heard_sentence: str = ""
     EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
 
     def __init__(
@@ -58,16 +49,18 @@ class OpenLLMVTuberMain:
         websocket: WebSocket | None = None,
     ) -> None:
         logger.info(f"t41372/Open-LLM-VTuber, version {__init__.__version__}")
-        
-        self.config = configs
+
+        self.config: dict = configs
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
-        self.live2d = self.init_live2d()
+        self.live2d: Live2dModel | None = self.init_live2d()
         self._continue_exec_flag = threading.Event()
         self._continue_exec_flag.set()  # Set the flag to continue execution
-        self.session_id = str(uuid.uuid4().hex)
+        self.session_id: str = str(uuid.uuid4().hex)
+        self.heard_sentence: str = ""
 
         # Init ASR if voice input is on.
+        self.asr: ASRInterface | None
         if self.config.get("VOICE_INPUT_ON", False):
             # if custom_asr is provided, don't init asr and use it instead.
             if custom_asr is None:
@@ -79,6 +72,7 @@ class OpenLLMVTuberMain:
             self.asr = None
 
         # Init TTS if TTS is on.
+        self.tts: TTSInterface
         if self.config.get("TTS_ON", False):
             # if custom_tts is provided, don't init tts and use it instead.
             if custom_tts is None:
@@ -90,6 +84,7 @@ class OpenLLMVTuberMain:
             self.tts = None
 
         # Init Translator if enabled
+        self.translator: TranslateInterface | None
         if self.config.get("TRANSLATE_AUDIO", False):
             try:
                 translate_provider = self.config.get("TRANSLATE_PROVIDER", "DeepLX")
@@ -104,7 +99,7 @@ class OpenLLMVTuberMain:
         else:
             self.translator = None
 
-        self.llm = self.init_llm()
+        self.llm: LLMInterface = self.init_llm()
 
     # Initialization methods
 
@@ -216,8 +211,9 @@ class OpenLLMVTuberMain:
             timeout=self.EXEC_FLAG_CHECK_TIMEOUT
         ):  # Wait for the flag to be set
             print(
-                ">> Execution flag not set. In interruption state for too long. Exiting conversation chain."
+                ">> Execution flag not set. In interruption state for too long. Resetting the flag and exiting the conversation chain."
             )
+            self._continue_exec_flag.set()
             raise InterruptedError(
                 "Conversation chain interrupted. Wait flag timeout reached."
             )
@@ -619,7 +615,7 @@ def load_config_with_env(path) -> dict:
 
 
 if __name__ == "__main__":
-    
+
     logger.add(sys.stderr, level="DEBUG")
 
     config = load_config_with_env("conf.yaml")
@@ -627,12 +623,6 @@ if __name__ == "__main__":
     vtuber_main = OpenLLMVTuberMain(config)
 
     atexit.register(vtuber_main.clean_cache)
-
-    def _run_conversation_chain():
-        try:
-            vtuber_main.conversation_chain()
-        except InterruptedError as e:
-            print(f"😢Conversation was interrupted. {e}")
 
     def _interrupt_on_i():
         while input(">>> say i and press enter to interrupt: ") == "i":
