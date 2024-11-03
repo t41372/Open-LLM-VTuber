@@ -36,7 +36,7 @@
         <button id="wsStatus">Disconnected</button>
         <button id="stateDisplay">Status: loading</button>
         <input type="text" id="wsUrl" placeholder="WebSocket URL">
-        <select id="configDropdown">
+        <select id="configDropdown" aria-label="Configuration Selection">
             <option value="">Select Configuration</option>
         </select>
     </div>
@@ -238,6 +238,14 @@
                     break;
                 case "config-switched":
                     console.log(message.message);
+                    document.getElementById("message").textContent = "Configuration switched successfully!";
+                    setState("idle");
+
+                    // restore the mic state before switching config
+                    if (micStateBeforeConfigSwitch) {
+                        start_mic();
+                    }
+                    micStateBeforeConfigSwitch = null;  // reset the state
                     break;
                 default:
                     console.error("Unknown message type: " + message.type);
@@ -262,6 +270,15 @@
         configDropdown.addEventListener('change', function () {
             const selectedConfig = configDropdown.value;
             if (selectedConfig) {
+                setState("switching-config");
+                document.getElementById("message").textContent = "Switching configuration...";
+                // avoid the mic being on when switching config
+                micStateBeforeConfigSwitch = micToggleState;
+                if (micToggleState) {
+                    stop_mic();
+                }
+
+                interrupt();
                 ws.send(JSON.stringify({ type: "switch-config", file: selectedConfig }));
             }
         });
