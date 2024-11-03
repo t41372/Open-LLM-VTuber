@@ -1,3 +1,5 @@
+# Sample alternative configuration file
+
 # Server
 PROTOCAL: "http://"
 HOST: "localhost"

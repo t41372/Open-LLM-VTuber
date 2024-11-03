@@ -36,6 +36,9 @@
         <button id="wsStatus">Disconnected</button>
         <button id="stateDisplay">Status: loading</button>
         <input type="text" id="wsUrl" placeholder="WebSocket URL">
+        <select id="configDropdown">
+            <option value="">Select Configuration</option>
+        </select>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -140,6 +143,7 @@
         const wsUrl = document.getElementById('wsUrl');
         const interruptBtn = document.getElementById('interruptBtn');
         const micToggle = document.getElementById('micToggle');
+        const configDropdown = document.getElementById('configDropdown');
 
         wsUrl.value = "ws://127.0.0.1:12393/client-ws";
         // if running on server
@@ -159,6 +163,7 @@
                 console.log("Connected to WebSocket");
                 wsStatus.textContent = "Connected";
                 wsStatus.classList.add('connected');
+                fetchConfigurations();
             };
 
             ws.onclose = function () {
@@ -228,11 +233,38 @@
                 case "listExpressions":
                     console.log(listSupportedExpressions());
                     break;
+                case "config-files":
+                    populateConfigDropdown(message.files);
+                    break;
+                case "config-switched":
+                    console.log(message.message);
+                    break;
                 default:
                     console.error("Unknown message type: " + message.type);
                     console.log(message);
             }
         }
+
+        function fetchConfigurations() {
+            ws.send(JSON.stringify({ type: "fetch-configs" }));
+        }
+
+        function populateConfigDropdown(files) {
+            configDropdown.innerHTML = '<option value="">Select Configuration</option>';
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file;
+                configDropdown.appendChild(option);
+            });
+        }
+
+        configDropdown.addEventListener('change', function () {
+            const selectedConfig = configDropdown.value;
+            if (selectedConfig) {
+                ws.send(JSON.stringify({ type: "switch-config", file: selectedConfig }));
+            }
+        });
 
         // set expression of the model2
         // @param {int} expressionIndex - the expression index defined in the emotionMap in modelDict.js

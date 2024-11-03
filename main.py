@@ -580,6 +580,48 @@ class OpenLLMVTuberMain:
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
 
+    def load_and_apply_config(self, config_file: str) -> None:
+        """
+        Load and apply the selected configuration settings from the alternative configuration file.
+
+        Parameters:
+        - config_file (str): The path to the alternative configuration file.
+        """
+        with open(config_file, "r", encoding="utf-8") as file:
+            new_config = yaml.safe_load(file)
+
+        # Update the current configuration with the new settings
+        self.config.update(new_config)
+
+        # Reinitialize components with the new configuration
+        self.live2d = self.init_live2d()
+        self.asr = self.init_asr()
+        self.tts = self.init_tts()
+        self.translator = self.init_translator()
+        self.llm = self.init_llm()
+
+    def init_translator(self) -> TranslateInterface | None:
+        """
+        Initialize the translator based on the configuration.
+
+        Returns:
+        - TranslateInterface or None: The initialized translator or None if not enabled.
+        """
+        if self.config.get("TRANSLATE_AUDIO", False):
+            try:
+                translate_provider = self.config.get("TRANSLATE_PROVIDER", "DeepLX")
+                translator = TranslateFactory.get_translator(
+                    translate_provider=translate_provider,
+                    **self.config.get(translate_provider, {}),
+                )
+                return translator
+            except Exception as e:
+                print(f"Error initializing Translator: {e}")
+                print("Proceed without Translator.")
+                return None
+        else:
+            return None
+
 
 def load_config_with_env(path) -> dict:
     """

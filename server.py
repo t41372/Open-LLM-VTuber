@@ -165,12 +165,51 @@ class WebSocketServer:
                                 print(f"😢Conversation was interrupted. {e}")
 
                         conversation_task = asyncio.create_task(_run_conversation())
+                    elif data.get("type") == "fetch-configs":
+                        config_files = self._scan_config_alts_directory()
+                        await websocket.send_text(
+                            json.dumps({"type": "config-files", "files": config_files})
+                        )
+                    elif data.get("type") == "switch-config":
+                        config_file = data.get("file")
+                        if config_file:
+                            new_config = self._load_config_from_file(config_file)
+                            if new_config:
+                                self.open_llm_vtuber_main_config.update(new_config)
+                                open_llm_vtuber = OpenLLMVTuberMain(
+                                    self.open_llm_vtuber_main_config
+                                )
+                                await websocket.send_text(
+                                    json.dumps(
+                                        {
+                                            "type": "config-switched",
+                                            "message": f"Switched to config: {config_file}",
+                                        }
+                                    )
+                                )
                     else:
                         print("Unknown data type received.")
 
             except WebSocketDisconnect:
                 self.connected_clients.remove(websocket)
                 open_llm_vtuber = None
+
+    def _scan_config_alts_directory(self) -> List[str]:
+        config_alts_dir = self.open_llm_vtuber_main_config.get("CONFIG_ALTS_DIR", "config_alts")
+        config_files = []
+        for root, _, files in os.walk(config_alts_dir):
+            for file in files:
+                if file.endswith(".yaml"):
+                    config_files.append(file)
+        return config_files
+
+    def _load_config_from_file(self, filename: str) -> Dict:
+        config_alts_dir = self.open_llm_vtuber_main_config.get("CONFIG_ALTS_DIR", "config_alts")
+        file_path = os.path.join(config_alts_dir, filename)
+        if not os.path.exists(file_path):
+            return None
+        with open(file_path, "r", encoding="utf-8") as file:
+            return yaml.safe_load(file)
 
     def _mount_static_files(self):
         """Mounts static file directories."""
