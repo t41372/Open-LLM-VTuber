@@ -27,7 +27,7 @@ class WebSocketServer:
         server_ws_clients (List[WebSocket]): List of connected WebSocket clients for "/server-ws".
     """
 
-    def __init__(self, open_llm_vtuber_config: Dict | None = None):
+    def __init__(self, open_llm_vtuber_main_config: Dict | None = None):
         """
         Initializes the WebSocketServer with the given configuration.
         """
@@ -36,8 +36,7 @@ class WebSocketServer:
         self.new_connected_clients: List[WebSocket] = []
         self.connected_clients: List[WebSocket] = []
         self.server_ws_clients: List[WebSocket] = []
-        self.open_llm_vtuber: OpenLLMVTuberMain | None = None
-        self.open_llm_vtuber_config: Dict | None = open_llm_vtuber_config
+        self.open_llm_vtuber_main_config: Dict | None = open_llm_vtuber_main_config
         self._setup_routes()
         self._mount_static_files()
         self.app.include_router(self.router)
@@ -57,8 +56,8 @@ class WebSocketServer:
 
             self.connected_clients.append(websocket)
             print("Connection established")
-            l2d = Live2dModel(self.open_llm_vtuber_config["LIVE2D_MODEL"])
-            open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_config)
+            l2d = Live2dModel(self.open_llm_vtuber_main_config["LIVE2D_MODEL"])
+            open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_main_config)
             audio_payload_preparer = AudioPayloadPreparer()
 
             def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
@@ -238,5 +237,5 @@ if __name__ == "__main__":
     config["LIVE2D"] = True  # make sure the live2d is enabled
 
     # Initialize and run the WebSocket server
-    server = WebSocketServer(open_llm_vtuber_config=config)
+    server = WebSocketServer(open_llm_vtuber_main_config=config)
     server.run(host=config["HOST"], port=config["PORT"])
