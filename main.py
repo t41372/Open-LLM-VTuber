@@ -39,7 +39,7 @@ class OpenLLMVTuberMain:
     - tts (TTSInterface): The TTS instance.
     """
 
-    EXEC_FLAG_CHECK_TIMEOUT = 5  # seconds
+    EXEC_FLAG_CHECK_TIMEOUT = 8  # seconds
 
     def __init__(
         self,
