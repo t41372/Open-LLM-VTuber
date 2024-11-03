@@ -18,7 +18,7 @@ ollama:
   ORGANIZATION_ID: "org_eternity"
   PROJECT_ID: "project_glass"
   ## LLM name
-  MODEL: "llama3.1:latest"
+  MODEL: "qwen2.5:latest"
   # system prompt is at the very end of this file
   VERBOSE: False
 
@@ -105,7 +105,7 @@ WhisperCPP:
   print_realtime: False
   print_progress: False
   
-  language: "en" # en, zh, auto, 
+  language: "auto" # en, zh, auto, 
 
 Whisper:
   name: "medium"
@@ -120,12 +120,12 @@ FunASR:
   ncpu: 4 # number of threads for CPU internal operations.
   hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
   use_itn: False
-  language: "zh" # zh, en, auto
+  language: "auto" # zh, en, auto
 
 GroqWhisperASR:
   api_key: ""
-  model: "distil-whisper-large-v3-en" # use "whisper-large-v3" instead for multi-lingual
-  lang: "en" # or put nothing in it and it will be auto
+  model: "whisper-large-v3-turbo" # or "whisper-large-v3"
+  lang: "" # put nothing and it will be auto
 
 # set azure speech recognition configuration in api_keys.py
 
