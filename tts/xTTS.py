@@ -17,11 +17,7 @@ class TTSEngine(TTSInterface):
         self.file_extension = "wav"
 
     def generate_audio(self, text, file_name_no_ext=None):
-        file_name = "temp"
-        if file_name_no_ext is not None:
-            file_name = f"{file_name_no_ext}.{self.file_extension}"
-
-        file_name = os.path.join(self.new_audio_dir, file_name)
+        file_name = self.generate_cache_file_name(file_name_no_ext, self.file_extension)
 
         # Prepare the data for the POST request
         data = {
