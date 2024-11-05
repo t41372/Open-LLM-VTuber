@@ -216,6 +216,11 @@ class WebSocketServer:
                                     )
                                 )
                                 print(f"Configuration switched to {config_file}")
+                    elif data.get("type") == "fetch-backgrounds":
+                        bg_files = self._scan_bg_directory()
+                        await websocket.send_text(
+                            json.dumps({"type": "background-files", "files": bg_files})
+                        )
                     else:
                         print("Unknown data type received.")
 
@@ -247,6 +252,15 @@ class WebSocketServer:
         with open(file_path, "r", encoding="utf-8") as file:
             return yaml.safe_load(file)
 
+    def _scan_bg_directory(self) -> List[str]:
+        bg_files = []
+        bg_dir = os.path.join("static", "bg")
+        for root, _, files in os.walk(bg_dir):
+            for file in files:
+                if file.endswith((".jpg", ".jpeg", ".png", ".gif")):
+                    bg_files.append(file)
+        return bg_files
+
     def _mount_static_files(self):
         """Mounts static file directories."""
         self.app.mount(
@@ -266,7 +280,7 @@ class WebSocketServer:
     def clean_cache():
         """Clean the cache directory by removing and recreating it."""
         cache_dir = "./cache"
-        if os.path.exists(cache_dir):
+        if (os.path.exists(cache_dir)):
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
 

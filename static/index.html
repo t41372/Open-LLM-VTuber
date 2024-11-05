@@ -39,6 +39,9 @@
         <select id="configDropdown" aria-label="Configuration Selection">
             <option value="">Select Configuration</option>
         </select>
+        <select id="bgDropdown" aria-label="Background Selection">
+            <option value="">Select Background</option>
+        </select>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -144,6 +147,7 @@
         const interruptBtn = document.getElementById('interruptBtn');
         const micToggle = document.getElementById('micToggle');
         const configDropdown = document.getElementById('configDropdown');
+        const bgDropdown = document.getElementById('bgDropdown');
 
         wsUrl.value = "ws://127.0.0.1:12393/client-ws";
         // if running on server
@@ -164,6 +168,7 @@
                 wsStatus.textContent = "Connected";
                 wsStatus.classList.add('connected');
                 fetchConfigurations();
+                fetchBackgrounds();
             };
 
             ws.onclose = function () {
@@ -247,6 +252,9 @@
                     }
                     micStateBeforeConfigSwitch = null;  // reset the state
                     break;
+                case "background-files":
+                    populateBgDropdown(message.files);
+                    break;
                 default:
                     console.error("Unknown message type: " + message.type);
                     console.log(message);
@@ -257,6 +265,10 @@
             ws.send(JSON.stringify({ type: "fetch-configs" }));
         }
 
+        function fetchBackgrounds() {
+            ws.send(JSON.stringify({ type: "fetch-backgrounds" }));
+        }
+
         function populateConfigDropdown(files) {
             configDropdown.innerHTML = '<option value="">Select Configuration</option>';
             files.forEach(file => {
@@ -264,6 +276,16 @@
                 option.value = file;
                 option.textContent = file;
                 configDropdown.appendChild(option);
+            });
+        }
+
+        function populateBgDropdown(files) {
+            bgDropdown.innerHTML = '<option value="">Select Background</option>';
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file;
+                bgDropdown.appendChild(option);
             });
         }
 
@@ -280,6 +302,13 @@
 
                 interrupt();
                 ws.send(JSON.stringify({ type: "switch-config", file: selectedConfig }));
+            }
+        });
+
+        bgDropdown.addEventListener('change', function () {
+            const selectedBg = bgDropdown.value;
+            if (selectedBg) {
+                document.body.style.backgroundImage = `url('./bg/${selectedBg}')`;
             }
         });
 
