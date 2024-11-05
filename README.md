@@ -13,6 +13,8 @@
 (QQ群: 792615362）
 
 > User Survey: https://forms.gle/w6Y6PiHTZr1nzbtWA
+>
+> 调查问卷(中文): https://docs.qq.com/form/page/DTERQRkJMRWNiSldI
 
 
 > :warning: **Read this if you are updating from an old version without the voice interruption feature**:
