@@ -199,6 +199,11 @@ Here are the options you have for speech recognition:
 
 `Faster-Whisper` (local)
 - Whisper, but faster. On macOS, it runs on CPU only, which is not so fast, but it's easy to use.
+- For Nvidia GPU users, to use GPU acceleration, you need the following NVIDIA libraries to be installed:
+  -  [cuBLAS for CUDA 12](https://developer.nvidia.com/cublas)
+  -  [cuDNN 8 for CUDA 12](https://developer.nvidia.com/cudnn)
+- Or if you don't need the speed, you can set the `device` setting under `Faster-Whisper` in `conf.yaml` to `cpu` to reduce headaches.
+
 
 `WhisperCPP` (local) (runs super fast on a Mac if configured correctly)
 - If you are on a Mac, read below for instructions on setting up WhisperCPP with coreML support. If you want to use CPU or Nvidia GPU, install the package by running `pip install pywhispercpp`.
@@ -248,6 +253,7 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 - Support many different TTS models. List all supported models with `tts --list_models` command.
 - The default model is an english only model.
 - Use `tts_models/zh-CN/baker/tacotron2-DDC-GST` for Chinese model. (but the consistency is weird...)
+- If you found some good model to use, let me know! There are too many models I don't even know where to start...
 
 `barkTTS` (local, slow)
 
