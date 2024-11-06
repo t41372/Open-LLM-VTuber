@@ -106,3 +106,19 @@ canvas {
   height: 100%;
   z-index: 1;
 }
+
+/* Styles for the dropdown lists */
+select {
+  padding: 5px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #005f7f;
+}
