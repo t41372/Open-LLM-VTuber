@@ -13,6 +13,8 @@
 (QQ群: 792615362）
 
 > User Survey: https://forms.gle/w6Y6PiHTZr1nzbtWA
+>
+> 调查问卷(中文): https://docs.qq.com/form/page/DTERQRkJMRWNiSldI
 
 
 > :warning: **Read this if you are updating from an old version without the voice interruption feature**:
@@ -144,8 +146,10 @@ live2d technical details
 
 > **New installation instruction is being created [here](https://github.com/t41372/Open-LLM-VTuber/wiki)**
 
-
-Install FFmpeg on your computer.
+### Requirements:
+- ffmpeg
+- Python >= 3.10, < 3.13
+- More testing needs to be done on Python 3.13
 
 Clone this repository.
 
@@ -154,7 +158,7 @@ You need to have [Ollama](https://github.com/jmorganca/ollama) or any other Open
 Prepare the LLM of your choice. Edit the BASE_URL and MODEL in the project directory's `conf.yaml`.
 
 
-This project was developed using Python `3.10.13` and is incompatible with Python versions lower than `3.9`. I strongly recommend creating a virtual Python environment like conda for this project (because the dependencies are a mess!). 
+Virtual Python environment like conda or venv is strongly recommended! (because the dependencies are a mess!). 
 
 Run the following in the terminal to install the dependencies.
 
