@@ -131,8 +131,8 @@ GroqWhisperASR:
 
 # ============== Text to Speech ==============
 TTS_ON: True
-# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS"
 TTS_MODEL: "edgeTTS"
+# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS", "coquiTTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
 # if turned on, the timing and order of the facial expression will be more accurate
@@ -181,6 +181,26 @@ xTTS:
   api_url: "http://127.0.0.1:8020/tts_to_audio"
   speaker_wav: "female"
   language: "en"
+
+coquiTTS:
+  # Name of the TTS model to use. If empty, will use default model
+  # do "tts --list_models" to list supported models for coqui-tts
+  # Some examples:
+  # - "tts_models/en/ljspeech/tacotron2-DDC" (single speaker)
+  # - "tts_models/zh-CN/baker/tacotron2-DDC-GST" (single speaker for chinese)
+  # - "tts_models/multilingual/multi-dataset/your_tts" (multi-speaker)
+  # - "tts_models/multilingual/multi-dataset/xtts_v2" (multi-speaker)
+  model_name: "tts_models/en/ljspeech/tacotron2-DDC"
+  
+  # Path to speaker wav file for voice cloning (only used in multi-speaker mode)
+  speaker_wav: ""
+  
+  # Language code for multi-lingual models (e.g., "en", "zh", "ja")
+  # This doesn't matter for single-lingual models
+  language: "en"
+  
+  # Device to run model on ("cuda", "cpu", or leave empty for auto-detect)
+  device: ""
 
 #  ============== Translate (to only change the language for TTS) ==============
 # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things

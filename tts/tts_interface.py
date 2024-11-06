@@ -1,13 +1,12 @@
 import abc
 import os
-import platform
 from playsound3 import playsound
 
 
 class TTSInterface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def generate_audio(self, text: str, file_name_no_ext=None):
+    def generate_audio(self, text: str, file_name_no_ext=None) -> str:
         """
         Generate speech audio file using TTS.
         text: str
@@ -48,7 +47,7 @@ class TTSInterface(metaclass=abc.ABCMeta):
             the path to the audio file
         """
         playsound(audio_file_path)
-        # print(f">> Finished playing audio file {audio_file_path}")
+        
 
     def generate_cache_file_name(self, file_name_no_ext=None, file_extension="wav"):
         """

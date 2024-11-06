@@ -117,6 +117,7 @@ Currently supported Speech recognition backend
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
 - [meloTTS](https://github.com/myshell-ai/MeloTTS) (Local, fast)
+- [Coqui-TTS](https://github.com/idiap/coqui-ai-TTS) (Local, speed depends on the model you run.)
 - [bark](https://github.com/suno-ai/bark) (Local, very resource-consuming)
 - [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) (Local, very resource-consuming)
 - [xTTSv2](https://github.com/daswer123/xtts-api-server) (Local, very resource-consuming)
@@ -181,7 +182,7 @@ Or just clone the repo again and make sure to transfer your configurations. The 
 
 
 
-## Install Speech Recognition
+## Install Speech Recognition (ASR)
 Edit the ASR_MODEL settings in the `conf.yaml` to change the provider.
 
 Here are the options you have for speech recognition:
@@ -223,7 +224,7 @@ WhisperCPP coreML configuration:
 - API key and internet connection are required.
 - **⚠️ ‼️ The `api_key.py` was deprecated in `v0.2.5`. Please set api keys in `conf.yaml`.**
 
-## Install Speech Synthesis (text to speech)
+## Install Speech Synthesis (text to speech) (TTS)
 Install the respective package and turn it on using the `TTS_MODEL` option in `conf.yaml`.
 
 `pyttsx3TTS` (local, fast)
@@ -236,7 +237,16 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 - Install MeloTTS according to their [documentation](https://github.com/myshell-ai/MeloTTS/blob/main/docs/install.md) (don't install via docker) (A nice place to clone the repo is the submodule folder, but you can put it wherever you want). If you encounter a problem related to `mecab-python`, try this [fork](https://github.com/polm/MeloTTS) (hasn't been merging into the main as of July 16, 2024).
 - It's not the best, but it's definitely better than pyttsx3TTS, and it's pretty fast on my mac. I would choose this for now if I can't access the internet (and I would use edgeTTS if I have the internet).
 
+`coquiTTS` (local, can be fast or slow depending on the model you run)
+
+- Seems easy to install
+- Install with the command `pip install "coqui-tts[languages]"`
+- Support many different TTS models. List all supported models with `tts --list_models` command.
+- The default model is an english only model.
+- Use `tts_models/zh-CN/baker/tacotron2-DDC-GST` for Chinese model. (but the consistency is weird...)
+
 `barkTTS` (local, slow)
+
 - Install the pip package with this command `pip install git+https://github.com/suno-ai/bark.git` and turn it on in `conf.yaml`.
 - The required models will be downloaded on the first launch.
 

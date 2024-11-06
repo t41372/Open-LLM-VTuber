@@ -64,7 +64,15 @@ class TTSFactory:
                 speaker_wav=kwargs.get("speaker_wav"),
                 language=kwargs.get("language"),
             )
-
+        elif engine_type == "coquiTTS":
+            from .coquiTTS import TTSEngine as CoquiTTSEngine
+            
+            return CoquiTTSEngine(
+                model_name=kwargs.get("model_name"),
+                speaker_wav=kwargs.get("speaker_wav"),
+                language=kwargs.get("language"),
+                device=kwargs.get("device"),
+            )
         else:
             raise ValueError(f"Unknown TTS engine type: {engine_type}")
 
