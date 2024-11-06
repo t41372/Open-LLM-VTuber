@@ -1,4 +1,3 @@
-
 var app, model2;
 var modelInfo, emoMap;
 
@@ -68,9 +67,13 @@ const live2dModule = (function() {
     model.on("pointerup", () => (model.dragging = false));
   }
 
+  function changeBackgroundImage(imageUrl) {
+    document.body.style.backgroundImage = `url('${imageUrl}')`;
+  }
+
   return {
     init,
-    loadModel
+    loadModel,
+    changeBackgroundImage
   };
 })();
-
