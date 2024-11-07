@@ -1,6 +1,6 @@
 # Open-LLM-VTuber
 
-
+[中文](https://github.com/t41372/Open-LLM-VTuber/blob/main/README.CN.md)
 
 [![GitHub release](https://img.shields.io/github/v/release/t41372/Open-LLM-VTuber)](https://github.com/t41372/Open-LLM-VTuber/releases) 
 [![license](https://img.shields.io/github/license/t41372/Open-LLM-VTuber)](https://github.com/t41372/Open-LLM-VTuber/blob/master/LICENSE) 
