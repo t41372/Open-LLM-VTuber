@@ -400,6 +400,14 @@ Setup guide:
 
 5. Open localhost:12393 to test
 
+
+# Related Projects
+
+[ylxmf2005/LLM-Live2D-Desktop-Assitant](https://github.com/ylxmf2005/LLM-Live2D-Desktop-Assitant)
+- Your Live2D desktop assistant powered by LLM! Available for both Windows and MacOS, it senses your screen, retrieves clipboard content, and responds to voice commands with a unique voice. Featuring voice wake-up, singing capabilities, and full computer control for seamless interaction with your favorite character.
+
+
+
 # Development
 (this project is in the active prototyping stage, so many things will change)
 
