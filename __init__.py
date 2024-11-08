@@ -1,1 +1,1 @@
-__version__ = "0.2.5.dev.coqui"
+__version__ = "0.2.5.release"
