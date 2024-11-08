@@ -12,6 +12,7 @@ from fastapi import WebSocket
 from loguru import logger
 import numpy as np
 import yaml
+import chardet
 
 import __init__
 from asr.asr_factory import ASRFactory
@@ -626,19 +627,43 @@ class OpenLLMVTuberMain:
 def load_config_with_env(path) -> dict:
     """
     Load the configuration file with environment variables.
-
+    
     Parameters:
     - path (str): The path to the configuration file.
-
+    
     Returns:
     - dict: The configuration dictionary.
-
+    
     Raises:
     - FileNotFoundError if the configuration file is not found.
     - yaml.YAMLError if the configuration file is not a valid YAML file.
     """
-    with open(path, "r", encoding="utf-8") as file:
-        content = file.read()
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Config file not found: {path}")
+        
+    # Try common encodings first
+    encodings = ['utf-8', 'utf-8-sig', 'gbk', 'gb2312', 'ascii']
+    content = None
+    
+    for encoding in encodings:
+        try:
+            with open(path, 'r', encoding=encoding) as file:
+                content = file.read()
+                break
+        except UnicodeDecodeError:
+            continue
+            
+    if content is None:
+        # Try detecting encoding as last resort
+        try:
+            with open(path, 'rb') as file:
+                raw_data = file.read()
+            detected = chardet.detect(raw_data)
+            if detected['encoding']:
+                content = raw_data.decode(detected['encoding'])
+        except Exception as e:
+            logger.error(f"Error detecting encoding for config file {path}: {e}")
+            raise UnicodeError(f"Failed to decode config file {path} with any encoding")
 
     # Match ${VAR_NAME}
     pattern = re.compile(r"\$\{(\w+)\}")
@@ -646,14 +671,15 @@ def load_config_with_env(path) -> dict:
     # replace ${VAR_NAME} with os.getenv('VAR_NAME')
     def replacer(match):
         env_var = match.group(1)
-        return os.getenv(
-            env_var, match.group(0)
-        )  # return the original string if the env var is not found
+        return os.getenv(env_var, match.group(0))
 
     content = pattern.sub(replacer, content)
 
-    # Load the yaml file
-    return yaml.safe_load(content)
+    try:
+        return yaml.safe_load(content)
+    except yaml.YAMLError as e:
+        logger.error(f"Error parsing YAML from {path}: {e}")
+        raise
 
 
 if __name__ == "__main__":

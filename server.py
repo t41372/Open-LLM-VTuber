@@ -13,6 +13,8 @@ from starlette.websockets import WebSocketDisconnect
 from main import OpenLLMVTuberMain
 from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer
+import chardet
+from loguru import logger
 
 
 class WebSocketServer:
@@ -240,17 +242,54 @@ class WebSocketServer:
         return config_files
 
     def _load_config_from_file(self, filename: str) -> Dict:
-        if filename == "conf.yaml":  # default config file
+        """
+        Load configuration from a YAML file with robust encoding handling.
+        
+        Args:
+            filename: Name of the config file
+            
+        Returns:
+            Dict: Loaded configuration or None if loading fails
+        """
+        if filename == "conf.yaml":
             return load_config_with_env("conf.yaml")
         
-        config_alts_dir = self.open_llm_vtuber_main_config.get(
-            "CONFIG_ALTS_DIR", "config_alts"
-        )
+        config_alts_dir = self.open_llm_vtuber_main_config.get("CONFIG_ALTS_DIR", "config_alts")
         file_path = os.path.join(config_alts_dir, filename)
+        
         if not os.path.exists(file_path):
+            logger.error(f"Config file not found: {file_path}")
             return None
-        with open(file_path, "r", encoding="utf-8") as file:
-            return yaml.safe_load(file)
+            
+        # Try common encodings first
+        encodings = ['utf-8', 'utf-8-sig', 'gbk', 'gb2312', 'ascii']
+        content = None
+        
+        for encoding in encodings:
+            try:
+                with open(file_path, 'r', encoding=encoding) as file:
+                    content = file.read()
+                    break
+            except UnicodeDecodeError:
+                continue
+                
+        if content is None:
+            # Try detecting encoding as last resort
+            try:
+                with open(file_path, 'rb') as file:
+                    raw_data = file.read()
+                detected = chardet.detect(raw_data)
+                if detected['encoding']:
+                    content = raw_data.decode(detected['encoding'])
+            except Exception as e:
+                logger.error(f"Error detecting encoding for config file {file_path}: {e}")
+                return None
+
+        try:
+            return yaml.safe_load(content)
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing YAML from {file_path}: {e}")
+            return None
 
     def _scan_bg_directory(self) -> List[str]:
         bg_files = []
