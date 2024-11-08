@@ -1,7 +1,6 @@
 pyyaml
 requests
 websocket-client
-python-dotenv==1.0.0
 transformers
 rich
 loguru
