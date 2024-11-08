@@ -5,10 +5,27 @@ from datetime import datetime
 import subprocess
 import sys
 import locale
-from colorama import init, Fore, Style
 
-# Initialize colorama for cross-platform color support
-init()
+# 定义基本的终端颜色代码
+class Colors:
+    """跨平台的终端颜色支持"""
+    def __init__(self):
+        self.use_colors = sys.platform != 'win32' or os.environ.get('TERM')
+        
+    def red(self, text):
+        return f'\033[91m{text}\033[0m' if self.use_colors else text
+    
+    def green(self, text):
+        return f'\033[92m{text}\033[0m' if self.use_colors else text
+    
+    def yellow(self, text):
+        return f'\033[93m{text}\033[0m' if self.use_colors else text
+    
+    def cyan(self, text):
+        return f'\033[96m{text}\033[0m' if self.use_colors else text
+
+# 初始化颜色
+colors = Colors()
 
 # 语言字典 / Language dictionary
 TEXTS = {
@@ -81,8 +98,10 @@ Continue? (y/n): ''',
 def get_system_language():
     """获取系统语言/Get system language"""
     try:
-        sys_lang = locale.getdefaultlocale()[0]
-        return 'zh' if sys_lang.startswith('zh') else 'en'
+        # 使用推荐的新方法替代已废弃的getdefaultlocale()
+        locale.setlocale(locale.LC_ALL, '')
+        sys_lang = locale.getlocale()[0]
+        return 'zh' if sys_lang and sys_lang.startswith('zh') else 'en'
     except:
         return 'en'
 
@@ -99,17 +118,20 @@ def run_command(command):
     """运行shell命令并返回结果/Run shell command and return result"""
     try:
         result = subprocess.run(command, shell=True, check=True, 
-                              capture_output=True, text=True)
+                              capture_output=True, text=True,
+                              encoding='utf-8', errors='replace')
         return True, result.stdout
     except subprocess.CalledProcessError as e:
-        return False, e.stderr
+        return False, f"Command failed with error code {e.returncode}\nError: {e.stderr}"
+    except Exception as e:
+        return False, f"Unexpected error: {str(e)}"
 
 def backup_config():
     """备份conf.yaml文件/Backup conf.yaml file"""
     backup_path = 'conf.yaml.backup'
     
     if os.path.exists('conf.yaml'):
-        print(Fore.GREEN + texts['backup_config'].format(backup_path) + Style.RESET_ALL)
+        print(colors.green(TEXTS['en']['backup_config'].format(backup_path)))
         shutil.copy2('conf.yaml', backup_path)
         return True
     return False
@@ -125,69 +147,78 @@ def check_git_installed():
 
 def main():
     global texts
-    print(Fore.CYAN + TEXTS['en']['welcome_message'] + Style.RESET_ALL)
+    print(colors.cyan(TEXTS['en']['welcome_message']))
     
     lang = select_language()
     texts = TEXTS[lang]
 
-    # 检查Git是否已安装/Check if Git is installed
+    # 检查Git是否已安装
     if not check_git_installed():
-        print(Fore.RED + texts['git_not_found'] + Style.RESET_ALL)
+        print(colors.red(texts['git_not_found']))
         sys.exit(1)
 
     # 显示操作预览并请求确认
-    response = input(Fore.YELLOW + texts['operation_preview'] + Style.RESET_ALL).lower()
+    response = input(colors.yellow(texts['operation_preview'])).lower()
     if response != 'y':
-        print(Fore.YELLOW + texts['abort_upgrade'] + Style.RESET_ALL)
+        print(colors.yellow(texts['abort_upgrade']))
         sys.exit(0)
 
-    # 检查是否在git仓库中/Check if in git repository
-    success, _ = run_command('git rev-parse --is-inside-work-tree')
+    # 检查是否在git仓库中
+    success, error_msg = run_command('git rev-parse --is-inside-work-tree')
     if not success:
-        print(Fore.RED + texts['not_git_repo'] + Style.RESET_ALL)
+        print(colors.red(texts['not_git_repo']))
+        print(colors.red(f"Error details: {error_msg}"))
         sys.exit(1)
 
-    # 检查是否有未提交的更改/Check for uncommitted changes
+    # 检查是否有未提交的更改
     success, changes = run_command('git status --porcelain')
+    if not success:
+        print(colors.red(f"Failed to check git status: {changes}"))
+        sys.exit(1)
     has_changes = bool(changes.strip())
 
-    # 备份配置文件/Backup config file
+    # 备份配置文件
     if not backup_config():
-        print(Fore.YELLOW + texts['no_config'] + Style.RESET_ALL)
+        print(colors.yellow(texts['no_config']))
     
     if has_changes:
-        print(Fore.YELLOW + texts['uncommitted'] + Style.RESET_ALL)
+        print(colors.yellow(texts['uncommitted']))
         success, output = run_command('git stash')
         if not success:
-            print(Fore.RED + texts['stash_error'] + Style.RESET_ALL)
+            print(colors.red(texts['stash_error']))
+            print(colors.red(f"Error details: {output}"))
             sys.exit(1)
-        print(Fore.GREEN + texts['changes_stashed'] + Style.RESET_ALL)
+        print(colors.green(texts['changes_stashed']))
 
-    # 更新代码/Update code
-    print(Fore.CYAN + texts['pulling'] + Style.RESET_ALL)
+    # 更新代码
+    print(colors.cyan(texts['pulling']))
     success, output = run_command('git pull')
     if not success:
-        print(Fore.RED + texts['pull_error'] + Style.RESET_ALL)
+        print(colors.red(texts['pull_error']))
+        print(colors.red(f"Error details: {output}"))
         if has_changes:
-            print(Fore.YELLOW + texts['restoring'] + Style.RESET_ALL)
-            run_command('git stash pop')
+            print(colors.yellow(texts['restoring']))
+            success, restore_output = run_command('git stash pop')
+            if not success:
+                print(colors.red(f"Failed to restore changes: {restore_output}"))
         sys.exit(1)
 
-    # 恢复暂存的更改/Restore stashed changes
+    # 恢复暂存的更改
     if has_changes:
-        print(Fore.YELLOW + texts['restoring'] + Style.RESET_ALL)
+        print(colors.yellow(texts['restoring']))
         success, output = run_command('git stash pop')
         if not success:
-            print(Fore.RED + texts['conflict_warning'] + Style.RESET_ALL)
-            print(Fore.YELLOW + texts['manual_resolve'] + Style.RESET_ALL)
-            print(Fore.CYAN + texts['stash_list'] + Style.RESET_ALL)
-            print(Fore.CYAN + texts['stash_pop'] + Style.RESET_ALL)
+            print(colors.red(texts['conflict_warning']))
+            print(colors.red(f"Error details: {output}"))
+            print(colors.yellow(texts['manual_resolve']))
+            print(colors.cyan(texts['stash_list']))
+            print(colors.cyan(texts['stash_pop']))
             sys.exit(1)
 
-    print(Fore.GREEN + "\n" + texts['upgrade_complete'] + Style.RESET_ALL)
-    print(Fore.CYAN + texts['check_config'] + Style.RESET_ALL)
-    print(Fore.CYAN + texts['resolve_conflicts'] + Style.RESET_ALL)
-    print(Fore.CYAN + texts['check_backup'] + Style.RESET_ALL)
+    print(colors.green("\n" + texts['upgrade_complete']))
+    print(colors.cyan(texts['check_config']))
+    print(colors.cyan(texts['resolve_conflicts']))
+    print(colors.cyan(texts['check_backup']))
 
 if __name__ == "__main__":
     main()
