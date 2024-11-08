@@ -391,8 +391,8 @@ class OpenLLMVTuberMain:
 
                     if char:
                         print(char, end="", flush=True)
-                        sentence_buffer += char
                         full_response[0] += char
+                        sentence_buffer += char
                         if self.is_complete_sentence(sentence_buffer):
                             if self.verbose:
                                 print("\n")
@@ -416,7 +416,7 @@ class OpenLLMVTuberMain:
                             if not self._continue_exec_flag.is_set():
                                 raise InterruptedError("Producer interrupted")
                             audio_info = {
-                                "sentence": sentence_buffer,
+                                "sentence": tts_target_sentence,
                                 "audio_filepath": audio_filepath,
                             }
                             task_queue.put(audio_info)
