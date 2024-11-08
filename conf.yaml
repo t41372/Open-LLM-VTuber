@@ -1,3 +1,4 @@
+CONF_VERSION: "v0.3.0-alpha.1"
 # Server
 PROTOCAL: "http://"
 HOST: "localhost"
@@ -132,7 +133,10 @@ GroqWhisperASR:
 # ============== Text to Speech ==============
 TTS_ON: True
 TTS_MODEL: "edgeTTS"
-# text to speech model options: "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", "cosyvoiceTTS", "meloTTS", "piperTTS", "coquiTTS"
+# text to speech model options: 
+#   "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", 
+#   "cosyvoiceTTS", "meloTTS", "piperTTS", "coquiTTS",
+#   "fishAPITTS"
 
 # if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
 # if turned on, the timing and order of the facial expression will be more accurate
@@ -181,6 +185,15 @@ xTTS:
   api_url: "http://127.0.0.1:8020/tts_to_audio"
   speaker_wav: "female"
   language: "en"
+
+fishAPITTS:
+  # The API key for the Fish TTS API.
+  api_key: ""
+  # The reference ID for the voice to be used. Get it on the [Fish Audio website](https://fish.audio/).
+  reference_id: ""
+  # Either "normal" or "balanced". balance is faster but lower quality.
+  latency: "balanced"
+  base_url: "https://api.fish.audio"
 
 coquiTTS:
   # Name of the TTS model to use. If empty, will use default model

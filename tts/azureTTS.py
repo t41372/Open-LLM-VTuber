@@ -1,6 +1,5 @@
 import sys
 import os
-from pathlib import Path
 import azure.cognitiveservices.speech as speechsdk
 from .tts_interface import TTSInterface
 

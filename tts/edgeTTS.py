@@ -44,9 +44,8 @@ class TTSEngine(TTSInterface):
             communicate = edge_tts.Communicate(text, self.voice)
             communicate.save_sync(file_name)
         except Exception as e:
-            print(
-                f"No audio was received. Please verify that your parameters are correct. Error: {e}"
-            )
+            print(f"\nError: edge-tts unable to generate audio: {e}")
+            print("It's possible that edge-tts is blocked in your region.")
             return None
 
         return file_name

@@ -272,6 +272,12 @@ WhisperCPP coreML 配置：
 - 听起来很不错。运行速度很快。
 - 使用 edge tts 时，请记住连接到互联网。
 
+`fishAPITTS` (在线方式，需要 API 密钥) `(v0.3.0-beta 版本新增)`
+
+- 使用 `pip install fish-audio-sdk` 安装
+- 在 [Fish Audio](https://fish.audio/) 注册账户，获取 API 密钥，找到您想要使用的声音，并复制其参考 ID。
+- 在 `conf.yaml` 文件中，将 `TTS_MODEL` 设置为 `fishAPITTS`，并在 `fishAPITTS` 设置下，设置 `api_key` 和 `reference_id`。
+
 `AzureTTS` (在线，需要 API 密钥) (这与 neuro-sama 使用的 TTS 完全相同)
 
 - 使用命令 `pip install azure-cognitiveservices-speech` 安装 Azure SDK。
@@ -444,5 +450,4 @@ WhisperCPP coreML 配置：
 ## Star 历史记录
 
 [![Star 历史记录图表](https://api.star-history.com/svg?repos=t41372/open-llm-vtuber&type=Date)](https://star-history.com/#t41372/open-llm-vtuber&Date)
-
 

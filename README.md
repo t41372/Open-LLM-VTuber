@@ -272,6 +272,12 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 - It sounds pretty good. Runs pretty fast.
 - Remember to connect to the internet when using edge tts.
 
+`fishAPITTS` (online, API key required) `(added in v0.3.0-beta)`
+
+- Install with `pip install fish-audio-sdk`
+- Register an account, get an API key, find a voice you want to use, and copy the reference id on [Fish Audio](https://fish.audio/).
+- In `conf.yaml` file, set the `TTS_MODEL` to `fishAPITTS`, and  under the `fishAPITTS` setting, set the `api_key` and `reference_id`.
+
 `AzureTTS` (online, API key required) (This is the exact same TTS used by neuro-sama)
 
 - Install the Azure SDK with the command`pip install azure-cognitiveservices-speech`.

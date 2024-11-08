@@ -73,6 +73,17 @@ class TTSFactory:
                 language=kwargs.get("language"),
                 device=kwargs.get("device"),
             )
+            
+        elif engine_type == "fishAPITTS":
+            from .fishAPITTS import TTSEngine as FishAPITTSEngine
+
+            return FishAPITTSEngine(
+                api_key=kwargs.get("api_key"),
+                reference_id=kwargs.get("reference_id"),
+                latency=kwargs.get("latency"),
+                base_url=kwargs.get("base_url"),
+            )
+            
         else:
             raise ValueError(f"Unknown TTS engine type: {engine_type}")
 
