@@ -10,16 +10,17 @@ from fastapi import WebSocket
 import numpy as np
 import yaml
 
-from Behavior.TalkBehavior import TalkBehavior
+from Behavior import TalkBehavior
 from live2d_model import Live2dModel
 from llm.llm_factory import LLMFactory
 from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
-from queue.ActionSelectionQueue import ActionSelectionQueue
+from utils.ActionSelectionQueue import ActionSelectionQueue
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 from translate.translate_interface import TranslateInterface
 from translate.translate_factory import TranslateFactory
+from utils.InputQueue import InputQueue
 from utils.VoiceListener import VoiceListener
 
 
@@ -568,11 +569,12 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     vtuber_main = OpenLLMVTuberMain(config)
-    listener = VoiceListener()
+    listener = VoiceListener(config)
+    input_queue=InputQueue()
+    input_queue.start()
     listener.start()
     atexit.register(vtuber_main.clean_cache)
     main_queue = ActionSelectionQueue(default_behavior=TalkBehavior())
-
 
     def _run_conversation_chain():
         try:
@@ -581,17 +583,14 @@ if __name__ == "__main__":
             print(f"😢Conversation was interrupted. {e}")
             listener.stop()
             listener.join()  # Ensure the thread has fully stopped
-
-
     while True:
         print("tts on: ", vtuber_main.config.get("TTS_ON", False))
         if not vtuber_main.config.get("TTS_ON", False):
             print("its indeed off")
             vtuber_main.conversation_chain()
-            listener.start()
         else:
-            threading.Thread(name='Mail LLM Thread', target=_run_conversation_chain).start()
-
+            listener.start()
+            threading.Thread(name='Main LLM Thread', target=_run_conversation_chain).start()
             if input(">>> say i and press enter to interrupt: ") == "i":
                 print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
                 vtuber_main.interrupt()

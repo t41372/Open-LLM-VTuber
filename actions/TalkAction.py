@@ -9,6 +9,7 @@ class TalkAction(ActionInterface):
         self.prompt_file = ""
         self.generating = False
         self.not_is_blocking_action = True
+        self.requires_input=True
 
     def start_action(self, prompt_file=None) -> str:
         """
@@ -30,9 +31,9 @@ class TalkAction(ActionInterface):
         Starts the action by loading a prompt from the specified file.
         """
         if self.not_is_blocking_action:
-            OpenLLMVTuberMain().is_blocking_event.clear()
+            OpenLLMVTuberMain().not_is_blocking_event.set()
         return None
 
     def block_llm_generation(self):
-        OpenLLMVTuberMain().is_blocking_event.set()
+        OpenLLMVTuberMain().not_is_blocking_event.clear()
         return None

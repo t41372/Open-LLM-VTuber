@@ -1,5 +1,4 @@
 import threading
-from typing import Type
 
 from websocket import WebSocket
 

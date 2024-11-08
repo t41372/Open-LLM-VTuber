@@ -59,6 +59,19 @@ WAKE_WORD = "computer"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 
+class IdentifySpeaker:
+    _instance = None  # Class variable to hold the singleton instance
+
+    def __new__(cls, *args, **kwargs):
+        # Ensure only one instance of EmotionHandler is created
+        if cls._instance is None:
+            cls._instance = super(IdentifySpeaker, cls).__new__(cls)
+        return cls._instance
+
+    def identify_speaker(self, audio_path):
+        return "user - GoldRoger:"
+
+
 class VoiceRecognitionVAD:
     def __init__(
         self,
@@ -157,7 +170,6 @@ class VoiceRecognitionVAD:
         while True:  # Loop forever, but is 'paused' when new samples are not available
             sample, vad_confidence = self.sample_queue.get()
             result = self._handle_audio_sample(sample, vad_confidence)
-
             if result:
                 if returnText:
                     # if we return the text and are not starting the listening again, we can reset the recorder without blocking
@@ -227,9 +239,9 @@ class VoiceRecognitionVAD:
         self.input_stream.stop()
 
         detected_text = self.asr(self.samples)
-
+        detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         if detected_text:
-            logger.info(f"Detected: '{detected_text}'")
+            logger.info(f"Detected:{detected_speaker}'+:+{detected_text}")
             return detected_text
 
         # these two lines will never be reached because I made the function return the detected text

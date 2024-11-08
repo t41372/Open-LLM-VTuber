@@ -1,7 +1,7 @@
 requests~=2.32.3
-websocket-client
+websocket-client~=1.8.0
 python-dotenv==1.0.0
-transformers
+transformers~=4.45.2
 rich~=13.9.2
 loguru~=0.7.2
 numpy~=2.0.2
@@ -25,3 +25,7 @@ openai-whisper~=20240930
 PyYAML~=6.0.2
 numba~=0.60.0
 starlette~=0.40.0
+melo~=1.1.0
+pyttsx3~=2.98
+gradio_client~=1.4.0
+torchaudio~=2.5.1

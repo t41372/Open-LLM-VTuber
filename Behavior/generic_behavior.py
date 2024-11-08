@@ -1,4 +1,3 @@
-
 from typing import Dict, List
 
 import numpy as np
@@ -31,18 +30,18 @@ class BehaviorActor(nn.Module):
 
         return policy_logits, value
 
+
 class GenericBehavior(metaclass=BehaviorMeta):
 
-
-    def __init__(self, actions: List[str], state_size: int, learning_rate=0.001, dominant_prob=0.7):
+    def __init__(self, actions: List[str], learning_rate=0.001, dominant_prob=0.7,actions_map=None):
         self.actions = actions
-        self.actor_critic = BehaviorActor(state_size, len(actions))
+        self.actor_critic = BehaviorActor(3, 3)
         self.optimizer = optim.Adam(self.actor_critic.parameters(), lr=learning_rate)
         self.gamma = 0.99  # Discount factor
         self.dominant_prob = dominant_prob  # Probability of choosing the dominant action
         self.repeated_action_penalty = 0.1  # Penalty for repeating the same action
         self.last_action = None
-        self.actions_map = None | Dict # Track the last action to apply the penalty
+        self.actions_map = actions_map  # Track the last action to apply the penalty
 
     def select_action(self, state: np.array) -> ActionInterface:
         """
@@ -70,7 +69,7 @@ class GenericBehavior(metaclass=BehaviorMeta):
             self.last_action = action
         return self.actions_map[self.actions[action_idx]]
 
-    def update(self, state, action, reward, next_state, done):
+    def update(self, state, action, reward, next_state):
         """
         Update the Actor-Critic model based on the feedback and critic value.
         Apply a penalty if the action is repeated.
@@ -88,14 +87,8 @@ class GenericBehavior(metaclass=BehaviorMeta):
         # Apply penalty for repeated action
         if action == self.last_action:
             reward -= self.repeated_action_penalty
-
-        # Calculate target value
-        if done:
-            target_value = reward
-            self.last_action = action
-        else:
-            target_value = reward + self.gamma * next_value.item()
-
+        target_value = reward
+        self.last_action = action
         advantage = target_value - value.item()
 
         # Actor loss (policy loss)
