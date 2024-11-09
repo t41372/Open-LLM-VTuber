@@ -14,7 +14,7 @@
 
 > 用户调查：https://forms.gle/w6Y6PiHTZr1nzbtWA
 >
-> 调查问卷(中文): https://docs.qq.com/form/page/DTERQRkJMRWNiSldI
+> 调查问卷(中文)(现在不用登入了): https://wj.qq.com/s2/16150415/f50a/
 
 
 > :warning: **如果您正在从没有语音打断功能的旧版本更新，请阅读此内容**:
