@@ -5,6 +5,7 @@ from torch.multiprocessing import queue
 from Behavior.generic_behavior import GenericBehavior
 from Emotion.EmotionHandler import EmotionHandler
 from actions import ActionInterface
+from OpenLLMVtuber import OpenLLMVTuberMain
 from utils.InputQueue import InputQueue
 
 
@@ -52,6 +53,8 @@ class ActionSelectionQueue:
                     if action.requires_input:
                         current_input = (await InputQueue().get_input())[0]
                         result = action.start_action() + '{user} input: ' + current_input
+                        if action.not_is_blocking_action:
+                            OpenLLMVTuberMain().not_is_blocking_event.set()
                     else:
                         result = action.start_action()
                     print(f"Processing action: {action.__class__.__name__}")

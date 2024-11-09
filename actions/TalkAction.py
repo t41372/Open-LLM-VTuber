@@ -1,5 +1,5 @@
 from actions.ActionInterface import ActionInterface
-from main import OpenLLMVTuberMain
+from OpenLLMVtuber import OpenLLMVTuberMain
 
 
 class TalkAction(ActionInterface):

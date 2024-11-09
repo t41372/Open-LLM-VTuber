@@ -9,7 +9,7 @@ import numpy as np
 from fastapi import FastAPI, WebSocket, APIRouter
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
-from main import OpenLLMVTuberMain
+from OpenLLMVtuber import OpenLLMVTuberMain
 from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer
 
@@ -46,7 +46,7 @@ class WebSocketServer:
 
         # the connection between this server and the frontend client
         # The version 2 of the client-ws. Introduces breaking changes.
-        # This route will initiate its own main.py instance and conversation loop
+        # This route will initiate its own OpenLLMVtuber.py instance and conversation loop
         @self.app.websocket("/client-ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()

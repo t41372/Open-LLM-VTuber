@@ -1,10 +1,12 @@
-from typing import Dict, List
+from typing import List
 
 import numpy as np
 import torch
+from numpy import random
 from torch import nn, optim
 
 from Behavior.BehaviorMeta import BehaviorMeta
+from Emotion.EmotionHandler import EmotionHandler
 from actions import ActionInterface
 
 
@@ -67,6 +69,16 @@ class GenericBehavior(metaclass=BehaviorMeta):
         # Track the last action to introduce a penalty if repeated
         if self.last_action is None:
             self.last_action = action
+        state = EmotionHandler().get_current_state()
+        # Select an action based on current state
+        action = self.select_action(state)
+        print(f"Selected action: {action}")
+        next_state = EmotionHandler().get_current_state()
+        # Simulated reward feedback
+        reward = random.uniform(-1, 1)
+        done = True  # Set to True if episode ends
+        # Update the model with feedback
+        self.update(state, action, reward, next_state)
         return self.actions_map[self.actions[action_idx]]
 
     def update(self, state, action, reward, next_state):

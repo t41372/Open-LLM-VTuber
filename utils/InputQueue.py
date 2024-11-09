@@ -1,7 +1,7 @@
+import queue
 import threading
 
 import numpy as np
-from torch.multiprocessing import queue
 
 from Emotion.EmotionHandler import EmotionHandler
 
