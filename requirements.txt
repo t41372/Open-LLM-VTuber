@@ -21,7 +21,6 @@ httpx~=0.27.2
 
 torch~=2.5.0
 faster-whisper~=1.0.3
-openai-whisper~=20240930
 PyYAML~=6.0.2
 numba~=0.60.0
 starlette~=0.40.0

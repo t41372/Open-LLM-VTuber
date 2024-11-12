@@ -1,6 +1,6 @@
 import threading
 
-from torch.multiprocessing import queue
+import queue
 
 from Behavior.generic_behavior import GenericBehavior
 from Emotion.EmotionHandler import EmotionHandler
@@ -38,11 +38,10 @@ class ActionSelectionQueue:
         print(f"Action {action.__class__.__name__} fetched from the queue.")
         return action
 
-    async def run(self):
+    def run(self):
         """Run the queue processor in a separate thread."""
         while not self.stop_event.is_set():
-            try:
-                # If the queue is empty, use the default action
+               # If the queue is empty, use the default action
                 if self.queue.empty():
                     print("Queue is empty. Executing default action.")
                     result = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
@@ -51,7 +50,7 @@ class ActionSelectionQueue:
                     # Fetch the next action from the queue
                     action = self.get_action()
                     if action.requires_input:
-                        current_input = (await InputQueue().get_input())[0]
+                        current_input = (InputQueue().get_input())[0]
                         result = action.start_action() + '{user} input: ' + current_input
                         if action.not_is_blocking_action:
                             OpenLLMVTuberMain().not_is_blocking_event.set()
@@ -59,8 +58,5 @@ class ActionSelectionQueue:
                         result = action.start_action()
                     print(f"Processing action: {action.__class__.__name__}")
                     print(f"Action result: {result}")
-            except self.queue.Empty:
-                # If no action is in the queue, just pass and continue
-                pass
 
             # Simulate some delay between actions

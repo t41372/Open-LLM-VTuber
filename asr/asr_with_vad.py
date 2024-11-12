@@ -74,10 +74,10 @@ class IdentifySpeaker:
 
 class VoiceRecognitionVAD:
     def __init__(
-        self,
-        asr_transcribe_func: Callable,
-        wake_word: str | None = None,
-        function: Callable = print,
+            self,
+            asr_transcribe_func: Callable,
+            wake_word: str | None = None,
+            function: Callable = print,
     ) -> None:
         """
         Initializes the VoiceRecognition class, setting up necessary models, streams, and queues.
@@ -171,13 +171,8 @@ class VoiceRecognitionVAD:
             sample, vad_confidence = self.sample_queue.get()
             result = self._handle_audio_sample(sample, vad_confidence)
             if result:
-                if returnText:
-                    # if we return the text and are not starting the listening again, we can reset the recorder without blocking
-                    threading.Thread(target=self.reset).start()
-                    # self.reset()
-                    return result
                 self.reset()
-                self.input_stream.start()
+                return result
 
     def _handle_audio_sample(self, sample, vad_confidence):
         """
@@ -241,7 +236,7 @@ class VoiceRecognitionVAD:
         detected_text = self.asr(self.samples)
         detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         if detected_text:
-            logger.info(f"Detected:{detected_speaker}'+:+{detected_text}")
+            logger.info(f"{detected_speaker}{detected_text}")
             return detected_text
 
         # these two lines will never be reached because I made the function return the detected text
@@ -268,3 +263,4 @@ class VoiceRecognitionVAD:
         self.gap_counter = 0
         with self.buffer.mutex:
             self.buffer.queue.clear()
+        self.start_listening()

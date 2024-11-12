@@ -8,7 +8,7 @@ from asr.asr_interface import ASRInterface
 from translate.translate_interface import TranslateInterface
 
 
-class VoiceListener(threading.Thread):
+class VoiceListener:
     config: dict | None
     asr: ASRInterface | None
     translator: TranslateInterface | None
@@ -17,7 +17,7 @@ class VoiceListener(threading.Thread):
 
     def __init__(self, configs: dict | None = None,
                  custom_asr: ASRInterface | None = None,
-                 websocket: WebSocket | None = None, pause_threshold=0.8) -> None:
+                 websocket: WebSocket | None = None) -> None:
         """
         Initializes the VoiceListener as a separate thread.
         :param pause_threshold: The time threshold for considering pauses in speech, in seconds.
@@ -25,15 +25,16 @@ class VoiceListener(threading.Thread):
         super(VoiceListener, self).__init__()
         self.running = None
         self.config = configs
+        self.thread = threading.Thread(target=self.get_user_input)
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
-        self._continue_exec_flag = threading.Event()
-        self._continue_exec_flag.set()  # Set the flag to continue execution
+        self.stop_event = threading.Event()
 
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
             # if custom_asr is provided, don't init asr and use it instead.
             if custom_asr is None:
+                print("Using default ASR")
                 self.asr = self.init_asr()
             else:
                 print("Using custom ASR")
@@ -56,6 +57,11 @@ class VoiceListener(threading.Thread):
         asr = ASRFactory.get_asr_system(asr_model, **asr_config)
         return asr
 
+    def start(self):
+        """Starts the queue processing thread."""
+        print("Starting ASR thread...")
+        self.thread.start()
+
     def get_user_input(self) -> str:
         """
         Get user input using the method specified in the configuration file.
@@ -74,8 +80,8 @@ class VoiceListener(threading.Thread):
             return input("\n>> ")
 
     def stop(self):
-        """
-        Stops the listener by setting the running flag to False.
-        """
+        """Stops the thread gracefully."""
+        self.stop_event.set()
+        self.thread.join()
         print("Stopping VoiceListener...")
         self.running = False

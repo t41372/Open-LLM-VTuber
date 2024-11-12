@@ -83,7 +83,7 @@ FunASR:
   vad_model: "fsmn-vad" # this is only used to make it works if audio is longer than 30s
   punc_model: "ct-punc" # punctuation model.
   device: "cpu"
-  ncpu: 4 # number of threads for CPU internal operations.
+  ncpu: 16 # number of threads for CPU internal operations.
   hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
   use_itn: False
   language: "en" # zh, en, auto

@@ -195,7 +195,7 @@ class OpenLLMVTuberMain:
 
     # Main conversation methods
 
-    def conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
+    def  conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
         """
         One iteration of the main conversation.
         1. Get user input (text or audio) if not provided as an argument

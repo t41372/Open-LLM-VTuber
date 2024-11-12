@@ -1,10 +1,9 @@
 import os
 import shutil
-import atexit
 import json
 import asyncio
+import threading
 from typing import List, Dict
-import yaml
 import numpy as np
 from fastapi import FastAPI, WebSocket, APIRouter
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +11,7 @@ from starlette.websockets import WebSocketDisconnect
 from OpenLLMVtuber import OpenLLMVTuberMain
 from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer
+from utils.InputQueue import InputQueue
 
 
 class WebSocketServer:
@@ -38,7 +38,9 @@ class WebSocketServer:
         self.open_llm_vtuber: OpenLLMVTuberMain | None = None
         self.open_llm_vtuber_config: Dict | None = open_llm_vtuber_config
         self._setup_routes()
+        self.thread = threading.Thread(target=self.run)
         self._mount_static_files()
+        self.input_queue: InputQueue | None
         self.app.include_router(self.router)
 
     def _setup_routes(self):
@@ -57,7 +59,8 @@ class WebSocketServer:
             self.connected_clients.append(websocket)
             print("Connection established")
             l2d = Live2dModel(self.open_llm_vtuber_config["LIVE2D_MODEL"])
-            open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_config)
+            open_llm_vtuber = OpenLLMVTuberMain(configs=self.open_llm_vtuber_config)
+            input_queue = InputQueue()
             audio_payload_preparer = AudioPayloadPreparer()
 
             def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
@@ -181,6 +184,10 @@ class WebSocketServer:
         )
         self.app.mount("/", StaticFiles(directory="./static", html=True), name="static")
 
+    def start(self):
+        print("starting webserver")
+        self.thread.start()
+
     def run(self, host: str = "127.0.0.1", port: int = 8000, log_level: str = "info"):
         """Runs the FastAPI application using Uvicorn."""
         import uvicorn
@@ -193,17 +200,3 @@ class WebSocketServer:
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
 
-
-if __name__ == "__main__":
-
-    atexit.register(WebSocketServer.clean_cache)
-
-    # Load configurations from yaml file
-    with open("conf.yaml", "rb") as f:
-        config = yaml.safe_load(f)
-
-    config["LIVE2D"] = True  # make sure the live2d is enabled
-
-    # Initialize and run the WebSocket server
-    server = WebSocketServer(open_llm_vtuber_config=config)
-    server.run(host=config["HOST"], port=config["PORT"])

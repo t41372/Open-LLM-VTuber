@@ -40,7 +40,7 @@ class InputQueue:
         self.queue.put(input)
         print(f"Input {input} added to the queue.")
 
-    async def get_input(self, number_inputs=1):
+    def get_input(self, number_inputs=1):
         """Gets a new input action from the queue"""
         inputs_list = []
         for input_idx in range(number_inputs):

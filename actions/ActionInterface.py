@@ -1,9 +1,7 @@
 from abc import abstractmethod
 
-from actions.ActionsMeta import ActionsMeta
 
-
-class ActionInterface(metaclass=ActionsMeta):
+class ActionInterface():
 
     @abstractmethod
     def start_action(self, prompt_file: str) -> str:
