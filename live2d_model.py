@@ -1,4 +1,6 @@
 import json
+import chardet
+from loguru import logger
 
 # This class will only prepare the payload for the live2d model
 # the process of sending the payload should be done by the caller
@@ -16,7 +18,7 @@ class Live2dModel:
         emo_map (dict): The emotion map of the Live2D model.
         emo_str (str): The string representation of the emotion map of the Live2D model.
     """
-    
+
     model_dict_path: str
     live2d_model_name: str
     model_info: dict
@@ -49,6 +51,35 @@ class Live2dModel:
         # emo_str is a string of the keys in the emoMap dictionary. The keys are enclosed in square brackets.
         # example: `"[fear], [anger], [disgust], [sadness], [joy], [neutral], [surprise]"`
 
+    def _load_file_content(self, file_path: str) -> str:
+        """Load the content of a file with robust encoding handling."""
+        # Try common encodings first
+        encodings = ["utf-8", "utf-8-sig", "gbk", "gb2312", "ascii"]
+
+        for encoding in encodings:
+            try:
+                with open(file_path, "r", encoding=encoding) as file:
+                    return file.read()
+            except UnicodeDecodeError:
+                continue
+
+        # If all common encodings fail, try to detect encoding
+        try:
+            with open(file_path, "rb") as file:
+                raw_data = file.read()
+            detected = chardet.detect(raw_data)
+            detected_encoding = detected["encoding"]
+
+            if detected_encoding:
+                try:
+                    return raw_data.decode(detected_encoding)
+                except UnicodeDecodeError:
+                    pass
+        except Exception as e:
+            logger.error(f"Error detecting encoding for {file_path}: {e}")
+
+        raise UnicodeError(f"Failed to decode {file_path} with any encoding")
+
     def _lookup_model_info(self, model_name: str) -> dict:
         """
         Find the model information from the model dictionary and return the information about the matched model.
@@ -71,8 +102,8 @@ class Live2dModel:
         self.live2d_model_name = model_name
 
         try:
-            with open(self.model_dict_path, "r") as file:
-                model_dict = json.load(file)
+            file_content = self._load_file_content(self.model_dict_path)
+            model_dict = json.loads(file_content)
         except FileNotFoundError as file_e:
             print(f"Model dictionary file not found at {self.model_dict_path}.")
             raise file_e
@@ -81,6 +112,9 @@ class Live2dModel:
                 f"Error decoding JSON from model dictionary file at {self.model_dict_path}."
             )
             raise json_e
+        except UnicodeError as uni_e:
+            print(f"Error reading model dictionary file at {self.model_dict_path}.")
+            raise uni_e
         except Exception as e:
             print(
                 f"Error occurred while reading model dictionary file at {self.model_dict_path}."
