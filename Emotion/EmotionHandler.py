@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from collections import deque
-
+from loguru import logger
 from transformers import pipeline
 
 emotions = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
@@ -50,7 +50,7 @@ class EmotionHandler:
         self.repeated_tone_count = 0
         self.random_factor = 0.3  # Starting at 30% for randomness
         self.high_initiative_threshold = 1.3  # Threshold for high initiatives
-        self.classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base",
+        self.classifier = pipeline(device='cuda',task="text-classification", model="j-hartmann/emotion-english-distilroberta-base",
                                    return_all_scores=True)
 
         # Q-learning parameters
@@ -75,6 +75,7 @@ class EmotionHandler:
     def classify_emotion(self, input_text):
         """Stub for emotion classifier."""
         classified_emotion = sorted(self.classifier(input_text), key=lambda x: x['score'])
+        logger.critical(f"classified_emotion:{classified_emotion}")
         return classified_emotion[0].key()
 
     def choose_emotions_based_on_initiative(self):

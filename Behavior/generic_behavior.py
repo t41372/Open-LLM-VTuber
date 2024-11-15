@@ -8,6 +8,7 @@ from torch import nn, optim
 from Behavior.BehaviorMeta import BehaviorMeta
 from Emotion.EmotionHandler import EmotionHandler
 from actions import ActionInterface
+from loguru import logger
 
 
 class BehaviorActor(nn.Module):
@@ -35,9 +36,9 @@ class BehaviorActor(nn.Module):
 
 class GenericBehavior(metaclass=BehaviorMeta):
 
-    def __init__(self, actions: List[str], learning_rate=0.001, dominant_prob=0.7,actions_map=None):
+    def __init__(self, actions: List[str], learning_rate=0.001, dominant_prob=0.7, actions_map=None):
         self.actions = actions
-        self.actor_critic = BehaviorActor(3, 3)
+        self.actor_critic = BehaviorActor(14, 3)
         self.optimizer = optim.Adam(self.actor_critic.parameters(), lr=learning_rate)
         self.gamma = 0.99  # Discount factor
         self.dominant_prob = dominant_prob  # Probability of choosing the dominant action
@@ -63,20 +64,20 @@ class GenericBehavior(metaclass=BehaviorMeta):
         action_probs[dominant_action_idx] = self.dominant_prob
 
         # Sample action based on the new probabilities
-        action_idx = np.random.choice(len(self.actions), p=action_probs)
-        action = self.actions[action_idx]
+        action_idx = np.random.choice(3, p=action_probs)
+        action = self.actions[0]
 
         # Track the last action to introduce a penalty if repeated
         if self.last_action is None:
             self.last_action = action
         state = EmotionHandler().get_current_state()
         # Select an action based on current state
-        action = self.select_action(state)
-        print(f"Selected action: {action}")
+        logger.info(f"Selected action: {action}")
         next_state = EmotionHandler().get_current_state()
         # Simulated reward feedback
         reward = random.uniform(-1, 1)
         done = True  # Set to True if episode ends
+        EmotionHandler().remember(state, action, reward, next_state, done)
         # Update the model with feedback
         self.update(state, action, reward, next_state)
         return self.actions_map[self.actions[action_idx]]

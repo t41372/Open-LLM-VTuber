@@ -194,6 +194,10 @@ class WebSocketServer:
 
         uvicorn.run(self.app, host=host, port=port, log_level=log_level)
 
+    def stop(self):
+        print("stopping webserver")
+        self.thread.join()
+
     def clean_cache(self):
         cache_dir = "./cache"
         if os.path.exists(cache_dir):

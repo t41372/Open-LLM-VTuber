@@ -9,6 +9,7 @@ from server import WebSocketServer
 from utils.ActionSelectionQueue import ActionSelectionQueue
 from utils.InputQueue import InputQueue
 from utils.VoiceListener import VoiceListener
+from loguru import logger
 
 if __name__ == "__main__":
     with open("conf.yaml", "rb") as f:
@@ -31,10 +32,10 @@ if __name__ == "__main__":
 
             action_selection_queue.start()
         except InterruptedError as e:
-            print(f"😢Conversation was interrupted. {e}")
+            logger.error(f"😢Conversation was interrupted. {e}")
             listener.stop()
     while True:
-        print("tts on: ", vtuber_main.config.get("TTS_ON", False))
+        logger.critical("tts on: ", vtuber_main.config.get("TTS_ON", False))
         if not vtuber_main.config.get("TTS_ON", False):
             print("its indeed off")
         else:
@@ -42,5 +43,5 @@ if __name__ == "__main__":
             listener.start()
             threading.Thread(name='Main LLM Thread', target=_run_conversation_chain).start()
             if input(">>> say i and press enter to interrupt: ") == "i":
-                print("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
+                logger.info("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")
                 vtuber_main.interrupt()
