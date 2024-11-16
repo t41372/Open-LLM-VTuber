@@ -37,7 +37,12 @@ const live2dModule = (function() {
     });
 
     model2 = models[0];
-    model2.x = app.view.width / 2 - model2.width / 2;
+
+    if (!modelInfo.initialXshift) modelInfo.initialXshift = 0;
+    if (!modelInfo.initialYshift) modelInfo.initialYshift = 0;
+
+    model2.x = app.view.width / 2 - model2.width / 2 + modelInfo["initialXshift"];
+    model2.y = app.view.height / 2 - model2.height / 2 + modelInfo["initialYshift"];
 
     // model2.on("hit", (hitAreas) => {
     //   if (hitAreas.includes("body")) {

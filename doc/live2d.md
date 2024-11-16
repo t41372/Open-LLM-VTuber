@@ -30,6 +30,8 @@ A configuration may look like this:
     "description": "Orange-Haired Girl, locally available. no internet required.",
     "url": "/live2d-models/shizuku/shizuku.model.json",
     "kScale": 0.000625,
+    "initialXshift": 0,
+    "initialYshift": 0,
     "kXOffset": 1150,
     "idleMotionGroupName": "Idle",
     "emotionMap": {
@@ -52,9 +54,12 @@ Something you want to change
   - If the model files are hosted somewhere, you can just paste the url. The url should starts with `http://` or `https://`.
   - If the model you are trying to load is on your computer, put the model folder into the `live2d-models` directory and enter the relative path for the `url`. Like this `/live2d-models/UG/ugofficial.model3.json`. Keep the `/live2d-models` intact and don't change it nor add dots before it like `./live2d-models`.
 - `KScale`: How big the model should be. Make it smaller if the model is too big. Vice versa.
+- `initialXshift` and `initialYshift` (added in `v0.3.1`): The initial position for the Live2D model. Position (0, 0) is the center. Use this to calibrate the initial position for the Live2D model. If these two parameters are absent, they will be assumed 0, which is the center of the screen.
 - `emotionMap`: a dictionary of facial expressions available.
   - The key (text left to the semicolon) is the name of the emotion. You can put any words into it, and the LLM will use these keywords to control the expression of the live2d model.
   - The value (text right to the semicolon) is the emotion index. This is the index that specify the emotion of the live2d model. After loading the model in the server, you can try running the function `setExpression(index)` in the console of the browser. Put some numbers into the function, see what the live2d model would do, and edit the emotion map according to the behavior and the index.
+
+  - `kXOffset` and `kYOffset`: deprecated and useless. Feel free to delete them.
 
 
 
