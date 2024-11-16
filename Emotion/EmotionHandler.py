@@ -50,7 +50,8 @@ class EmotionHandler:
         self.repeated_tone_count = 0
         self.random_factor = 0.3  # Starting at 30% for randomness
         self.high_initiative_threshold = 1.3  # Threshold for high initiatives
-        self.classifier = pipeline(device='cuda',task="text-classification", model="j-hartmann/emotion-english-distilroberta-base",
+        self.classifier = pipeline(device='cuda', task="text-classification",
+                                   model="j-hartmann/emotion-english-distilroberta-base",
                                    return_all_scores=True)
 
         # Q-learning parameters
@@ -63,6 +64,7 @@ class EmotionHandler:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.learning_rate = learning_rate
+        self.previous_state = None
 
         # Replay buffer
         self.memory = deque(maxlen=4000)
@@ -95,6 +97,13 @@ class EmotionHandler:
         """
         state = list(self.emotion_reward_map.values()) + list(self.initiative_map.values())
         return state
+
+    def get_previous_state(self) -> List[Any]:
+        """
+        Get the current state based on the emotion reward map and initiative map.
+        Example state: [anger_reward, disgust_reward, ..., anger_initiative, disgust_initiative, ...]
+        """
+        return self.previous_state
 
     def map_action_to_emotions(self, action):
         """
@@ -146,9 +155,9 @@ class EmotionHandler:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
-    def remember(self, state, action, reward, next_state, done):
+    def remember(self, previous_state, action, reward, current_state, done):
         """Store experiences in memory."""
-        self.memory.append((state, action, reward, next_state, done))
+        self.memory.append((previous_state, action, reward, current_state, done))
 
     def get_llm_response_emotion(self, user_prompt_emotion: str) -> list[Any]:
         """
@@ -165,6 +174,7 @@ class EmotionHandler:
         :param user_prompt_emotion: The emotion detected from the user's prompt.
         :param feedback: The reward or penalty for the response.
         """
+        self.previous_state = self.get_current_state()
         self.emotion_reward_map[user_prompt_emotion] += feedback  # Update rewards
         self.initiative_map[user_prompt_emotion] += 0.1  # Increase initiative for that emotion
 
@@ -174,10 +184,8 @@ class EmotionHandler:
         # Simulate feedback (reward), and update the emotion maps
         feedback = random.uniform(-1, 1)  # Reward could be based on external feedback or satisfaction
         self.update_emotion_and_initiative(user_emotion, feedback)
-
         # Store state, action, and reward for replay
-        state = self.get_current_state()
-        action = self.act(state)
-        next_state = self.get_current_state()
-        self.remember(state, action, feedback, next_state, done=False)
+        current_state = self.get_current_state()
+        action = self.act(current_state)
+        self.remember(current_state, action, feedback, self.previous_state, done=False)
         # Perform replay to learn from the experiences

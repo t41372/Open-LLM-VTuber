@@ -3,7 +3,7 @@ import threading
 
 import numpy as np
 
-from Emotion.EmotionHandler import EmotionHandler
+
 
 
 class InputQueue:
@@ -34,9 +34,6 @@ class InputQueue:
         print("InputQueue thread stopped.")
 
     def add_input(self, input: str | np.ndarray):
-        """Adds a new action to the queue."""
-        input_emotions = EmotionHandler().classify_emotion(input)
-        input += '\n' + 'user emotions :' + input_emotions
         self.queue.put(input)
         print(f"Input {input} added to the queue.")
 

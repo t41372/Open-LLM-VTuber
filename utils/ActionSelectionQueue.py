@@ -49,22 +49,22 @@ class ActionSelectionQueue:
     def run(self):
         """Run the queue processor in a separate thread."""
         while not self.stop_event.is_set():
-               # If the queue is empty, use the default action
-                if self.queue.empty():
-                    logger.info("Queue is empty. Executing default action.")
-                    result = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
-                    logger.info(f"Default action result: {result}")
+            # If the queue is empty, use the default action
+            if self.queue.empty():
+                logger.info("Queue is empty. Executing default action.")
+                result = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
+                logger.info(f"Default action result: {result}")
+            else:
+                # Fetch the next action from the queue
+                action = self.get_action()
+                if action.requires_input:
+                    current_input = (InputQueue().get_input())[0]
+                    result = action.start_action() + '{user} input: ' + current_input
+                    if action.not_is_blocking_action:
+                        OpenLLMVTuberMain().not_is_blocking_event.set()
                 else:
-                    # Fetch the next action from the queue
-                    action = self.get_action()
-                    if action.requires_input:
-                        current_input = (InputQueue().get_input())[0]
-                        result = action.start_action() + '{user} input: ' + current_input
-                        if action.not_is_blocking_action:
-                            OpenLLMVTuberMain().not_is_blocking_event.set()
-                    else:
-                        result = action.start_action()
-                    logger.info(f"Processing action: {action.__class__.__name__}")
-                    logger.info(f"Action result: {result}")
+                    result = action.start_action()
+                logger.info(f"Processing action: {action.__class__.__name__}")
+                logger.info(f"Action result: {result}")
 
-            # Simulate some delay between actions
+        # Simulate some delay between actions

@@ -1,80 +1,52 @@
-import threading
 import queue
+import threading
+
+import numpy as np
+from loguru import logger
 
 
 class InferenceQueue:
-    """
-    A TaskQueue class that manages tasks in a separate thread.
+    _instance = None
 
-    This class provides a simple way to queue tasks and execute them asynchronously
-    using a single worker thread. Tasks added to the queue are functions that will
-    be executed by the worker thread.
-
-    Attributes:
-        tasks (queue.Queue): A queue that stores the tasks to be executed.
-        thread (threading.Thread): The worker thread that executes tasks from the queue.
-
-    Methods:
-        __init__(self): Initializes a new instance of the TaskQueue class, starts the worker thread.
-        _worker(self): The worker method that runs in a separate thread and executes tasks from the queue.
-        add_task(self, task): Adds a task to the queue for execution by the worker thread.
-    """
+    def __new__(cls, *args, **kwargs):
+        # Ensure only one instance of EmotionHandler is created
+        if cls._instance is None:
+            cls._instance = super(InferenceQueue, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self):
-        """
-        Initializes a new instance of the TaskQueue class.
+        self.queue = queue.Queue()
+        self.thread = threading.Thread(target=self.run)
+        self.stop_event = threading.Event()
 
-        This constructor creates a new queue for tasks and starts a daemon worker thread
-        that will execute those tasks.
-        """
-        self.tasks = queue.Queue()
-        self.thread = threading.Thread(target=self._worker)
-        self.thread.daemon = True
+    # Default action to be executed if the queue is empty
+
+    def start(self):
+        """Starts the queue processing thread."""
+        logger.info("Starting InferenceQueue thread...")
         self.thread.start()
 
-    def _worker(self):
-        """
-        The worker method that runs in a separate thread.
+    def stop(self):
+        """Stops the thread gracefully."""
+        self.stop_event.set()
+        self.thread.join()
+        logger.info("InferenceQueue thread stopped.")
 
-        This method continuously retrieves tasks from the queue and executes them.
-        If a `None` task is retrieved, the loop breaks, effectively stopping the thread.
-        """
-        while True:
-            task = self.tasks.get()
-            if task is None:
-                break
-            try:
-                task()
-            finally:
-                self.tasks.task_done()
+    def add_input(self, input: str | np.ndarray):
+        self.queue.put(input)
+        logger.info(f"Input {input} added to the queue.")
 
-    def add_task(self, task):
-        """
-        Adds a task to the queue for execution by the worker thread.
+    def get_input(self, number_inputs=1):
+        """Gets a new input action from the Inference queue"""
+        inputs_list = []
+        for input_idx in range(number_inputs):
+            inputs_list.append(self.queue.get())
+        return inputs_list
 
-        Parameters:
-            task (callable): The task to be added to the queue. It should be a callable with no arguments.
-        """
-        self.tasks.put(task)
+    def run(self):
+        """Run the queue processor in a separate thread."""
+        while not self.stop_event.is_set():
+            pass
+        return
 
-
-# Example usage:
-import time
-
-
-def example_task(num):
-    print(f"\nTask {num} is running")
-    time.sleep(2)
-    print(f"Task {num} is done")
-
-
-if __name__ == "__main__":
-    task_queue = InferenceQueue()
-    i = 0
-
-    while True:
-        input(">> ")
-        task_queue.add_task(example_task(i))
-        i += 1
-
-    print("Tasks have been added")
+        # Simulate some delay between actions

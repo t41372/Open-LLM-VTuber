@@ -61,7 +61,7 @@ class GenericBehavior(metaclass=BehaviorMeta):
         dominant_action_idx = np.argmax(probs)
         remaining_prob = 1 - self.dominant_prob
         action_probs = np.full(len(probs), remaining_prob / (len(probs) - 1))
-        action_probs[dominant_action_idx] = self.dominant_prob
+       ## action_probs[dominant_action_idx] = self.dominant_prob
 
         # Sample action based on the new probabilities
         action_idx = np.random.choice(3, p=action_probs)
@@ -73,13 +73,13 @@ class GenericBehavior(metaclass=BehaviorMeta):
         state = EmotionHandler().get_current_state()
         # Select an action based on current state
         logger.info(f"Selected action: {action}")
-        next_state = EmotionHandler().get_current_state()
+        current_state = EmotionHandler().get_current_state()
         # Simulated reward feedback
         reward = random.uniform(-1, 1)
         done = True  # Set to True if episode ends
-        EmotionHandler().remember(state, action, reward, next_state, done)
+        EmotionHandler().remember(EmotionHandler().get_previous_state(), action, reward, current_state, done)
         # Update the model with feedback
-        self.update(state, action, reward, next_state)
+        self.update(state, action, reward, current_state)
         return self.actions_map[self.actions[action_idx]]
 
     def update(self, state, action, reward, next_state):
