@@ -61,8 +61,7 @@ class GenericBehavior(metaclass=BehaviorMeta):
         dominant_action_idx = np.argmax(probs)
         remaining_prob = 1 - self.dominant_prob
         action_probs = np.full(len(probs), remaining_prob / (len(probs) - 1))
-       ## action_probs[dominant_action_idx] = self.dominant_prob
-
+        action_probs[dominant_action_idx] = self.dominant_prob
         # Sample action based on the new probabilities
         action_idx = np.random.choice(3, p=action_probs)
         action = self.actions[0]
@@ -70,22 +69,24 @@ class GenericBehavior(metaclass=BehaviorMeta):
         # Track the last action to introduce a penalty if repeated
         if self.last_action is None:
             self.last_action = action
-        state = EmotionHandler().get_current_state()
         # Select an action based on current state
         logger.info(f"Selected action: {action}")
+        previous_state=EmotionHandler().get_previous_state()
         current_state = EmotionHandler().get_current_state()
         # Simulated reward feedback
         reward = random.uniform(-1, 1)
         done = True  # Set to True if episode ends
-        EmotionHandler().remember(EmotionHandler().get_previous_state(), action, reward, current_state, done)
+        EmotionHandler().remember(previous_state, action, reward, current_state, done)
         # Update the model with feedback
-        self.update(state, action, reward, current_state)
-        return self.actions_map[self.actions[action_idx]]
+        if previous_state is not None:
+            self.update(EmotionHandler().get_previous_state(), action, reward, current_state)
+        return self.actions_map[self.actions[0]]
 
     def update(self, state, action, reward, next_state):
         """
         Update the Actor-Critic model based on the feedback and critic value.
         Apply a penalty if the action is repeated.
+
         """
         state_tensor = torch.FloatTensor(state).unsqueeze(0)
         next_state_tensor = torch.FloatTensor(next_state).unsqueeze(0)

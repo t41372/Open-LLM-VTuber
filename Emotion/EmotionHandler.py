@@ -52,7 +52,8 @@ class EmotionHandler:
         self.high_initiative_threshold = 1.3  # Threshold for high initiatives
         self.classifier = pipeline(device='cuda', task="text-classification",
                                    model="j-hartmann/emotion-english-distilroberta-base",
-                                   return_all_scores=True)
+                                   cache_dir='.cache'
+                                   )
 
         # Q-learning parameters
         self.current_user_emotion = 'neutral'

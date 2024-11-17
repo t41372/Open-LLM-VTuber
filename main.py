@@ -7,6 +7,7 @@ from Behavior.TalkBehavior import TalkBehavior
 from OpenLLMVtuber import OpenLLMVTuberMain
 from server import WebSocketServer
 from utils.ActionSelectionQueue import ActionSelectionQueue
+from utils.InferenceQueue import InferenceQueue
 from utils.InputQueue import InputQueue
 from utils.VoiceListener import VoiceListener
 from loguru import logger
@@ -15,15 +16,18 @@ if __name__ == "__main__":
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
 
+    server = WebSocketServer(open_llm_vtuber_config=config)
+    server.start()
     vtuber_main = OpenLLMVTuberMain(config)
     listener = VoiceListener(config)
     input_queue = InputQueue()
     default_behavior = TalkBehavior()
+    inference_queue = InferenceQueue()
+    inference_queue.start()
     action_selection_queue = ActionSelectionQueue(default_behavior=default_behavior)
     config["LIVE2D"] = True  # make sure the live2d is enabled
     # Initialize and run the WebSocket server
-    server = WebSocketServer(open_llm_vtuber_config=config)
-    server.start()
+
     atexit.register(WebSocketServer.clean_cache)
     atexit.register(vtuber_main.clean_cache)
 
@@ -37,7 +41,7 @@ if __name__ == "__main__":
     while True:
         logger.critical("tts on: ", vtuber_main.config.get("TTS_ON", False))
         if not vtuber_main.config.get("TTS_ON", False):
-            print("its indeed off")
+            logger.error("its indeed off")
         else:
             input_queue.start()
             listener.start()

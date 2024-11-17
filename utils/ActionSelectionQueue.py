@@ -66,5 +66,3 @@ class ActionSelectionQueue:
                     result = action.start_action()
                 logger.info(f"Processing action: {action.__class__.__name__}")
                 logger.info(f"Action result: {result}")
-
-        # Simulate some delay between actions
