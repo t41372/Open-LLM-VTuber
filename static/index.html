@@ -50,7 +50,7 @@
         <div class="fixed-bottom" id="message"></div>
         <div class="control-buttons">
             <button id="micToggle">🎙️Mic is On</button>
-            <button id="interruptBtn">🖐️Voice Interruption On</button>
+            <button id="interruptBtn">❌Voice Interruption Off</button>
         </div>
     </div>
 
@@ -63,7 +63,7 @@
         // interrupted: When the LLM is interrupted by the user.
         let state = "idle"; // idle, thinking-speaking, interrupted
         let audioPlayer = new Audio();
-        let voiceInterruptionOn = true;
+        let voiceInterruptionOn = false;
         let fullResponse = ""; // full response from the server in one conversation chain
 
         const stateDisplay = document.getElementById('stateDisplay');
@@ -114,6 +114,8 @@
                 },
                 onSpeechEnd: (audio) => {
                     // audio: (Float32Array of audio samples at sample rate 16000)...
+                    // make sure the audio queue is empty before getting new ones
+                    audioTaskQueue.clearQueue();
 
                     if (!voiceInterruptionOn) {
                         stop_mic();

@@ -128,16 +128,33 @@ class WebSocketServer:
                     # print(f"\033\n Received ws req: {data.get('type')}\033[0m\n")
 
                     if data.get("type") == "interrupt-signal":
-                        print("Start receiving audio data from front end.")
+                        print("Received interrupt signal")
                         if conversation_task is not None:
-                            print(
-                                "\033[91mLLM hadn't finish itself. Interrupting it...",
-                                "heard response: \n",
-                                data.get("text"),
-                                "\033[0m\n",
-                            )
-                            open_llm_vtuber.interrupt(data.get("text"))
-                            # conversation_task.cancel()
+                            try:
+                                print(
+                                    "\033[91mInterrupting current conversation...",
+                                    "heard response: \n",
+                                    data.get("text"),
+                                    "\033[0m\n",
+                                )
+                                # 同步调用中断
+                                await asyncio.to_thread(
+                                    open_llm_vtuber.interrupt,
+                                    data.get("text")
+                                )
+                                
+                                # 等待当前任务完成或取消
+                                try:
+                                    await asyncio.wait_for(conversation_task, timeout=2.0)
+                                except asyncio.TimeoutError:
+                                    conversation_task.cancel()
+                                    
+                                print("Interrupt processed successfully")
+                                
+                            except Exception as e:
+                                logger.error(f"Error during interrupt: {e}")
+                                # 确保系统恢复到可用状态
+                                open_llm_vtuber._continue_exec_flag.set()
 
                     elif data.get("type") == "mic-audio-data":
                         received_data_buffer = np.append(
