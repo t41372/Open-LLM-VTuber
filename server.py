@@ -4,7 +4,7 @@ import shutil
 import atexit
 import json
 import asyncio
-from typing import List, Dict
+from typing import List, Dict, Any
 import yaml
 import numpy as np
 from fastapi import FastAPI, WebSocket, APIRouter
@@ -35,45 +35,93 @@ class WebSocketServer:
         """
         self.app = FastAPI()
         self.router = APIRouter()
-        self.new_connected_clients: List[WebSocket] = []
         self.connected_clients: List[WebSocket] = []
-        self.server_ws_clients: List[WebSocket] = []
-        self.open_llm_vtuber_main_config: Dict | None = open_llm_vtuber_main_config
+        self.open_llm_vtuber_main_config = open_llm_vtuber_main_config
+        
+        # Initialize model manager
+        self.preload_models = self.open_llm_vtuber_main_config.get("SERVER", {}).get("PRELOAD_MODELS", False)
+        if self.preload_models:
+            logger.info("Preloading ASR and TTS models...")
+            self.model_manager = ModelManager(self.open_llm_vtuber_main_config)
+            self.model_manager.initialize_models()
+        
         self._setup_routes()
         self._mount_static_files()
         self.app.include_router(self.router)
 
+    async def _handle_config_switch(self, websocket: WebSocket, config_file: str) -> tuple[Live2dModel, OpenLLMVTuberMain] | None:
+        """处理配置切换，返回新的组件实例"""
+        new_config = self._load_config_from_file(config_file)
+        if new_config:
+            try:
+                # 更新模型缓存
+                if self.preload_models:
+                    self.model_manager.update_models(new_config)
+                
+                # 更新当前配置
+                self.open_llm_vtuber_main_config.update(new_config)
+
+                # 重新初始化组件
+                l2d, open_llm_vtuber, _ = self._initialize_components(websocket)
+
+                await websocket.send_text(
+                    json.dumps({
+                        "type": "config-switched",
+                        "message": f"Switched to config: {config_file}",
+                    })
+                )
+                await websocket.send_text(
+                    json.dumps({"type": "set-model", "text": l2d.model_info})
+                )
+                logger.info(f"Configuration switched to {config_file}")
+                
+                return l2d, open_llm_vtuber
+                
+            except Exception as e:
+                logger.error(f"Error switching configuration: {e}")
+                await websocket.send_text(
+                    json.dumps({
+                        "type": "error",
+                        "message": f"Error switching configuration: {str(e)}",
+                    })
+                )
+                return None
+        return None
+
     def _initialize_components(
         self, websocket: WebSocket
     ) -> tuple[Live2dModel, OpenLLMVTuberMain, AudioPayloadPreparer]:
-        """
-        Initialize or reinitialize all necessary components with current configuration.
-
-        Args:
-            websocket: The WebSocket connection to send messages through
-
-        Returns:
-            tuple: (Live2dModel instance, OpenLLMVTuberMain instance, AudioPayloadPreparer instance)
-        """
+        """Initialize or reinitialize components with current configuration."""
         l2d = Live2dModel(self.open_llm_vtuber_main_config["LIVE2D_MODEL"])
-        open_llm_vtuber = OpenLLMVTuberMain(self.open_llm_vtuber_main_config)
+        
+        # Use cached models if available
+        custom_asr = self.model_manager.cache.get('asr') if self.preload_models else None
+        custom_tts = self.model_manager.cache.get('tts') if self.preload_models else None
+        
+        open_llm_vtuber = OpenLLMVTuberMain(
+            self.open_llm_vtuber_main_config,
+            custom_asr=custom_asr,
+            custom_tts=custom_tts
+        )
+        
         audio_preparer = AudioPayloadPreparer()
 
         # Set up the audio playback function
-        def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
+        def _websocket_audio_handler(sentence: str | None, filepath: str | None) -> None:
             if filepath is None:
-                print("No audio to be streamed. Response is empty.")
+                logger.info("No audio to be streamed. Response is empty.")
                 return
 
             if sentence is None:
                 sentence = ""
-            print(f">> Playing {filepath}...")
+            
+            logger.info(f"Playing {filepath}...")
             payload, duration = audio_preparer.prepare_audio_payload(
                 audio_path=filepath,
                 display_text=sentence,
                 expression_list=l2d.extract_emotion(sentence),
             )
-            print("Payload send.")
+            logger.info("Payload prepared")
 
             async def _send_audio():
                 await websocket.send_text(json.dumps(payload))
@@ -84,9 +132,9 @@ class WebSocketServer:
             new_loop.run_until_complete(_send_audio())
             new_loop.close()
 
-            print("Audio played.")
+            logger.info("Audio played")
 
-        open_llm_vtuber.set_audio_output_func(_play_audio_file)
+        open_llm_vtuber.set_audio_output_func(_websocket_audio_handler)
         return l2d, open_llm_vtuber, audio_preparer
 
     def _setup_routes(self):
@@ -143,7 +191,7 @@ class WebSocketServer:
                                     data.get("text")
                                 )
                                 
-                                # 等待当前任务完成或取消
+                                # 等待当前��完成或取消
                                 try:
                                     await asyncio.wait_for(conversation_task, timeout=2.0)
                                 except asyncio.TimeoutError:
@@ -210,31 +258,10 @@ class WebSocketServer:
                     elif data.get("type") == "switch-config":
                         config_file = data.get("file")
                         if config_file:
-                            new_config = self._load_config_from_file(config_file)
-                            if new_config:
-                                # Update configuration
-                                self.open_llm_vtuber_main_config.update(new_config)
-
-                                # Reinitialize components with new configuration
-                                l2d, open_llm_vtuber, _ = self._initialize_components(
-                                    websocket
-                                )
-
-                                # Send confirmation and model info
-                                await websocket.send_text(
-                                    json.dumps(
-                                        {
-                                            "type": "config-switched",
-                                            "message": f"Switched to config: {config_file}",
-                                        }
-                                    )
-                                )
-                                await websocket.send_text(
-                                    json.dumps(
-                                        {"type": "set-model", "text": l2d.model_info}
-                                    )
-                                )
-                                print(f"Configuration switched to {config_file}")
+                            result = await self._handle_config_switch(websocket, config_file)
+                            if result:
+                                l2d, open_llm_vtuber = result
+                                
                     elif data.get("type") == "fetch-backgrounds":
                         bg_files = self._scan_bg_directory()
                         await websocket.send_text(
@@ -340,6 +367,12 @@ class WebSocketServer:
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
 
+    def clean_up(self):
+        """Clean up resources before shutting down"""
+        self.clean_cache()
+        # Clear model cache
+        self.model_manager.cache.clear()
+
 
 def load_config_with_env(path) -> dict:
     """
@@ -372,6 +405,157 @@ def load_config_with_env(path) -> dict:
 
     # Load the yaml file
     return yaml.safe_load(content)
+
+
+class ModelCache:
+    """管理 ASR 和 TTS 模型的缓存"""
+    
+    def __init__(self):
+        self._cache: Dict[str, Any] = {}
+        
+    def get(self, key: str) -> Any:
+        """获取缓存的模型"""
+        return self._cache.get(key)
+        
+    def set(self, key: str, model: Any) -> None:
+        """设置缓存的模型"""
+        self._cache[key] = model
+        
+    def remove(self, key: str) -> None:
+        """移除缓存的模型"""
+        self._cache.pop(key, None)
+        
+    def clear(self) -> None:
+        """清除所有缓存的模型"""
+        self._cache.clear()
+
+class ModelManager:
+    """管理模型的初始化、更新和缓存"""
+    
+    def __init__(self, config: Dict):
+        self.config = config
+        self._old_config = config.copy()  # 保存初始配置的副本
+        self.cache = ModelCache()
+        
+    def initialize_models(self) -> None:
+        """初始化 ASR 和 TTS 模型"""
+        if self.config.get("VOICE_INPUT_ON", False):
+            self._init_asr()
+        if self.config.get("TTS_ON", False):
+            self._init_tts()
+            
+    def _init_asr(self) -> None:
+        """初始化 ASR 模型"""
+        from asr.asr_factory import ASRFactory
+        asr_model = self.config.get("ASR_MODEL")
+        asr_config = self.config.get(asr_model, {})
+        self.cache.set('asr', ASRFactory.get_asr_system(asr_model, **asr_config))
+        logger.info(f"ASR model {asr_model} loaded successfully")
+        
+    def _init_tts(self) -> None:
+        """初始化 TTS 模型"""
+        from tts.tts_factory import TTSFactory
+        tts_model = self.config.get("TTS_MODEL")
+        tts_config = self.config.get(tts_model, {})
+        self.cache.set('tts', TTSFactory.get_tts_engine(tts_model, **tts_config))
+        logger.info(f"TTS model {tts_model} loaded successfully")
+        
+    def update_models(self, new_config: Dict) -> None:
+        """根据新配置更新模型"""
+        try:
+            # 确保 _old_config 存在
+            if not hasattr(self, '_old_config'):
+                self._old_config = self.config.copy()
+                
+            # 检查并更新模型
+            if self._should_reinit_asr(new_config):
+                self.config = new_config  # 更新当前配置
+                self._update_asr()
+            if self._should_reinit_tts(new_config):
+                self.config = new_config  # 更新当前配置
+                self._update_tts()
+                
+            # 更新旧配置以供下次比较
+            self._old_config = new_config.copy()
+            self.config = new_config
+            
+        except Exception as e:
+            logger.error(f"Error during model update: {e}")
+            raise
+        
+    def _should_reinit_asr(self, new_config: Dict) -> bool:
+        """检查是否需要重新初始化 ASR"""
+        # 检查基本设置是否改变
+        if self._old_config.get("VOICE_INPUT_ON") != new_config.get("VOICE_INPUT_ON"):
+            return True
+            
+        # 检查 ASR 模型是否改变
+        old_model = self._old_config.get("ASR_MODEL")
+        new_model = new_config.get("ASR_MODEL")
+        if old_model != new_model:
+            return True
+            
+        # 如果模型相同，检查该模型的所有子配置是否改变
+        if old_model:  # 确保模型名不为空
+            old_model_config = self._old_config.get(old_model, {})
+            new_model_config = new_config.get(old_model, {})
+            
+            # 深度比较所有子配置
+            if old_model_config != new_model_config:
+                logger.info(f"ASR model {old_model} settings changed")
+                # 可以详细记录具体哪些设置发生了变化
+                for key in set(old_model_config.keys()) | set(new_model_config.keys()):
+                    if old_model_config.get(key) != new_model_config.get(key):
+                        logger.debug(f"ASR setting changed - {key}: {old_model_config.get(key)} -> {new_model_config.get(key)}")
+                return True
+                
+        return False
+        
+    def _should_reinit_tts(self, new_config: Dict) -> bool:
+        """检查是否需要重新初始化 TTS"""
+        # 检查基本设置是否改变
+        if self._old_config.get("TTS_ON") != new_config.get("TTS_ON"):
+            return True
+            
+        # 检查 TTS 模型是否改变
+        old_model = self._old_config.get("TTS_MODEL")
+        new_model = new_config.get("TTS_MODEL")
+        if old_model != new_model:
+            return True
+            
+        # 如果模型相同，检查该模型的所有子配置是否改变
+        if old_model:  # 确保模型名不为空
+            old_model_config = self._old_config.get(old_model, {})
+            new_model_config = new_config.get(old_model, {})
+            
+            # 深度比较所有子配置
+            if old_model_config != new_model_config:
+                logger.info(f"TTS model {old_model} settings changed")
+                # 可以详细记录具体哪些设置发生了变化
+                for key in set(old_model_config.keys()) | set(new_model_config.keys()):
+                    if old_model_config.get(key) != new_model_config.get(key):
+                        logger.debug(f"TTS setting changed - {key}: {old_model_config.get(key)} -> {new_model_config.get(key)}")
+                return True
+                
+        return False
+        
+    def _update_asr(self) -> None:
+        """更新 ASR 模型"""
+        if self.config.get("VOICE_INPUT_ON", False):
+            logger.info("Reinitializing ASR...")
+            self._init_asr()
+        else:
+            logger.info("ASR disabled in new configuration")
+            self.cache.remove('asr')
+            
+    def _update_tts(self) -> None:
+        """更新 TTS 模型"""
+        if self.config.get("TTS_ON", False):
+            logger.info("Reinitializing TTS...")
+            self._init_tts()
+        else:
+            logger.info("TTS disabled in new configuration")
+            self.cache.remove('tts')
 
 
 if __name__ == "__main__":
