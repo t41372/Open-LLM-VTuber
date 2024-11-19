@@ -1,6 +1,8 @@
 from actions.ActionInterface import ActionInterface
 from OpenLLMVtuber import OpenLLMVTuberMain
 
+from loguru import logger
+
 
 class TalkAction(ActionInterface):
 
@@ -20,9 +22,9 @@ class TalkAction(ActionInterface):
         try:
             with open(self.prompt_file, 'r') as file:
                 self.prompt = file.read()
-                print(f"Prompt loaded: {self.prompt}")
+                logger.info(f"Prompt loaded: {self.prompt}")
         except FileNotFoundError:
-            print(f"Prompt file {self.prompt_file} not found.")
+            logger.info(f"Prompt file {self.prompt_file} not found.")
             self.prompt = "Default prompt"
         return self.prompt
 

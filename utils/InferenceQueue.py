@@ -32,11 +32,11 @@ class InferenceQueue:
         self.thread.join()
         logger.info("InferenceQueue thread stopped.")
 
-    def add_input(self, input: str | np.ndarray):
+    def add_prompt(self, input: str | np.ndarray):
         self.queue.put(input)
         logger.info(f"Input {input} added to the queue.")
 
-    def get_input(self, number_inputs=1):
+    def get_prompt(self, number_inputs=1):
         """Gets a new input action from the Inference queue"""
         inputs_list = []
         for input_idx in range(number_inputs):

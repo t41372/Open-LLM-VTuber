@@ -236,8 +236,7 @@ class VoiceRecognitionVAD:
         detected_text = self.asr(self.samples)
         detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         if detected_text:
-            logger.info(f"{detected_speaker}{detected_text}")
-            return detected_text
+            return detected_text+detected_speaker
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead

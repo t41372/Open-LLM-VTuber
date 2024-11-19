@@ -6,6 +6,7 @@ from Behavior.generic_behavior import GenericBehavior
 from Emotion.EmotionHandler import EmotionHandler
 from actions import ActionInterface
 from OpenLLMVtuber import OpenLLMVTuberMain
+from utils.InferenceQueue import InferenceQueue
 from utils.InputQueue import InputQueue
 from loguru import logger
 
@@ -52,8 +53,9 @@ class ActionSelectionQueue:
             # If the queue is empty, use the default action
             if self.queue.empty():
                 logger.info("Queue is empty. Executing default action.")
-                result = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
-                logger.info(f"Default action result: {result}")
+                selected_action = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
+                logger.info(f"Default action result: {selected_action}")
+                self.add_action(selected_action)
             else:
                 # Fetch the next action from the queue
                 action = self.get_action()
@@ -66,3 +68,4 @@ class ActionSelectionQueue:
                     result = action.start_action()
                 logger.info(f"Processing action: {action.__class__.__name__}")
                 logger.info(f"Action result: {result}")
+                InferenceQueue().add_prompt(result)

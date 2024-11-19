@@ -4,8 +4,10 @@ from websocket import WebSocket
 
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
+from loguru import logger
 
 from translate.translate_interface import TranslateInterface
+from utils.InputQueue import InputQueue
 
 
 class VoiceListener:
@@ -29,15 +31,15 @@ class VoiceListener:
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
         self.stop_event = threading.Event()
-
+        self.input_queue = InputQueue()
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
             # if custom_asr is provided, don't init asr and use it instead.
             if custom_asr is None:
-                print("Using default ASR")
+                logger.info("Using default ASR")
                 self.asr = self.init_asr()
             else:
-                print("Using custom ASR")
+                logger.info("Using custom ASR")
                 self.asr = custom_asr
         else:
             self.asr = None
@@ -59,7 +61,7 @@ class VoiceListener:
 
     def start(self):
         """Starts the queue processing thread."""
-        print("Starting ASR thread...")
+        logger.info("Starting ASR thread...")
         self.thread.start()
 
     def get_user_input(self) -> str:
@@ -74,14 +76,12 @@ class VoiceListener:
         # and they no longer use this method
         if self.config.get("VOICE_INPUT_ON", False):
             # get audio from the local microphone
-            print("Listening from the microphone...")
-            return self.asr.transcribe_with_local_vad()
-        else:
-            return input("\n>> ")
+            logger.info("Listening from the microphone...")
+            self.input_queue.add_input(self.asr.transcribe_with_local_vad())
 
     def stop(self):
         """Stops the thread gracefully."""
         self.stop_event.set()
         self.thread.join()
-        print("Stopping VoiceListener...")
+        logger.info("Stopping VoiceListener...")
         self.running = False

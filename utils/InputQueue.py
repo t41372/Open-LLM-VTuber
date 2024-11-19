@@ -2,8 +2,9 @@ import queue
 import threading
 
 import numpy as np
+from loguru import logger
 
-
+from Emotion.EmotionHandler import EmotionHandler
 
 
 class InputQueue:
@@ -24,16 +25,19 @@ class InputQueue:
 
     def start(self):
         """Starts the queue processing thread."""
-        print("Starting InputQueue thread...")
+        logger.info("Starting InputQueue thread...")
         self.thread.start()
 
     def stop(self):
         """Stops the thread gracefully."""
         self.stop_event.set()
         self.thread.join()
-        print("InputQueue thread stopped.")
+        logger.info("InputQueue thread stopped.")
 
     def add_input(self, input: str | np.ndarray):
+        if type(input) == str:
+            classified_emotions = EmotionHandler().classify_emotion(input)
+            input += '\n' + 'user emotions:' + str(classified_emotions) + '\n'
         self.queue.put(input)
         print(f"Input {input} added to the queue.")
 
@@ -49,5 +53,3 @@ class InputQueue:
         while not self.stop_event.is_set():
             pass
         return
-
-        # Simulate some delay between actions
