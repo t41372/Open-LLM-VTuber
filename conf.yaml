@@ -1,4 +1,4 @@
-CONF_VERSION: "v0.4.0-alpha.1"
+CONF_VERSION: "v0.4.0-alpha.2"
 # Server
 PROTOCAL: "http://"
 HOST: "localhost"
@@ -98,7 +98,7 @@ VOICE_INPUT_ON: True
 MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR"
-ASR_MODEL: "Faster-Whisper"
+ASR_MODEL: "FunASR"
 
 AzureASR:
   api_key: "azure_api_key"
@@ -106,9 +106,10 @@ AzureASR:
 
 # Faster whisper config
 Faster-Whisper:
-  model_path: "distil-medium.en"
+  model_path: "distil-medium.en" # distil-medium.en is an English-only model 
+  #                               use distil-large-v3 if you have a good GPU
   download_root: "asr/models"
-  language: "en"
+  language: "en" # en, zh, or something else. put nothing for auto-detect.
   device: "auto" # cpu, cuda, or auto. faster-whisper doesn't support mps
 
 WhisperCPP:
@@ -125,11 +126,15 @@ Whisper:
   download_root: "asr/models"
   device: "cpu"
 
+# FunASR currently needs internet connection on launch
+# to download / check the models. You can disconnect the internet after initialization.
+# Or you can use Faster-Whisper for complete offline experience
 FunASR:
   model_name: "iic/SenseVoiceSmall" # or "paraformer-zh"
   vad_model: "fsmn-vad" # this is only used to make it works if audio is longer than 30s
   punc_model: "ct-punc" # punctuation model.
   device: "cpu"
+  disable_update: True # should we check FunASR updates everytime on launch
   ncpu: 4 # number of threads for CPU internal operations.
   hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
   use_itn: False
