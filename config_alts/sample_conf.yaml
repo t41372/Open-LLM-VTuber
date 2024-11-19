@@ -4,10 +4,10 @@
 LIVE2D_MODEL: "player_unit_00003"
 
 # TTS Settings
-TTS_ON: True
-TTS_MODEL: "edgeTTS"
-edgeTTS:
-  voice: "en-US-AnaNeural"
+# TTS_ON: True
+# TTS_MODEL: "edgeTTS"
+# edgeTTS:
+#   voice: "en-US-JennyNeural"
 
 # # ASR Settings
 # VOICE_INPUT_ON: True

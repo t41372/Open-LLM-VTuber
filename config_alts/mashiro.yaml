@@ -1,13 +1,13 @@
 # Alternative Configuration Example
 
 # Live2D Settings
-LIVE2D_MODEL: "player_unit_00003"
+LIVE2D_MODEL: "mashiro"
 
 # TTS Settings
-TTS_ON: True
-TTS_MODEL: "edgeTTS"
-edgeTTS:
-  voice: "en-US-JennyNeural"
+# TTS_ON: True
+# TTS_MODEL: "edgeTTS"
+# edgeTTS:
+#   voice: "en-US-AnaNeural"
 
 # # ASR Settings
 # VOICE_INPUT_ON: True
