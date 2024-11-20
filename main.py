@@ -374,134 +374,130 @@ class OpenLLMVTuberMain:
     def speak_by_sentence_chain(self, chat_completion: Iterator[str]) -> str:
         """
         Generate and play the chat completion sentences one by one using the TTS engine.
+        Now properly handles interrupts in a multi-threaded environment using the existing _continue_exec_flag.
         """
         task_queue = queue.Queue()
         full_response = [""]  # Use a list to store the full response
         interrupted_error_event = threading.Event()
-        
-        # Reset state at the start of each conversation chain
-        self.heard_sentence = ""
-        
+
         def producer_worker():
             try:
+                index = 0
                 sentence_buffer = ""
-                
+
                 for char in chat_completion:
                     if not self._continue_exec_flag.is_set():
                         raise InterruptedError("Producer interrupted")
-                    
+
                     if char:
                         print(char, end="", flush=True)
                         sentence_buffer += char
                         full_response[0] += char
                         if self.is_complete_sentence(sentence_buffer):
-                            if not self._continue_exec_flag.is_set():
-                                raise InterruptedError("Producer interrupted")
-                                
                             if self.verbose:
                                 print("\n")
-                                
-                            tts_target_sentence = sentence_buffer
-                            
-                            if self.translator and self.config.get("TRANSLATE_AUDIO", False):
-                                print("Translating...")
-                                tts_target_sentence = self.translator.translate(tts_target_sentence)
-                                print(f"Translated: {tts_target_sentence}")
-                                
-                            audio_filepath = self._generate_audio_file(
-                                tts_target_sentence, 
-                                file_name_no_ext=uuid.uuid4()
-                            )
-                            
                             if not self._continue_exec_flag.is_set():
-                                if audio_filepath:
-                                    try:
-                                        os.remove(audio_filepath)
-                                    except Exception as e:
-                                        print(f"Error removing audio file: {e}")
                                 raise InterruptedError("Producer interrupted")
-                                
-                            task_queue.put({
+                            tts_target_sentence = sentence_buffer
+
+                            if self.translator and self.config.get(
+                                "TRANSLATE_AUDIO", False
+                            ):
+                                print("Translating...")
+                                tts_target_sentence = self.translator.translate(
+                                    tts_target_sentence
+                                )
+                                print(f"Translated: {tts_target_sentence}")
+
+                            audio_filepath = self._generate_audio_file(
+                                tts_target_sentence, file_name_no_ext=uuid.uuid4()
+                            )
+
+                            if not self._continue_exec_flag.is_set():
+                                raise InterruptedError("Producer interrupted")
+                            audio_info = {
                                 "sentence": sentence_buffer,
-                                "audio_filepath": audio_filepath
-                            })
+                                "audio_filepath": audio_filepath,
+                            }
+                            task_queue.put(audio_info)
+                            index += 1
                             sentence_buffer = ""
-                            
+
                 # Handle any remaining text in the buffer
-                if sentence_buffer and self._continue_exec_flag.is_set():
+                if sentence_buffer:
+                    if not self._continue_exec_flag.is_set():
+                        raise InterruptedError("Producer interrupted")
                     print("\n")
                     audio_filepath = self._generate_audio_file(
-                        sentence_buffer, 
-                        file_name_no_ext=uuid.uuid4()
+                        sentence_buffer, file_name_no_ext=uuid.uuid4()
                     )
-                    task_queue.put({
+                    audio_info = {
                         "sentence": sentence_buffer,
-                        "audio_filepath": audio_filepath
-                    })
-                    
+                        "audio_filepath": audio_filepath,
+                    }
+                    task_queue.put(audio_info)
+
             except InterruptedError:
                 print("\nProducer interrupted")
                 interrupted_error_event.set()
-                # Clear any remaining items in the queue
-                while not task_queue.empty():
-                    try:
-                        item = task_queue.get_nowait()
-                        if item and item.get("audio_filepath"):
-                            try:
-                                os.remove(item["audio_filepath"])
-                            except Exception as e:
-                                print(f"Error removing audio file: {e}")
-                    except queue.Empty:
-                        break
-                return
+                return  # Exit the function
             except Exception as e:
-                print(f"Producer error: {e}")
-                interrupted_error_event.set()
+                print(
+                    f"Producer error: Error generating audio for sentence: '{sentence_buffer}'.\n{e}",
+                    "Producer stopped\n",
+                )
                 return
             finally:
                 task_queue.put(None)  # Signal end of production
 
         def consumer_worker():
+            self.heard_sentence = ""
+
             while True:
+
                 try:
                     if not self._continue_exec_flag.is_set():
-                        raise InterruptedError("Consumer interrupted")
-                        
-                    audio_info = task_queue.get(timeout=0.1)
+                        raise InterruptedError("😱Consumer interrupted")
+
+                    audio_info = task_queue.get(
+                        timeout=0.1
+                    )  # Short timeout to check for interrupts
                     if audio_info is None:
-                        break
-                        
+                        break  # End of production
                     if audio_info:
                         self.heard_sentence += audio_info["sentence"]
                         self._play_audio_file(
                             sentence=audio_info["sentence"],
-                            filepath=audio_info["audio_filepath"]
+                            filepath=audio_info["audio_filepath"],
                         )
                     task_queue.task_done()
-                    
                 except queue.Empty:
-                    continue
+                    continue  # No item available, continue checking for interrupts
                 except InterruptedError as e:
                     print(f"\n{str(e)}, stopping worker threads")
                     interrupted_error_event.set()
-                    return
+                    return  # Exit the function
                 except Exception as e:
-                    print(f"Consumer error: {e}")
+                    print(
+                        f"Consumer error: Error playing sentence '{audio_info['sentence']}'.\n {e}"
+                    )
                     continue
 
         producer_thread = threading.Thread(target=producer_worker)
         consumer_thread = threading.Thread(target=consumer_worker)
-        
+
         producer_thread.start()
         consumer_thread.start()
-        
+
         producer_thread.join()
         consumer_thread.join()
-        
+
         if interrupted_error_event.is_set():
             self._interrupt_post_processing()
-            raise InterruptedError("Conversation chain interrupted")
-            
+            raise InterruptedError(
+                "Conversation chain interrupted: consumer model interrupted"
+            )
+
         print("\n\n --- Audio generation and playback completed ---")
         return full_response[0]
 
@@ -513,16 +509,12 @@ class OpenLLMVTuberMain:
         - heard_sentence (str): The sentence that was already shown or heard by the user before the interrupt.
             (because apparently the user won't know the rest of the response.)
         """
-        try:
-            self._continue_exec_flag.clear()
-            self.llm.handle_interrupt(heard_sentence)
-        finally:
-            # 确保标志最终会被重置，防止系统卡在中断状态
-            self._interrupt_post_processing()
+        self._continue_exec_flag.clear()
+        self.llm.handle_interrupt(heard_sentence)
 
     def _interrupt_post_processing(self) -> None:
-        """Perform post-processing tasks after an interrupt."""
-        self._continue_exec_flag.set()
+        """Perform post-processing tasks (like resetting the continue flag to allow next conversation chain to start) after an interrupt."""
+        self._continue_exec_flag.set()  # Reset the interrupt flag
 
     def _check_interrupt(self):
         """Check if we are in an interrupt state and raise an exception if we are."""
@@ -635,40 +627,40 @@ class OpenLLMVTuberMain:
 def load_config_with_env(path) -> dict:
     """
     Load the configuration file with environment variables.
-
+    
     Parameters:
     - path (str): The path to the configuration file.
-
+    
     Returns:
     - dict: The configuration dictionary.
-
+    
     Raises:
     - FileNotFoundError if the configuration file is not found.
     - yaml.YAMLError if the configuration file is not a valid YAML file.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"Config file not found: {path}")
-
+        
     # Try common encodings first
-    encodings = ["utf-8", "utf-8-sig", "gbk", "gb2312", "ascii"]
+    encodings = ['utf-8', 'utf-8-sig', 'gbk', 'gb2312', 'ascii']
     content = None
-
+    
     for encoding in encodings:
         try:
-            with open(path, "r", encoding=encoding) as file:
+            with open(path, 'r', encoding=encoding) as file:
                 content = file.read()
                 break
         except UnicodeDecodeError:
             continue
-
+            
     if content is None:
         # Try detecting encoding as last resort
         try:
-            with open(path, "rb") as file:
+            with open(path, 'rb') as file:
                 raw_data = file.read()
             detected = chardet.detect(raw_data)
-            if detected["encoding"]:
-                content = raw_data.decode(detected["encoding"])
+            if detected['encoding']:
+                content = raw_data.decode(detected['encoding'])
         except Exception as e:
             logger.error(f"Error detecting encoding for config file {path}: {e}")
             raise UnicodeError(f"Failed to decode config file {path} with any encoding")
