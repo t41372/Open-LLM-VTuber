@@ -7,22 +7,21 @@
 [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) 
 [![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)
 
-[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/yi.ting) [![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)
+[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/yi.ting) [![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx) <- (Clickable links)
 
 
 (QQ群: 792615362）
-
+> 常见问题 Common Issues doc (Written in Chinese): https://docs.qq.com/doc/DTHR6WkZ3aU9JcXpy
+>
 > User Survey: https://forms.gle/w6Y6PiHTZr1nzbtWA
 >
 > 调查问卷(中文)(现在不用登入了): https://wj.qq.com/s2/16150415/f50a/
 
 
-> :warning: **Read this if you are updating from an old version without the voice interruption feature**:
-> The latest version changed how to open the live2d server and the backend: `server.py` now launches everything it needs (except the browser). To run with Live2D and the browser, launch `server.py` and open the web page in the browser. You no longer need to run `main.py` with the `server.py`. Running `server.py` assumes Live2D mode with the browser, and running `main.py` assumes no Live2D mode without the browser. In addition, options `MIC-IN-BROWSER` and `LIVE2D` in the configuration file no longer have any effects and have been deprecated due to the changes in the backend.
 
 > :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
 
-> :warning: This project currently **has a lot of issues on Windows**. In theory, it should all work, but many people using Windows have many problems with many dependencies. I might fix those features in the future, but Windows support currently requires testing and debugging. If you have a Mac or a Linux machine, use them instead for the time being. Join the Discord server if you need help or to get updates about this project.
+> :warning: This project is **NOT** easy to install. Join the Discord server or QQ group if you need help or to get updates about this project.
 
 > :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you might want to configure https with a reverse proxy if you want to access the page on a remote machine (non-localhost).
 
@@ -54,6 +53,13 @@ https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
 [BiliBili](https://www.bilibili.com/video/BV1krHUeRE98/), [YouTube](https://youtu.be/cb5anPTNklw)
 
 
+### Installation Tutorial
+
+中文安装教学:
+- [BiliBili](https://www.bilibili.com/video/BV1GYSrYKE8i/) (v0.2.4)
+
+English Installation Tutorial:
+- We don't have it yet.
 
 
 
@@ -85,6 +91,7 @@ https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
 - Windows
 
 ### Recent Feature Updates
+... A lot more. Update notes are now locate in GitHub Release.
 - [Sep 17, 2024] Added DeepLX translation to change the language for audio
 - [Sep 6, 2024] Added GroqWhisperASR
 - [Sep 5, 2024] Better Docker support
