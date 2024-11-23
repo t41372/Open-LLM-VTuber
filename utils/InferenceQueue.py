@@ -16,22 +16,9 @@ class InferenceQueue:
 
     def __init__(self):
         self.queue = queue.Queue()
-        self.thread = threading.Thread(target=self.run)
         self.stop_event = threading.Event()
 
     # Default action to be executed if the queue is empty
-
-    def start(self):
-        """Starts the queue processing thread."""
-        logger.info("Starting InferenceQueue thread...")
-        self.thread.start()
-
-    def stop(self):
-        """Stops the thread gracefully."""
-        self.stop_event.set()
-        self.thread.join()
-        logger.info("InferenceQueue thread stopped.")
-
     def add_prompt(self, input: str | np.ndarray):
         self.queue.put(input)
         logger.info(f"Input {input} added to the queue.")
@@ -42,11 +29,5 @@ class InferenceQueue:
         for input_idx in range(number_inputs):
             inputs_list.append(self.queue.get())
         return inputs_list
-
-    def run(self):
-        """Run the queue processor in a separate thread."""
-        while not self.stop_event.is_set():
-            pass
-        return
 
         # Simulate some delay between actions

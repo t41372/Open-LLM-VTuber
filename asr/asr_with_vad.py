@@ -31,7 +31,6 @@ SOFTWARE.
 This modified version is also distributed under the MIT License.
 """
 
-import threading
 import queue
 from pathlib import Path
 from typing import Callable, List
@@ -69,7 +68,7 @@ class IdentifySpeaker:
         return cls._instance
 
     def identify_speaker(self, audio_path):
-        return "user - GoldRoger:"
+        return "GoldRoger:"
 
 
 class VoiceRecognitionVAD:
@@ -158,9 +157,9 @@ class VoiceRecognitionVAD:
             str: The transcribed text
         """
         self.input_stream.start()
-        logger.info("Starting Listening...")
-        logger.info("Listening Running")
-        return self._listen_and_respond(returnText=True)
+        heard_text= self._listen_and_respond(returnText=True)
+        self.reset()
+        return heard_text
 
     def _listen_and_respond(self, returnText=False):
         """
@@ -171,7 +170,6 @@ class VoiceRecognitionVAD:
             sample, vad_confidence = self.sample_queue.get()
             result = self._handle_audio_sample(sample, vad_confidence)
             if result:
-                self.reset()
                 return result
 
     def _handle_audio_sample(self, sample, vad_confidence):
@@ -236,7 +234,7 @@ class VoiceRecognitionVAD:
         detected_text = self.asr(self.samples)
         detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         if detected_text:
-            return detected_text+detected_speaker
+            return detected_speaker+detected_text
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead
@@ -262,4 +260,3 @@ class VoiceRecognitionVAD:
         self.gap_counter = 0
         with self.buffer.mutex:
             self.buffer.queue.clear()
-        self.start_listening()

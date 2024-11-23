@@ -50,10 +50,9 @@ class EmotionHandler:
         self.repeated_tone_count = 0
         self.random_factor = 0.3  # Starting at 30% for randomness
         self.high_initiative_threshold = 1.3  # Threshold for high initiatives
-        self.classifier = pipeline(device='cuda', task="text-classification",
-                                   model="j-hartmann/emotion-english-distilroberta-base",
-                                   cache_dir='./cache'
-                                   )
+        self.classifier = pipeline(device='cuda' if torch.cuda.is_available() else -1, task="text-classification",
+                                   model="j-hartmann/emotion-english-distilroberta-base"
+                                       )
 
         # Q-learning parameters
         self.current_user_emotion = 'neutral'
@@ -75,11 +74,13 @@ class EmotionHandler:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.loss_fn = nn.MSELoss()
 
-    def classify_emotion(self, input_text):
+    async def classify_emotion(self, input_text):
         """Stub for emotion classifier."""
+        if input_text is None:
+            return None
         classified_emotion = sorted(self.classifier(input_text), key=lambda x: x['score'])
         logger.critical(f"classified_emotion:{classified_emotion}")
-        return classified_emotion[0].key()
+        return classified_emotion
 
     def choose_emotions_based_on_initiative(self):
         """

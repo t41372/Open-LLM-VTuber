@@ -1,6 +1,8 @@
+import asyncio
 import threading
 
 import queue
+import time
 
 from Behavior.generic_behavior import GenericBehavior
 from Emotion.EmotionHandler import EmotionHandler
@@ -50,18 +52,28 @@ class ActionSelectionQueue:
     def run(self):
         """Run the queue processor in a separate thread."""
         while not self.stop_event.is_set():
+            if self.pause_event.is_set():  # Handle pause
+                logger.info("Action selection paused.")
+                self.thread.join()
+                continue
+
             # If the queue is empty, use the default action
             if self.queue.empty():
                 logger.info("Queue is empty. Executing default action.")
                 selected_action = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
-                logger.info(f"Default action result: {selected_action}")
                 self.add_action(selected_action)
             else:
                 # Fetch the next action from the queue
                 action = self.get_action()
                 if action.requires_input:
-                    current_input = (InputQueue().get_input())[0]
-                    result = action.start_action() + '{user} input: ' + current_input
+                    try:
+                        # Directly run the async method and retrieve its result
+                        current_input = InputQueue().get_input()
+                        result = action.start_action() + '{user} input: ' + current_input[0]
+                    except Exception as e:
+                        logger.error(f"Error fetching input: {e}")
+                        continue
+
                     if action.not_is_blocking_action:
                         OpenLLMVTuberMain().not_is_blocking_event.set()
                 else:

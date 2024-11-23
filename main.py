@@ -1,7 +1,9 @@
 import atexit
 import threading
 
+import torch
 import yaml
+from transformers import pipeline
 
 from Behavior.TalkBehavior import TalkBehavior
 from OpenLLMVtuber import OpenLLMVTuberMain
@@ -25,10 +27,9 @@ if __name__ == "__main__":
     input_queue = InputQueue()
     default_behavior = TalkBehavior()
     inference_queue = InferenceQueue()
-    inference_queue.start()
-    input_queue.start()
     action_selection_queue = ActionSelectionQueue(default_behavior=default_behavior)
-    config["LIVE2D"] = True  # make sure the live2d is enabled
+    config["LIVE2D"] = True
+    # make sure the live2d is enabled
     # Initialize and run the WebSocket server
 
     atexit.register(WebSocketServer.clean_cache)
@@ -41,8 +42,6 @@ if __name__ == "__main__":
         except InterruptedError as e:
             logger.error(f"😢Conversation was interrupted. {e}")
             listener.stop()
-
-
     while True:
         logger.critical("tts on: ", vtuber_main.config.get("TTS_ON", False))
         if not vtuber_main.config.get("TTS_ON", False):
