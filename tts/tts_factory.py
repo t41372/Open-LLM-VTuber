@@ -64,6 +64,21 @@ class TTSFactory:
                 speaker_wav=kwargs.get("speaker_wav"),
                 language=kwargs.get("language"),
             )
+        elif engine_type == "GPT_Sovits":
+            from .GPT_Sovits import TTSEngine as GSVEngine
+
+            return GSVEngine(
+                api_url=kwargs.get("api_url"),
+                text_lang=kwargs.get("text_lang"),
+                ref_audio_path=kwargs.get("ref_audio_path"),
+                prompt_lang=kwargs.get("prompt_lang"),
+                prompt_text=kwargs.get("prompt_text"),
+                text_split_method=kwargs.get("text_split_method"),
+                batch_size=kwargs.get("batch_size"),
+                media_type=kwargs.get("media_type"),
+                streaming_mode=kwargs.get("streaming_mode"),
+            )
+
         elif engine_type == "coquiTTS":
             from .coquiTTS import TTSEngine as CoquiTTSEngine
             
