@@ -1,8 +1,13 @@
-CONF_VERSION: "v0.3.0-alpha.1"
+CONF_VERSION: "v0.4.0-alpha.1"
 # Server
 PROTOCAL: "http://"
 HOST: "localhost"
 PORT: 12393
+
+# Server Settings
+SERVER:
+  # If true, ASR and TTS will be initialized when server starts and kept in memory
+  PRELOAD_MODELS: True
 
 #  ============== LLM Backend Settings ===================
 
