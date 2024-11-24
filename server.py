@@ -42,6 +42,9 @@ class WebSocketServer:
         self.preload_models = self.open_llm_vtuber_main_config.get("SERVER", {}).get("PRELOAD_MODELS", False)
         if self.preload_models:
             logger.info("Preloading ASR and TTS models...")
+            logger.info("Using: " + str(self.open_llm_vtuber_main_config.get("ASR_MODEL")))
+            logger.info("Using: " + str(self.open_llm_vtuber_main_config.get("TTS_MODEL")))
+            
             self.model_manager = ModelManager(self.open_llm_vtuber_main_config)
             self.model_manager.initialize_models()
         

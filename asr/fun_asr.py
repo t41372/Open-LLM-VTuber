@@ -1,11 +1,11 @@
+import io
+import re
+import torch
 import numpy as np
+import soundfile as sf
 from funasr import AutoModel
 from .asr_interface import ASRInterface
 
-import re
-import soundfile as sf
-import io
-import torch
 
 # paraformer-zh is a multi-functional asr model
 # use vad, punc, spk or not as you need
@@ -22,6 +22,7 @@ class VoiceRecognition(ASRInterface):
         ncpu: int = None,
         hub: str = None,
         device: str = "cpu",
+        disable_update: bool = True,
         sample_rate: int = 16000,
         use_itn: bool = False,
     ) -> None:
@@ -32,6 +33,7 @@ class VoiceRecognition(ASRInterface):
             ncpu=ncpu,
             hub=hub,
             device=device,
+            disable_update=disable_update,
             punc_model=punc_model,
             # spk_model="cam++",
         )
