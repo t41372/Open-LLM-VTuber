@@ -37,6 +37,10 @@
         <button id="stateDisplay">Status: loading</button>
         <button id="pointerInteractionBtn">👀 Pointer Interactive On</button>
         <input type="text" id="wsUrl" placeholder="WebSocket URL">
+        <div class="sensitivity-container">
+            <span class="sensitivity-label">Speech Prob. Threshold:</span>
+            <input type="number" id="speechProbThreshold" min="1" max="100" value="99" title="Speech Detection Confidence Level Threshold (%)">
+        </div>
         <select id="configDropdown" aria-label="Configuration Selection">
             <option value="">Select Configuration</option>
         </select>
@@ -90,9 +94,12 @@
 
         let myvad;
         let previousTriggeredProbability = 0; // the possibility that triggered the last speech start
+        let speechProbThreshold = document.getElementById('speechProbThreshold');
+
         async function init_vad() {
             myvad = await vad.MicVAD.new({
-                preSpeechPadFrames: 10,
+                preSpeechPadFrames: 20,
+                positiveSpeechThreshold: speechProbThreshold.value / 100,
                 onSpeechStart: () => {
                     console.log("Speech start detected: " + previousTriggeredProbability);
                     if (state === "thinking-speaking") {
@@ -128,6 +135,16 @@
                 }
             });
         }
+
+        speechProbThreshold.addEventListener('change', async function() {
+            if (myvad) {
+                await myvad.pause();
+                await init_vad();
+                if (micToggleState) {
+                    await myvad.start();
+                }
+            }
+        });
 
         const chunkSize = 4096;
         async function sendAudioPartition(audio) {

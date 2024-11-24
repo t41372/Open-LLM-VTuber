@@ -122,3 +122,19 @@ select:focus {
   outline: none;
   border-color: #005f7f;
 }
+
+.sensitivity-container {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(0, 95, 127, 0.8);
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin: 0 5px;
+}
+
+.sensitivity-label {
+    color: white;
+    margin-right: 5px;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
