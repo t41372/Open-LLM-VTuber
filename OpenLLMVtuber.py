@@ -51,7 +51,7 @@ class OpenLLMVTuberMain:
 
     def __init__(
             self,
-            configs: dict | None,
+            configs: dict | None = None,
             custom_tts: "TTSInterface" = None,
             websocket: Optional["WebSocket"] = None,
     ) -> None:
@@ -268,7 +268,6 @@ class OpenLLMVTuberMain:
         Returns:
         - str: The full response from the LLM
         """
-        full_response = ""
         if self.config.get("SAY_SENTENCE_SEPARATELY", True):
             full_response = self.speak_by_sentence_chain(chat_completion)
         else:  # say the full response at once? how stupid

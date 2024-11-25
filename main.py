@@ -11,6 +11,7 @@ from server import WebSocketServer
 from utils.ActionSelectionQueue import ActionSelectionQueue
 from utils.InferenceQueue import InferenceQueue
 from utils.InputQueue import InputQueue
+from utils.OutputQueue import OutputQueue
 from utils.VoiceListener import VoiceListener
 from loguru import logger
 
@@ -39,6 +40,9 @@ if __name__ == "__main__":
     def _run_conversation_chain():
         try:
             action_selection_queue.start()
+            with InferenceQueue().get_prompt() as prompt:
+                inference_result=OpenLLMVTuberMain().conversation_chain(prompt)
+                OutputQueue().add_output(inference_result)
         except InterruptedError as e:
             logger.error(f"😢Conversation was interrupted. {e}")
             listener.stop()

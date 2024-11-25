@@ -9,7 +9,6 @@ class InferenceQueue:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
-        # Ensure only one instance of EmotionHandler is created
         if cls._instance is None:
             cls._instance = super(InferenceQueue, cls).__new__(cls)
         return cls._instance
@@ -18,10 +17,9 @@ class InferenceQueue:
         self.queue = queue.Queue()
         self.stop_event = threading.Event()
 
-    # Default action to be executed if the queue is empty
     def add_prompt(self, input: str | np.ndarray):
         self.queue.put(input)
-        logger.info(f"Input {input} added to the queue.")
+        logger.info("Input added to the inference queue.")
 
     def get_prompt(self, number_inputs=1):
         """Gets a new input action from the Inference queue"""
@@ -30,4 +28,3 @@ class InferenceQueue:
             inputs_list.append(self.queue.get())
         return inputs_list
 
-        # Simulate some delay between actions
