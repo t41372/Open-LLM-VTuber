@@ -37,7 +37,11 @@ class WebSocketServer:
             self.model_manager.initialize_models()
 
         # Initialize OpenLLMVTuberMain instance
-        self.open_llm_vtuber_main = OpenLLMVTuberMain(self.open_llm_vtuber_main_config)
+        self.open_llm_vtuber_main = OpenLLMVTuberMain(
+            self.open_llm_vtuber_main_config,
+            custom_asr=self.model_manager.cache.get('asr') if self.preload_models else None,
+            custom_tts=self.model_manager.cache.get('tts') if self.preload_models else None
+        )
         self.open_llm_vtuber_main.websocket_server = self 
         
         # 设置全局vtuber_main实例

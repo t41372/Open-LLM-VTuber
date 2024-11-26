@@ -335,6 +335,7 @@ class OpenLLMVTuberMain:
                                     "REMOVE_SPECIAL_CHAR", True
                                 ),
                             )
+                        print("tts_target_sentence:"+tts_target_sentence)
                         audio_info = self._prepare_audio(tts_target_sentence)
                         if audio_info:
                             self._processing_audio.set()
@@ -342,7 +343,20 @@ class OpenLLMVTuberMain:
                         sentence_buffer = ""
 
                 if sentence_buffer.strip():
-                    audio_info = self._prepare_audio(sentence_buffer)
+                    tts_target_sentence=sentence_buffer
+                    tts_target_sentence = audio_filter(
+                            tts_target_sentence,
+                            translator=(
+                                self.translator
+                                if self.config.get("TRANSLATE_AUDIO", False)
+                                else None
+                            ),
+                            remove_special_char=self.config.get(
+                                "REMOVE_SPECIAL_CHAR", True
+                            ),
+                        )
+                    audio_info = self._prepare_audio(tts_target_sentence)
+                    
                     if audio_info:
                         self._processing_audio.set()
                         task_queue.put(audio_info)
