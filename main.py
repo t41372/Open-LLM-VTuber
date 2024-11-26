@@ -25,6 +25,7 @@ from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 from translate.translate_interface import TranslateInterface
 from translate.translate_factory import TranslateFactory
+from utils.audio_preprocessor import audio_filter
 
 
 class OpenLLMVTuberMain:
@@ -400,14 +401,17 @@ class OpenLLMVTuberMain:
                                 raise InterruptedError("Producer interrupted")
                             tts_target_sentence = sentence_buffer
 
-                            if self.translator and self.config.get(
-                                "TRANSLATE_AUDIO", False
-                            ):
-                                print("Translating...")
-                                tts_target_sentence = self.translator.translate(
-                                    tts_target_sentence
-                                )
-                                print(f"Translated: {tts_target_sentence}")
+                            tts_target_sentence = audio_filter(
+                                tts_target_sentence,
+                                translator=(
+                                    self.translator
+                                    if self.config.get("TRANSLATE_AUDIO", False)
+                                    else None
+                                ),
+                                remove_special_char=self.config.get(
+                                    "REMOVE_SPECIAL_CHAR", True
+                                ),
+                            )
 
                             audio_filepath = self._generate_audio_file(
                                 tts_target_sentence, file_name_no_ext=uuid.uuid4()
@@ -627,40 +631,40 @@ class OpenLLMVTuberMain:
 def load_config_with_env(path) -> dict:
     """
     Load the configuration file with environment variables.
-    
+
     Parameters:
     - path (str): The path to the configuration file.
-    
+
     Returns:
     - dict: The configuration dictionary.
-    
+
     Raises:
     - FileNotFoundError if the configuration file is not found.
     - yaml.YAMLError if the configuration file is not a valid YAML file.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"Config file not found: {path}")
-        
+
     # Try common encodings first
-    encodings = ['utf-8', 'utf-8-sig', 'gbk', 'gb2312', 'ascii']
+    encodings = ["utf-8", "utf-8-sig", "gbk", "gb2312", "ascii"]
     content = None
-    
+
     for encoding in encodings:
         try:
-            with open(path, 'r', encoding=encoding) as file:
+            with open(path, "r", encoding=encoding) as file:
                 content = file.read()
                 break
         except UnicodeDecodeError:
             continue
-            
+
     if content is None:
         # Try detecting encoding as last resort
         try:
-            with open(path, 'rb') as file:
+            with open(path, "rb") as file:
                 raw_data = file.read()
             detected = chardet.detect(raw_data)
-            if detected['encoding']:
-                content = raw_data.decode(detected['encoding'])
+            if detected["encoding"]:
+                content = raw_data.decode(detected["encoding"])
         except Exception as e:
             logger.error(f"Error detecting encoding for config file {path}: {e}")
             raise UnicodeError(f"Failed to decode config file {path} with any encoding")
