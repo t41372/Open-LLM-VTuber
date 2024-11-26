@@ -65,7 +65,7 @@ sequenceDiagram
 
 ~~~json
 {
-	"type": "text_input",
+	"type": "text-input",
 	"text": "some text"
 }
 ~~~

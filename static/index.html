@@ -52,10 +52,14 @@
     <canvas id="canvas"></canvas>
 
     <div class="bottom-container">
-        <div class="fixed-bottom" id="message"></div>
+        <div class="fixed-bottom">
+            <div id="message"></div>
+            <input type="text" id="textInput" class="hidden" placeholder="Type your message here...">
+        </div>
         <div class="control-buttons">
             <button id="micToggle">🎙️Mic is On</button>
             <button id="interruptBtn">❌Voice Interruption Off</button>
+            <button id="sendText">📝Show Text Input</button>
         </div>
     </div>
 
@@ -442,6 +446,42 @@
 
         // Initialize WebSocket connection
         connectWebSocket();
+
+        // Add this after other event listeners
+        const textInput = document.getElementById('textInput');
+        const sendText = document.getElementById('sendText');
+
+        function handleTextSubmit() {
+            const text = textInput.value;
+            if (text && ws && ws.readyState === WebSocket.OPEN) {
+                if (state === "thinking-speaking") {
+                    interrupt();
+                } else {
+                    console.log("😀👍 Not interrupted. Just normal conversation");
+                }
+                ws.send(JSON.stringify({
+                    type: "text-input",
+                    text: text
+                }));
+                textInput.value = '';
+                audioTaskQueue.clearQueue();
+            }
+        }
+
+        // 修改发送按钮的点击事件为切换显示/隐藏
+        let textInputVisible = false;
+        sendText.addEventListener('click', function() {
+            textInputVisible = !textInputVisible;
+            textInput.classList.toggle('hidden');
+            sendText.textContent = textInputVisible ? "📝Hide Text Input" : "📝Show Text Input";
+        });
+
+        // 添加回车键发送功能
+        textInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleTextSubmit();
+            }
+        });
     </script>
 </body>
 

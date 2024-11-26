@@ -63,14 +63,12 @@ body {
   background-color: rgba(33, 33, 33, 0.8);
   color: white;
   text-align: left;
-  padding: 15px;
+  padding: 1em;
   box-sizing: border-box;
   max-height: 30vh;
   overflow-y: auto;
   font-size: 2em;
-  /* Larger font size for the message */
   line-height: 1.4;
-  /* Improved line spacing */
 }
 
 .control-buttons {
@@ -137,4 +135,27 @@ select:focus {
     margin-right: 5px;
     font-size: 14px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+#textInput {
+  width: 90%;
+  margin: 0.3em 5%;
+  padding: 0.7em;
+  font-size: 0.7em;
+  background-color: rgba(33, 33, 33, 0.7);
+  border: 0.1em solid rgba(128, 128, 128, 0.5);
+  border-radius: 0.3em;
+  color: white;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+#textInput:focus {
+  outline: none;
+  border-color: rgba(128, 128, 128, 0.8);
+  background-color: rgba(33, 33, 33, 0.8);
+}
+
+.hidden {
+    display: none;
 }

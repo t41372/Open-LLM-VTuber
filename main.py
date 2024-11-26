@@ -8,7 +8,6 @@ import threading
 import queue
 import uuid
 from typing import Callable, Iterator, Optional
-from fastapi import WebSocket
 from loguru import logger
 import numpy as np
 import yaml
@@ -48,13 +47,11 @@ class OpenLLMVTuberMain:
         configs: dict,
         custom_asr: ASRInterface | None = None,
         custom_tts: TTSInterface | None = None,
-        websocket: WebSocket | None = None,
     ) -> None:
         logger.info(f"t41372/Open-LLM-VTuber, version {__init__.__version__}")
 
         self.config: dict = configs
         self.verbose = self.config.get("VERBOSE", False)
-        self.websocket = websocket
         self.live2d: Live2dModel | None = self.init_live2d()
         self._continue_exec_flag = threading.Event()
         self._continue_exec_flag.set()  # Set the flag to continue execution
