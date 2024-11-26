@@ -7,12 +7,16 @@ import atexit
 import threading
 import queue
 import uuid
-from typing import Callable, Iterator, Optional
-from fastapi import WebSocket
+from typing import Callable, Iterator, Optional, Dict
+from fastapi import FastAPI, WebSocket, HTTPException
 from loguru import logger
 import numpy as np
 import yaml
 import chardet
+from pydantic import BaseModel  # 导入 BaseModel
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from utils.audio_preprocessor import audio_filter
 
 import __init__
 from asr.asr_factory import ASRFactory
@@ -25,8 +29,13 @@ from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 from translate.translate_interface import TranslateInterface
 from translate.translate_factory import TranslateFactory
-from utils.audio_preprocessor import audio_filter
 
+app = FastAPI()
+thread_pool = ThreadPoolExecutor()
+
+class ChatInput(BaseModel):  # 修改为 Pydantic 模型
+    text: str
+    priority: int
 
 class OpenLLMVTuberMain:
     """
@@ -60,6 +69,11 @@ class OpenLLMVTuberMain:
         self._continue_exec_flag.set()  # Set the flag to continue execution
         self.session_id: str = str(uuid.uuid4().hex)
         self.heard_sentence: str = ""
+
+        # 初始化音频处理相关的属性
+        self._task_queue = None
+        self._processing_audio = threading.Event()
+        self._consumer_thread = None
 
         # Init ASR if voice input is on.
         self.asr: ASRInterface | None
@@ -141,40 +155,9 @@ class OpenLLMVTuberMain:
     def set_audio_output_func(
         self, audio_output_func: Callable[[Optional[str], Optional[str]], None]
     ) -> None:
-        """
-        Set the audio output function to be used for playing audio files.
-        The function should accept two arguments: sentence (str) and filepath (str).
-
-        sentence: str | None
-        - The sentence to be displayed on the frontend.
-        - If None, empty sentence will be displayed.
-
-        filepath: str | None
-        - The path to the audio file to be played.
-        - If None, no audio will be played.
-
-        Here is an example of the function:
-        ~~~python
-        def _play_audio_file(sentence: str | None, filepath: str | None) -> None:
-            if filepath is None:
-                print("No audio to be streamed. Response is empty.")
-                return
-
-            if sentence is None:
-                sentence = ""
-            print(f">> Playing {filepath}...")
-            playsound(filepath)
-        ~~~
-        """
-
         self._play_audio_file = audio_output_func
 
-        # def _play_audio_file(self, sentence: str, filepath: str | None) -> None:
-
     def get_system_prompt(self) -> str:
-        """
-        Construct and return the system prompt based on the configuration file.
-        """
         if self.config.get("PERSONA_CHOICE"):
             system_prompt = prompt_loader.load_persona(
                 self.config.get("PERSONA_CHOICE")
@@ -196,19 +179,6 @@ class OpenLLMVTuberMain:
     # Main conversation methods
 
     def conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
-        """
-        One iteration of the main conversation.
-        1. Get user input (text or audio) if not provided as an argument
-        2. Call the LLM with the user input
-        3. Speak (or not)
-
-        Parameters:
-        - user_input (str, numpy array, or None): The user input to be used in the conversation. If it's string, it will be considered as user input. If it's a numpy array, it will be transcribed. If it's None, we'll request input from the user.
-
-        Returns:
-        - str: The full response from the LLM
-        """
-
         if not self._continue_exec_flag.wait(
             timeout=self.EXEC_FLAG_CHECK_TIMEOUT
         ):  # Wait for the flag to be set
@@ -220,19 +190,15 @@ class OpenLLMVTuberMain:
                 "Conversation chain interrupted. Wait flag timeout reached."
             )
 
-        # Generate a random number between 0 and 3
         color_code = random.randint(0, 3)
         c = [None] * 4
-        # Define the color codes for red, blue, green, and white
         c[0] = "\033[91m"
         c[1] = "\033[94m"
         c[2] = "\033[92m"
         c[3] = "\033[0m"
 
-        # Apply the color to the console output
         print(f"{c[color_code]}New Conversation Chain started!")
 
-        # if user_input is not string, make it string
         if user_input is None:
             user_input = self.get_user_input()
         elif isinstance(user_input, np.ndarray):
@@ -266,36 +232,17 @@ class OpenLLMVTuberMain:
         return full_response
 
     def get_user_input(self) -> str:
-        """
-        Get user input using the method specified in the configuration file.
-        It can be from the console, local microphone, or the browser microphone.
-
-        Returns:
-        - str: The user input
-        """
-        # for live2d with browser, their input are now injected by the server class
-        # and they no longer use this method
         if self.config.get("VOICE_INPUT_ON", False):
-            # get audio from the local microphone
             print("Listening from the microphone...")
             return self.asr.transcribe_with_local_vad()
         else:
             return input("\n>> ")
 
     def speak(self, chat_completion: Iterator[str]) -> str:
-        """
-        Speak the chat completion using the TTS engine.
-
-        Parameters:
-        - chat_completion (Iterator[str]): The chat completion to speak
-
-        Returns:
-        - str: The full response from the LLM
-        """
         full_response = ""
         if self.config.get("SAY_SENTENCE_SEPARATELY", True):
             full_response = self.speak_by_sentence_chain(chat_completion)
-        else:  # say the full response at once? how stupid
+        else:
             full_response = ""
             for char in chat_completion:
                 if not self._continue_exec_flag.is_set():
@@ -303,7 +250,7 @@ class OpenLLMVTuberMain:
                     self._interrupt_post_processing()
                     return None
                 print(char, end="")
-                full_response += char
+            full_response += char
             print("\n")
             filename = self._generate_audio_file(full_response, "temp")
 
@@ -318,16 +265,6 @@ class OpenLLMVTuberMain:
         return full_response
 
     def _generate_audio_file(self, sentence: str, file_name_no_ext: str) -> str | None:
-        """
-        Generate an audio file from the given sentence using the TTS engine.
-
-        Parameters:
-        - sentence (str): The sentence to generate audio from
-        - file_name_no_ext (str): The name of the audio file without the extension
-
-        Returns:
-        - str or None: The path to the generated audio file or None if the sentence is empty
-        """
         if self.verbose:
             print(f">> generating {file_name_no_ext}...")
 
@@ -343,14 +280,6 @@ class OpenLLMVTuberMain:
         return self.tts.generate_audio(sentence, file_name_no_ext=file_name_no_ext)
 
     def _play_audio_file(self, sentence: str | None, filepath: str | None) -> None:
-        """
-        Play the audio file either locally or remotely using the Live2D controller if available.
-
-        Parameters:
-        - sentence (str): The sentence to display
-        - filepath (str): The path to the audio file. If None, no audio will be streamed.
-        """
-
         if filepath is None:
             print("No audio to be streamed. Response is empty.")
             return
@@ -373,35 +302,29 @@ class OpenLLMVTuberMain:
             print(f"Error playing the audio file {filepath}: {e}")
 
     def speak_by_sentence_chain(self, chat_completion: Iterator[str]) -> str:
-        """
-        Generate and play the chat completion sentences one by one using the TTS engine.
-        Now properly handles interrupts in a multi-threaded environment using the existing _continue_exec_flag.
-        """
         task_queue = queue.Queue()
-        full_response = [""]  # Use a list to store the full response
+        full_response = [""]
         interrupted_error_event = threading.Event()
+        self._processing_audio = threading.Event()
+        self._task_queue = task_queue
+        self._consumer_thread = None
 
         def producer_worker():
             try:
-                index = 0
                 sentence_buffer = ""
-
                 for char in chat_completion:
                     if not self._continue_exec_flag.is_set():
                         raise InterruptedError("Producer interrupted")
 
-                    if char:
-                        print(char, end="", flush=True)
-                        sentence_buffer += char
-                        full_response[0] += char
-                        if self.is_complete_sentence(sentence_buffer):
-                            if self.verbose:
-                                print("\n")
-                            if not self._continue_exec_flag.is_set():
-                                raise InterruptedError("Producer interrupted")
-                            tts_target_sentence = sentence_buffer
+                    print(char, end="", flush=True)
+                    sentence_buffer += char
+                    full_response[0] += char
 
-                            tts_target_sentence = audio_filter(
+                    if self.is_complete_sentence(sentence_buffer):
+                        if not self._continue_exec_flag.is_set():
+                            raise InterruptedError("Producer interrupted")
+                        tts_target_sentence=sentence_buffer
+                        tts_target_sentence = audio_filter(
                                 tts_target_sentence,
                                 translator=(
                                     self.translator
@@ -412,126 +335,171 @@ class OpenLLMVTuberMain:
                                     "REMOVE_SPECIAL_CHAR", True
                                 ),
                             )
-
-                            audio_filepath = self._generate_audio_file(
-                                tts_target_sentence, file_name_no_ext=uuid.uuid4()
-                            )
-
-                            if not self._continue_exec_flag.is_set():
-                                raise InterruptedError("Producer interrupted")
-                            audio_info = {
-                                "sentence": sentence_buffer,
-                                "audio_filepath": audio_filepath,
-                            }
+                        print("tts_target_sentence:"+tts_target_sentence)
+                        audio_info = self._prepare_audio(tts_target_sentence)
+                        if audio_info:
+                            self._processing_audio.set()
                             task_queue.put(audio_info)
-                            index += 1
-                            sentence_buffer = ""
+                        sentence_buffer = ""
 
-                # Handle any remaining text in the buffer
-                if sentence_buffer:
-                    if not self._continue_exec_flag.is_set():
-                        raise InterruptedError("Producer interrupted")
-                    print("\n")
-                    audio_filepath = self._generate_audio_file(
-                        sentence_buffer, file_name_no_ext=uuid.uuid4()
-                    )
-                    audio_info = {
-                        "sentence": sentence_buffer,
-                        "audio_filepath": audio_filepath,
-                    }
-                    task_queue.put(audio_info)
+                if sentence_buffer.strip():
+                    tts_target_sentence=sentence_buffer
+                    tts_target_sentence = audio_filter(
+                            tts_target_sentence,
+                            translator=(
+                                self.translator
+                                if self.config.get("TRANSLATE_AUDIO", False)
+                                else None
+                            ),
+                            remove_special_char=self.config.get(
+                                "REMOVE_SPECIAL_CHAR", True
+                            ),
+                        )
+                    audio_info = self._prepare_audio(tts_target_sentence)
+                    
+                    if audio_info:
+                        self._processing_audio.set()
+                        task_queue.put(audio_info)
 
-            except InterruptedError:
-                print("\nProducer interrupted")
+            except InterruptedError as e:
                 interrupted_error_event.set()
-                return  # Exit the function
-            except Exception as e:
-                print(
-                    f"Producer error: Error generating audio for sentence: '{sentence_buffer}'.\n{e}",
-                    "Producer stopped\n",
-                )
-                return
+                print(f"\nProducer interrupted: {e}")
             finally:
-                task_queue.put(None)  # Signal end of production
+                task_queue.put(None)
 
         def consumer_worker():
-            self.heard_sentence = ""
-
             while True:
-
                 try:
-                    if not self._continue_exec_flag.is_set():
-                        raise InterruptedError("😱Consumer interrupted")
-
-                    audio_info = task_queue.get(
-                        timeout=0.1
-                    )  # Short timeout to check for interrupts
+                    audio_info = task_queue.get()
                     if audio_info is None:
-                        break  # End of production
-                    if audio_info:
-                        self.heard_sentence += audio_info["sentence"]
-                        self._play_audio_file(
-                            sentence=audio_info["sentence"],
-                            filepath=audio_info["audio_filepath"],
-                        )
-                    task_queue.task_done()
-                except queue.Empty:
-                    continue  # No item available, continue checking for interrupts
-                except InterruptedError as e:
-                    print(f"\n{str(e)}, stopping worker threads")
-                    interrupted_error_event.set()
-                    return  # Exit the function
-                except Exception as e:
-                    print(
-                        f"Consumer error: Error playing sentence '{audio_info['sentence']}'.\n {e}"
+                        break
+
+                    if not self._continue_exec_flag.is_set():
+                        break
+
+                    self._play_audio_file(
+                        sentence=audio_info["sentence"],
+                        filepath=audio_info["audio_filepath"]
                     )
-                    continue
+                    task_queue.task_done()
 
-        producer_thread = threading.Thread(target=producer_worker)
-        consumer_thread = threading.Thread(target=consumer_worker)
+                except Exception as e:
+                    print(f"Consumer error: {e}")
+                    break
+                finally:
+                    self._processing_audio.clear()
 
-        producer_thread.start()
-        consumer_thread.start()
+        producer = threading.Thread(target=producer_worker)
+        consumer = threading.Thread(target=consumer_worker)
+        self._consumer_thread = consumer
 
-        producer_thread.join()
-        consumer_thread.join()
+        producer.start()
+        consumer.start()
 
-        if interrupted_error_event.is_set():
-            self._interrupt_post_processing()
-            raise InterruptedError(
-                "Conversation chain interrupted: consumer model interrupted"
-            )
+        producer.join()
+        task_queue.put(None)  # 确保消费者会退出
+        consumer.join()
 
-        print("\n\n --- Audio generation and playback completed ---")
-        return full_response[0]
+        self._consumer_thread = None
+        self._processing_audio.clear()
+        while not task_queue.empty():
+            try:
+                task_queue.get_nowait()
+            except queue.Empty:
+                break
 
-    def interrupt(self, heard_sentence: str = "") -> None:
-        """Set the interrupt flag to stop the conversation chain.
-        Preferably provide the sentences that were already shown or heard by the user before the interrupt so that the LLM can handle the memory properly.
+        return full_response[0]   
 
-        Parameters:
-        - heard_sentence (str): The sentence that was already shown or heard by the user before the interrupt.
-            (because apparently the user won't know the rest of the response.)
+    def is_processing_audio(self) -> bool:
+        """判断是否正在处理或播放音频"""
+        # 检查所有可能的处理状态
+        if self._task_queue is not None and not self._task_queue.empty():
+            return True
+
+        if self._processing_audio.is_set():
+            return True
+
+        if self._consumer_thread is not None and self._consumer_thread.is_alive():
+            return True
+
+        return False
+        
+    def interrupt(self, heard_text: str | None = None) -> None:
         """
+        中断当前的对话和音频播放
+        Args:
+            heard_text: 已经听到的文本，用于记录
+        """
+        print("\nInterrupting current conversation...")
         self._continue_exec_flag.clear()
-        self.llm.handle_interrupt(heard_sentence)
+        self.heard_sentence = heard_text if heard_text else ""
+
+        # 清理音频处理状态
+        if self._processing_audio.is_set():
+            self._processing_audio.clear()
+
+        # 清空任务队列
+        if self._task_queue:
+            while not self._task_queue.empty():
+                try:
+                    self._task_queue.get_nowait()
+                    self._task_queue.task_done()
+                except queue.Empty:
+                    break
+
+        # 停止当前消费者线程
+        if self._consumer_thread and self._consumer_thread.is_alive():
+            self._task_queue.put(None)  # 确保消费者会退出
+            self._consumer_thread.join(timeout=1.0)  # 等待消费者线程结束，设置超时
+            self._consumer_thread = None
+
+        # 重置执行标志
+        self._continue_exec_flag.set()
+
+        print("Interruption completed")
 
     def _interrupt_post_processing(self) -> None:
-        """Perform post-processing tasks (like resetting the continue flag to allow next conversation chain to start) after an interrupt."""
-        self._continue_exec_flag.set()  # Reset the interrupt flag
+        """
+        中断后的清理工作
+        """
+        self._continue_exec_flag.set()
+        self._processing_audio.clear()
+
+        # 清空任务队列
+        if self._task_queue:
+            while not self._task_queue.empty():
+                try:
+                    self._task_queue.get_nowait()
+                    self._task_queue.task_done()
+                except queue.Empty:
+                    break
 
     def _check_interrupt(self):
-        """Check if we are in an interrupt state and raise an exception if we are."""
         if not self._continue_exec_flag.is_set():
             raise InterruptedError("Conversation chain interrupted: checked")
 
-    def is_complete_sentence(self, text: str):
-        """
-        Check if the text is a complete sentence.
-        text: str
-            the text to check
-        """
+    def _prepare_audio(self, sentence: str) -> Optional[Dict]:
+        """准备音频文件并返回音频信息"""
+        if not sentence.strip():
+            return None
 
+        tts_target_sentence = sentence
+        if self.translator and self.config.get("TRANSLATE_AUDIO", False):
+            tts_target_sentence = self.translator.translate(tts_target_sentence)
+
+        audio_filepath = self._generate_audio_file(
+            tts_target_sentence, 
+            file_name_no_ext=uuid.uuid4()
+        )
+
+        if audio_filepath:
+            return {
+                "sentence": sentence,
+                "audio_filepath": audio_filepath
+            }
+        return None
+
+    def is_complete_sentence(self, text: str):
         white_list = [
             "...",
             "Dr.",
@@ -583,22 +551,14 @@ class OpenLLMVTuberMain:
         cache_dir = "./cache"
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
-            os.makedirs(cache_dir)
+        os.makedirs(cache_dir)
 
     def load_and_apply_config(self, config_file: str) -> None:
-        """
-        Load and apply the selected configuration settings from the alternative configuration file.
-
-        Parameters:
-        - config_file (str): The path to the alternative configuration file.
-        """
         with open(config_file, "r", encoding="utf-8") as file:
             new_config = yaml.safe_load(file)
 
-        # Update the current configuration with the new settings
         self.config.update(new_config)
 
-        # Reinitialize components with the new configuration
         self.live2d = self.init_live2d()
         self.asr = self.init_asr()
         self.tts = self.init_tts()
@@ -606,12 +566,6 @@ class OpenLLMVTuberMain:
         self.llm = self.init_llm()
 
     def init_translator(self) -> TranslateInterface | None:
-        """
-        Initialize the translator based on the configuration.
-
-        Returns:
-        - TranslateInterface or None: The initialized translator or None if not enabled.
-        """
         if self.config.get("TRANSLATE_AUDIO", False):
             try:
                 translate_provider = self.config.get("TRANSLATE_PROVIDER", "DeepLX")
@@ -685,9 +639,29 @@ def load_config_with_env(path) -> dict:
         logger.error(f"Error parsing YAML from {path}: {e}")
         raise
 
+async def process_conversation_async(vtuber_main: OpenLLMVTuberMain, text: str):
+    """异步处理对话任务"""
+    try:
+        # 在线程池中运行会话链
+        await asyncio.get_event_loop().run_in_executor(
+            thread_pool, 
+            vtuber_main.conversation_chain,
+            text
+        )
+    except Exception as e:
+        logger.error(f"Error in conversation chain: {e}")
+        # 确保在错误时重置标志
+        vtuber_main._continue_exec_flag.set()
+        if hasattr(vtuber_main, '_processing_audio'):
+            vtuber_main._processing_audio.clear()
+        if hasattr(vtuber_main, '_task_queue'):
+            while not vtuber_main._task_queue.empty():
+                try:
+                    vtuber_main._task_queue.get_nowait()
+                except queue.Empty:
+                    break
 
 if __name__ == "__main__":
-
     logger.add(sys.stderr, level="DEBUG")
 
     config = load_config_with_env("conf.yaml")
@@ -712,3 +686,51 @@ if __name__ == "__main__":
         except InterruptedError as e:
             print(f"😢Conversation was interrupted. {e}")
             continue
+
+vtuber_main: Optional[OpenLLMVTuberMain] = None
+
+@app.post("/textinput")
+async def chat_input(chat_input: ChatInput):
+    global vtuber_main
+    if not vtuber_main:
+        return {"error_code": 5001, "detail": "VTuber main instance not initialized"}
+
+    try:
+        if chat_input.priority not in [0, 1]:
+            return {"error_code": 400, "detail": "Priority must be 0 or 1"}
+
+        print(f"\nReceived request - Priority: {chat_input.priority}")
+
+        # 检查系统状态 - 使用现有的 is_processing_audio 方法
+        is_busy = not vtuber_main._continue_exec_flag.is_set() or vtuber_main.is_processing_audio()
+
+        print(f"Current state - Busy: {is_busy} (Continue Flag: {vtuber_main._continue_exec_flag.is_set()}, Processing Audio: {vtuber_main.is_processing_audio()})")
+
+        # 获取当前连接的WebSocket客户端
+        if hasattr(vtuber_main, 'websocket_server'):
+            clients = vtuber_main.websocket_server.get_connected_clients()
+            if not clients:
+                return {"error_code": 4002, "detail": "No WebSocket clients connected"}
+
+            # 设置WebSocket连接
+            vtuber_main.websocket = clients[0]
+
+        if chat_input.priority == 1:
+            print("Priority 1 request - forcing stop of current process")
+            vtuber_main.interrupt(vtuber_main.heard_sentence)
+            vtuber_main._continue_exec_flag.set()
+            # 异步启动新的对话任务
+            asyncio.create_task(process_conversation_async(vtuber_main, chat_input.text))
+            return {"error_code": 0, "status": "accepted", "message": "Priority 1 request accepted"}
+
+        if is_busy:
+            print("Rejecting priority 0 request - system busy")
+            return {"error_code": 4001, "detail": "Conversation or audio playback in progress"}
+
+        # 异步启动新的对话任务
+        asyncio.create_task(process_conversation_async(vtuber_main, chat_input.text))
+        return {"error_code": 0, "status": "accepted", "message": "Request is being processed"}
+
+    except Exception as e:
+        print(f"Error processing request: {str(e)}")
+        return {"error_code": 5000, "detail": f"Internal server error: {str(e)}"}

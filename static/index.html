@@ -393,10 +393,244 @@
                 };
             });
         }
+            // 全局变量声明
+        let virtualMouseInterval = null;
+        let lastMouseX = window.innerWidth / 2;
+        let lastMouseY = window.innerHeight / 2;
+        let currentX = lastMouseX;
+        let currentY = lastMouseY;
+        let targetX = lastMouseX;
+        let targetY = lastMouseY;
+
+        // 扩展配置对象
+        const modelMovementConfig = {
+            enabled: false,
+            headPosition: 0.0, // 头部位置系数
+            transitioning: false,   
+            
+            // 水平方向配置
+            radiusX: 0.3,        // 水平晃动范围
+            offsetX: 0,           // 水平偏移(-1到1，负值偏左，正值偏右)
+            rangeMinX: -0.5,        // 水平范围最小值（相对中心）
+            rangeMaxX: 0.5,         // 水平范围最大值（相对中心）
+            updateIntervalX: 2500,// 水平方向更新间隔(ms)
+            
+            // 垂直方向配置
+            radiusY: 0.75,        // 垂直晃动范围
+            offsetY: 0,           // 垂直偏移(-1到1，负值偏上，正值偏下)
+            rangeMinY: 0.1,        // 垂直范围最小值（相对中心）
+            rangeMaxY: 1,         // 垂直范围最大值（相对中心）
+            updateIntervalY: 500,// 垂直方向更新间隔(ms)
+            
+            // 通用配置
+            interval: 16,         // 渲染更新频率(ms)
+            smoothness: 0.09,      // 平滑系数(0-1)
+            debug: false
+        };
+
+        const centerPosition = {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2
+        };
+
+        // 上次更新时间记录
+        let lastUpdateX = 0;
+        let lastUpdateY = 0;
+
+        function lerp(start, end, t) {
+            return start + (end - start) * t;
+        }
+
+        // 获取带范围限制的随机值
+        function getRandomInRange(min, max, offset = 0, radius = 1) {
+            // 将-1到1的offset映射到实际范围
+            const center = (max + min) / 2 + (max - min) / 2 * offset;
+            const actualMin = Math.max(min, center - radius * (max - min) / 2);
+            const actualMax = Math.min(max, center + radius * (max - min) / 2);
+            return actualMin + Math.random() * (actualMax - actualMin);
+        }
+
+        function getModelCenter() {
+            if (!model2) return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            
+            const modelX = model2.position.x + model2.width / 2;
+            const modelY = model2.position.y + model2.height * modelMovementConfig.headPosition;
+            
+            if(modelMovementConfig.debug) {
+                console.log('Model center:', { x: modelX, y: modelY });
+            }
+            
+            return { x: modelX, y: modelY };
+        }
+
+        function clearMovement() {
+            if(virtualMouseInterval) {
+                clearInterval(virtualMouseInterval);
+                virtualMouseInterval = null;
+            }
+        }
+
+        window.modelControl = {
+            start: function() {
+                if(modelMovementConfig.enabled || modelMovementConfig.transitioning) {
+                    if(modelMovementConfig.debug) {
+                        console.log('Model movement is already running or transitioning');
+                    }
+                    return;
+                }
+                
+                clearMovement();
+                modelMovementConfig.enabled = true;
+                
+                const updatePosition = () => {
+                    if(!model2 || !modelMovementConfig.enabled) {
+                        this.stop();
+                        return;
+                    }
+                    
+                    const now = Date.now();
+                    const modelCenter = getModelCenter();
+                    
+                    // 更新水平位置
+                    if (now - lastUpdateX > modelMovementConfig.updateIntervalX) {
+                        const xRange = model2.width * modelMovementConfig.radiusX;
+                        const normalizedX = getRandomInRange(
+                            modelMovementConfig.rangeMinX,
+                            modelMovementConfig.rangeMaxX,
+                            modelMovementConfig.offsetX,
+                            1
+                        );
+                        targetX = modelCenter.x + normalizedX * xRange;
+                        lastUpdateX = now;
+                        
+                        if(modelMovementConfig.debug) {
+                            console.log('New X target:', {
+                                offset: normalizedX,
+                                absolute: targetX - modelCenter.x
+                            });
+                        }
+                    }
+                    
+                    // 更新垂直位置
+                    if (now - lastUpdateY > modelMovementConfig.updateIntervalY) {
+                        const yRange = model2.height * modelMovementConfig.radiusY;
+                        const normalizedY = getRandomInRange(
+                            modelMovementConfig.rangeMinY,
+                            modelMovementConfig.rangeMaxY,
+                            modelMovementConfig.offsetY,
+                            1
+                        );
+                        targetY = modelCenter.y + normalizedY * yRange;
+                        lastUpdateY = now;
+                        
+                        if(modelMovementConfig.debug) {
+                            console.log('New Y target:', {
+                                offset: normalizedY,
+                                absolute: targetY - modelCenter.y
+                            });
+                        }
+                    }
+                    
+                    // 平滑插值到目标位置
+                    currentX = lerp(currentX, targetX, modelMovementConfig.smoothness);
+                    currentY = lerp(currentY, targetY, modelMovementConfig.smoothness);
+                    
+                    if(model2 && model2.internalModel) {
+                        model2.focus(currentX, currentY);
+                    }
+                };
+                
+                virtualMouseInterval = setInterval(updatePosition, modelMovementConfig.interval);
+                
+                console.log('Model movement started');
+                this.status();
+            },
+            
+            stop: function() {
+                if(!modelMovementConfig.enabled) {
+                    if(modelMovementConfig.debug) {
+                        console.log('Model movement is already stopped or transitioning');
+                    }
+                    return;
+                }
+                
+                modelMovementConfig.enabled = false;
+                modelMovementConfig.transitioning = true;  // 标记正在过渡
+                
+                // 设置目标为中心点
+                targetX = centerPosition.x;
+                targetY = centerPosition.y;
+                
+                // 创建一个临时的interval来处理平滑过渡
+                const transitionInterval = setInterval(() => {
+                    const transitionSmoothness = modelMovementConfig.smoothness * 0.5;
+                    
+                    currentX = lerp(currentX, targetX, transitionSmoothness);
+                    currentY = lerp(currentY, targetY, transitionSmoothness);
+                    
+                    if(model2 && model2.internalModel) {
+                        model2.focus(currentX, currentY);
+                    }
+                    
+                    // 当足够接近目标点时停止过渡
+                    const distanceX = Math.abs(currentX - targetX);
+                    const distanceY = Math.abs(currentY - targetY);
+                    if(distanceX < 0.1 && distanceY < 0.1) {
+                        clearInterval(transitionInterval);
+                        clearInterval(virtualMouseInterval);
+                        virtualMouseInterval = null;
+                        modelMovementConfig.transitioning = false;  // 过渡结束
+                        
+                        // 最后一次设置到精确的中心点
+                        if(model2 && model2.internalModel) {
+                            model2.focus(centerPosition.x, centerPosition.y);
+                        }
+                        
+                        if(modelMovementConfig.debug) {
+                            console.log('Transition completed, model centered');
+                        }
+                    }
+                }, modelMovementConfig.interval);
+                
+                if(modelMovementConfig.debug) {
+                    console.log('Model movement stopping with smooth transition');
+                }
+            },
+            
+            set: function(params) {
+                const oldConfig = {...modelMovementConfig};
+                
+                Object.keys(params).forEach(key => {
+                    if(modelMovementConfig.hasOwnProperty(key)) {
+                        modelMovementConfig[key] = params[key];
+                    }
+                });
+                
+                if(modelMovementConfig.enabled) {
+                    this.stop();
+                    this.start();
+                }
+                
+                console.log('Config updated:', {
+                    old: oldConfig,
+                    new: {...modelMovementConfig}
+                });
+            },
+            
+            debug: function() {
+                modelMovementConfig.debug = !modelMovementConfig.debug;
+                console.log('Debug mode:', modelMovementConfig.debug ? 'on' : 'off');
+            },
+            
+            status: function() {
+                console.log('Current status:', {...modelMovementConfig});
+            }
+        };
 
 
+        
+        // 修改playAudioLipSync函数，使用modelControl来控制
         function playAudioLipSync(audio_base64, volumes, slice_length, text = null, expression_list = null) {
-
             if (state === "interrupted") {
                 console.error("Audio playback blocked. Sentence:", text);
                 audioTaskQueue.clearQueue();
@@ -408,9 +642,38 @@
                 document.getElementById("message").textContent = text;
             }
 
+            // 等待任何现有的运动或过渡完成
+            const startNewMovement = () => {
+                if(modelMovementConfig.transitioning) {
+                    setTimeout(startNewMovement, 100);
+                    return;
+                }
+
+                modelControl.set({
+                    updateIntervalX: 2400,  // 很慢的水平更新
+                    updateIntervalY: 750    // 快速的垂直更新
+                });
+                modelControl.start();
+            };
+
+            // 如果当前有运动，先停止
+            if(modelMovementConfig.enabled) {
+                modelControl.stop();
+            }
+            
+            // 等待短暂延迟后开始新的运动
+            setTimeout(startNewMovement, 100);
+
             const displayExpression = expression_list ? expression_list[0] : null;
             console.log("Start playing audio: ", text);
-            model2.speak("data:audio/wav;base64," + audio_base64, { expression: displayExpression, resetExpression: false });
+            
+            model2.speak("data:audio/wav;base64," + audio_base64, { 
+                expression: displayExpression, 
+                resetExpression: false,
+                onFinish: () => {
+                    modelControl.stop();
+                }
+            });
         }
 
         // Start the microphone. This will start the VAD and send audio to the server when speech is detected.
@@ -442,6 +705,20 @@
 
         // Initialize WebSocket connection
         connectWebSocket();
+        document.addEventListener('mousemove', (e) => {
+        // 只在非说话状态下更新最后的鼠标位置
+            if(state !== "thinking-speaking") {
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                
+                // 只在未启用自动移动且非说话状态时响应鼠标
+                if(!modelMovementConfig.enabled && model2 && model2.internalModel) {
+                    currentX = lastMouseX;
+                    currentY = lastMouseY;
+                    model2.focus(lastMouseX, lastMouseY);
+                }
+            }
+        });
     </script>
 </body>
 

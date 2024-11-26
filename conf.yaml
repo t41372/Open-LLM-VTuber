@@ -304,3 +304,9 @@ CHAT_HISTORY_DIR: "./chat_history/"
 # [this feature is currently removed, so useless for now]Turn on RAG (Retrieval Augmented Generation) or not. 
 RAG_ON: False
 LLMASSIST_RAG_ON: False
+
+BILIBILI:
+  ROOM_ID: "YOUR ROOM ID"
+  SESSDATA: "YOUR SEESDATA IN COOKIES"
+  MESSAGE_EXPIRE_TIME: 30  # 消息过期时间(秒)
+  RETRY_INTERVAL: 3  # 重试间隔(秒)
