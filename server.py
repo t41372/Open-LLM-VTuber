@@ -7,89 +7,46 @@ import asyncio
 from typing import List, Dict, Any
 import yaml
 import numpy as np
-from fastapi import FastAPI, WebSocket, APIRouter
+from fastapi import FastAPI, WebSocket, APIRouter, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
-from main import OpenLLMVTuberMain
+from main import OpenLLMVTuberMain, app  # 导入 app 实例
 from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer
 import chardet
 from loguru import logger
 
-
 class WebSocketServer:
-    """
-    WebSocketServer initializes a FastAPI application with WebSocket endpoints and a broadcast endpoint.
-
-    Attributes:
-        config (dict): Configuration dictionary.
-        app (FastAPI): FastAPI application instance.
-        router (APIRouter): APIRouter instance for routing.
-        connected_clients (List[WebSocket]): List of connected WebSocket clients for "/client-ws".
-        server_ws_clients (List[WebSocket]): List of connected WebSocket clients for "/server-ws".
-    """
-
     def __init__(self, open_llm_vtuber_main_config: Dict | None = None):
         """
         Initializes the WebSocketServer with the given configuration.
         """
-        self.app = FastAPI()
+        self.app = app  # 使用 main.py 中的 app 实例
         self.router = APIRouter()
         self.connected_clients: List[WebSocket] = []
         self.open_llm_vtuber_main_config = open_llm_vtuber_main_config
-        
+
         # Initialize model manager
         self.preload_models = self.open_llm_vtuber_main_config.get("SERVER", {}).get("PRELOAD_MODELS", False)
         if self.preload_models:
             logger.info("Preloading ASR and TTS models...")
             logger.info("Using: " + str(self.open_llm_vtuber_main_config.get("ASR_MODEL")))
             logger.info("Using: " + str(self.open_llm_vtuber_main_config.get("TTS_MODEL")))
-            
+
             self.model_manager = ModelManager(self.open_llm_vtuber_main_config)
             self.model_manager.initialize_models()
+
+        # Initialize OpenLLMVTuberMain instance
+        self.open_llm_vtuber_main = OpenLLMVTuberMain(self.open_llm_vtuber_main_config)
+        self.open_llm_vtuber_main.websocket_server = self 
         
+        # 设置全局vtuber_main实例
+        import main
+        main.vtuber_main = self.open_llm_vtuber_main
+
         self._setup_routes()
         self._mount_static_files()
         self.app.include_router(self.router)
-
-    async def _handle_config_switch(self, websocket: WebSocket, config_file: str) -> tuple[Live2dModel, OpenLLMVTuberMain] | None:
-        """处理配置切换，返回新的组件实例"""
-        new_config = self._load_config_from_file(config_file)
-        if new_config:
-            try:
-                # 更新模型缓存
-                if self.preload_models:
-                    self.model_manager.update_models(new_config)
-                
-                # 更新当前配置
-                self.open_llm_vtuber_main_config.update(new_config)
-
-                # 重新初始化组件
-                l2d, open_llm_vtuber, _ = self._initialize_components(websocket)
-
-                await websocket.send_text(
-                    json.dumps({
-                        "type": "config-switched",
-                        "message": f"Switched to config: {config_file}",
-                    })
-                )
-                await websocket.send_text(
-                    json.dumps({"type": "set-model", "text": l2d.model_info})
-                )
-                logger.info(f"Configuration switched to {config_file}")
-                
-                return l2d, open_llm_vtuber
-                
-            except Exception as e:
-                logger.error(f"Error switching configuration: {e}")
-                await websocket.send_text(
-                    json.dumps({
-                        "type": "error",
-                        "message": f"Error switching configuration: {str(e)}",
-                    })
-                )
-                return None
-        return None
 
     def _initialize_components(
         self, websocket: WebSocket
@@ -101,11 +58,7 @@ class WebSocketServer:
         custom_asr = self.model_manager.cache.get('asr') if self.preload_models else None
         custom_tts = self.model_manager.cache.get('tts') if self.preload_models else None
         
-        open_llm_vtuber = OpenLLMVTuberMain(
-            self.open_llm_vtuber_main_config,
-            custom_asr=custom_asr,
-            custom_tts=custom_tts
-        )
+        open_llm_vtuber = self.open_llm_vtuber_main
         
         audio_preparer = AudioPayloadPreparer()
 
@@ -139,6 +92,9 @@ class WebSocketServer:
 
         open_llm_vtuber.set_audio_output_func(_websocket_audio_handler)
         return l2d, open_llm_vtuber, audio_preparer
+
+    def get_connected_clients(self):
+        return self.connected_clients
 
     def _setup_routes(self):
         """Sets up the WebSocket and broadcast routes."""
@@ -260,6 +216,23 @@ class WebSocketServer:
                 self.connected_clients.remove(websocket)
                 open_llm_vtuber = None
 
+        # 添加处理 /textinput 请求的路由
+        @self.app.post("/textinput")
+        async def text_input_handler(request: Request):
+            try:
+                data = await request.json()
+                text = data.get("text")
+                priority = data.get("priority", 1)
+
+                if self.open_llm_vtuber_main is None:
+                    raise ValueError("OpenLLMVTuberMain instance is not initialized.")
+
+                # 处理文本输入
+                response = self.open_llm_vtuber_main.process_text_input(text, priority)
+                return {"response": response}
+            except Exception as e:
+                return {"error_code": 5000, "detail": f"Internal server error: {str(e)}"}
+
     def _scan_config_alts_directory(self) -> List[str]:
         config_files = ["conf.yaml"]  # default config file
         config_alts_dir = self.open_llm_vtuber_main_config.get(
@@ -357,7 +330,11 @@ class WebSocketServer:
         """Clean up resources before shutting down"""
         self.clean_cache()
         # Clear model cache
-        self.model_manager.cache.clear()
+        if hasattr(self, 'model_manager'):
+            self.model_manager.cache.clear()
+        # Clear global vtuber_main
+        import temp_main
+        temp_main.vtuber_main = None
 
 
 def load_config_with_env(path) -> dict:
