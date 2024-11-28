@@ -15,6 +15,7 @@ from starlette.websockets import WebSocketDisconnect
 from main import OpenLLMVTuberMain
 from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer
+import __init__
 
 
 class WebSocketServer:
@@ -33,6 +34,7 @@ class WebSocketServer:
         """
         Initializes the WebSocketServer with the given configuration.
         """
+        logger.info(f"t41372/Open-LLM-VTuber, version {__init__.__version__}")
         self.app = FastAPI()
         self.router = APIRouter()
         self.connected_clients: List[WebSocket] = []
