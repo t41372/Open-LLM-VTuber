@@ -100,6 +100,21 @@
         let previousTriggeredProbability = 0; // the possibility that triggered the last speech start
         let speechProbThreshold = document.getElementById('speechProbThreshold');
 
+        window.addEventListener('load', function() {
+            const savedThreshold = localStorage.getItem('speechProbThreshold');
+            if (savedThreshold) {
+                speechProbThreshold.value = savedThreshold;
+            }
+
+            const savedBackground = localStorage.getItem('selectedBackground');
+            if (savedBackground) {
+                setTimeout(() => {
+                    bgDropdown.value = savedBackground;
+                    document.body.style.backgroundImage = `url('./bg/${savedBackground}')`;
+                }, 1000);
+            }
+        });
+
         async function init_vad() {
             myvad = await vad.MicVAD.new({
                 preSpeechPadFrames: 20,
@@ -141,6 +156,8 @@
         }
 
         speechProbThreshold.addEventListener('change', async function() {
+            localStorage.setItem('speechProbThreshold', this.value);
+            
             if (myvad) {
                 await myvad.pause();
                 await init_vad();
@@ -336,6 +353,8 @@
             const selectedBg = bgDropdown.value;
             if (selectedBg) {
                 document.body.style.backgroundImage = `url('./bg/${selectedBg}')`;
+                // 保存背景选择
+                localStorage.setItem('selectedBackground', selectedBg);
             }
         });
 
@@ -380,7 +399,7 @@
         async function addAudioTask(audio_base64, volumes, slice_length, text = null, expression_list = null) {
             console.log(`1. Adding audio task ${text} to queue`);
             
-            // 只在 interrupted 状态时跳过
+            // skip the task if interrupted
             if (state === "interrupted") {
                 console.log("Skipping audio task due to interrupted state");
                 return;
@@ -491,7 +510,7 @@
             }
         }
 
-        // 修改发送按钮的点击事件为切换显示/隐藏
+        // toggle the text input
         let textInputVisible = false;
         sendText.addEventListener('click', function() {
             textInputVisible = !textInputVisible;
@@ -499,7 +518,7 @@
             sendText.textContent = textInputVisible ? "📝Hide Text Input" : "📝Show Text Input";
         });
 
-        // 添加回车键发送功能
+        // send text when enter is pressed
         textInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 handleTextSubmit();
