@@ -10,6 +10,8 @@ from Emotion.EmotionHandler import EmotionHandler
 from actions import ActionInterface
 from loguru import logger
 
+from utils.PromptLoader import PromptLoader
+
 
 class BehaviorActor(nn.Module):
     def __init__(self, input_size, action_size):
@@ -45,6 +47,7 @@ class GenericBehavior(metaclass=BehaviorMeta):
         self.repeated_action_penalty = 0.1  # Penalty for repeating the same action
         self.last_action = None
         self.actions_map = actions_map  # Track the last action to apply the penalty
+        self.action_context_prompt_file = None
 
     def select_action(self, state: np.array) -> ActionInterface:
         """
@@ -71,7 +74,7 @@ class GenericBehavior(metaclass=BehaviorMeta):
             self.last_action = action
         # Select an action based on current state
         logger.info(f"Selected action: {action}")
-        previous_state=EmotionHandler().get_previous_state()
+        previous_state = EmotionHandler().get_previous_state()
         current_state = EmotionHandler().get_current_state()
         # Simulated reward feedback
         reward = random.uniform(-1, 1)
@@ -118,3 +121,7 @@ class GenericBehavior(metaclass=BehaviorMeta):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+    def choose_behavior(self):
+        current_prompt = PromptLoader().get_prompt_from_file(self.action_context_prompt_file)
+        return current_prompt

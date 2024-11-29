@@ -1,9 +1,8 @@
 import atexit
 import threading
 
-import torch
 import yaml
-from transformers import pipeline
+from loguru import logger
 
 from Behavior.TalkBehavior import TalkBehavior
 from OpenLLMVtuber import OpenLLMVTuberMain
@@ -13,7 +12,6 @@ from utils.InferenceQueue import InferenceQueue
 from utils.InputQueue import InputQueue
 from utils.OutputQueue import OutputQueue
 from utils.VoiceListener import VoiceListener
-from loguru import logger
 
 ## Main Thread for program, also works as "main-loop" for inference, uses data from the StateInfo class
 
@@ -40,9 +38,9 @@ if __name__ == "__main__":
     def _run_conversation_chain():
         try:
             action_selection_queue.start()
-            with InferenceQueue().get_prompt() as prompt:
-                inference_result=OpenLLMVTuberMain().conversation_chain(prompt)
-                OutputQueue().add_output(inference_result)
+            prompt=InferenceQueue().get_prompt()
+            inference_result=OpenLLMVTuberMain().conversation_chain(prompt)
+            OutputQueue().add_output(inference_result)
         except InterruptedError as e:
             logger.error(f"😢Conversation was interrupted. {e}")
             listener.stop()

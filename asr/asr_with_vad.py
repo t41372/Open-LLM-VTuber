@@ -67,8 +67,8 @@ class IdentifySpeaker:
             cls._instance = super(IdentifySpeaker, cls).__new__(cls)
         return cls._instance
 
-    def identify_speaker(self, audio_path):
-        return "GoldRoger:"
+    def identify_speaker(self,audio_clip):
+        return "GoldRoger"
 
 
 class VoiceRecognitionVAD:
@@ -76,7 +76,6 @@ class VoiceRecognitionVAD:
             self,
             asr_transcribe_func: Callable,
             wake_word: str | None = None,
-            function: Callable = print,
     ) -> None:
         """
         Initializes the VoiceRecognition class, setting up necessary models, streams, and queues.
@@ -234,7 +233,7 @@ class VoiceRecognitionVAD:
         detected_text = self.asr(self.samples)
         detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         if detected_text:
-            return detected_speaker+detected_text
+            return {"role": "user", "name": detected_speaker, "content": detected_text}
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead

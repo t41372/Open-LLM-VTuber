@@ -8,7 +8,7 @@ class TalkAction(ActionInterface):
 
     def __init__(self):
         self.prompt = None
-        self.prompt_file = ""
+        self.prompt_file = r"C:\Users\Administrator\Desktop\AIVtuber\Open-LLM-VTuber\prompts\actions\TalkBehaviorTalk"
         self.generating = False
         self.not_is_blocking_action = True
         self.requires_input = True
@@ -22,9 +22,7 @@ class TalkAction(ActionInterface):
         try:
             with open(self.prompt_file, 'r') as file:
                 self.prompt = file.read()
-                logger.info(f"Prompt loaded: {self.prompt}")
         except FileNotFoundError:
-            logger.info(f"Prompt file {self.prompt_file} not found.")
             self.prompt = "Default prompt"
         return self.prompt
 

@@ -9,7 +9,7 @@ from OpenLLMVtuber import OpenLLMVTuberMain
 from actions import ActionInterface
 from utils.InferenceQueue import InferenceQueue
 from utils.InputQueue import InputQueue
-import os
+from utils.PromptFormatter import PromptFormatter
 
 
 class ActionSelectionQueue:
@@ -68,7 +68,10 @@ class ActionSelectionQueue:
                     try:
                         # Directly run the async method and retrieve its result
                         current_input = InputQueue().get_input()
-                        result = action.start_action() + '{user} input: ' + current_input[0]
+                        result = PromptFormatter().format_for_ollama(OpenLLMVTuberMain().get_system_prompt(),
+                                                                     action.start_action(),
+                                                                     self.default_behavior.choose_behavior(),
+                                                                     current_input)
                     except Exception as e:
                         logger.error(f"Error fetching input: {e}")
                         continue
