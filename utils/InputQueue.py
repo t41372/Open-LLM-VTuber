@@ -1,9 +1,9 @@
 import asyncio
 import threading
+from typing import Any
 
-import os
 from loguru import logger
-import numpy as np
+
 from Emotion.EmotionHandler import EmotionHandler
 
 
@@ -28,6 +28,7 @@ class InputQueue:
 
     def add_input(self, input):
         """Thread-safe method to add input to the queue."""
+
         asyncio.run_coroutine_threadsafe(self.async_add_input(input), self.loop)
 
     def get_input(self):
@@ -35,15 +36,14 @@ class InputQueue:
         future = asyncio.run_coroutine_threadsafe(self.async_get_input(), self.loop)
         return future.result()
 
-    async def async_add_input(self, input: str | np.ndarray):
+    async def async_add_input(self, input: Any):
         """
         Asynchronously adds an input to the queue.
         If the input is a string, it classifies the emotion and appends it.
         """
-        if isinstance(input, str):
-            emotion_handler = EmotionHandler()
-            classified_emotions = await emotion_handler.classify_emotion(input)
-            input += "\n" + 'user emotions:' + str(classified_emotions) + '\n'
+        classified_emotions = await EmotionHandler().classify_emotion(input)
+        del input['wav2vec_samples']
+        input['emotions'] = classified_emotions
         await self.queue.put(input)
 
     async def async_get_input(self, number_inputs=1):

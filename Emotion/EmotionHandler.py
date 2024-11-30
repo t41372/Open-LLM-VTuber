@@ -1,15 +1,14 @@
+import random
+from collections import deque
 from typing import Any, List
 
 import numpy as np
-import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from collections import deque
-from loguru import logger
-from transformers import pipeline
+from transformers import AutoModelForAudioClassification
 
-emotions = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
+emotions = ["anger", "calm", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
 state_size = len(emotions) * 2  # Both emotion rewards and initiatives as part of the state
 action_size = 3
 
@@ -50,9 +49,8 @@ class EmotionHandler:
         self.repeated_tone_count = 0
         self.random_factor = 0.3  # Starting at 30% for randomness
         self.high_initiative_threshold = 1.3  # Threshold for high initiatives
-        self.classifier = pipeline(device='cuda' if torch.cuda.is_available() else -1, task="text-classification",
-                                   model="j-hartmann/emotion-english-distilroberta-base"
-                                       )
+        self.classifier = AutoModelForAudioClassification.from_pretrained(
+            "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition")
 
         # Q-learning parameters
         self.current_user_emotion = 'neutral'
@@ -78,9 +76,14 @@ class EmotionHandler:
         """Stub for emotion classifier."""
         if input_text is None:
             return None
-        classified_emotion = sorted(self.classifier(input_text), key=lambda x: x['score'])
-        logger.critical(f"classified_emotion:{classified_emotion}")
-        return classified_emotion
+        try:
+            input_tensor = input_text['wav2vec_samples'].input_values.float()
+            result = self.classifier.forward(input_tensor)
+            classified_emotions = dict(zip(self.emotions, list(round(float(i), 4) for i in result[0][0])))
+            return classified_emotions
+        except Exception as e:
+            print(e)
+        return None
 
     def choose_emotions_based_on_initiative(self):
         """

@@ -42,6 +42,8 @@ from loguru import logger
 import sys
 import os
 
+from transformers import Wav2Vec2FeatureExtractor
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
@@ -54,7 +56,7 @@ VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
 VAD_THRESHOLD = 0.7  # Threshold for VAD detection
 BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
 PAUSE_LIMIT = 1300  # Milliseconds of pause allowed before processing
-WAKE_WORD = "computer"  # Wake word for activation
+WAKE_WORD = "stella"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
 
@@ -108,6 +110,8 @@ class VoiceRecognitionVAD:
         self.sample_queue = queue.Queue()
         self.buffer = queue.Queue(maxsize=BUFFER_SIZE // VAD_SIZE)
         self.recording_started = False
+        self.wav2vec_feature_extractor= Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-large-xlsr-53")
+        self.wav2vec_samples =[]
         self.gap_counter = 0
         self.wake_word = wake_word
 
@@ -164,10 +168,10 @@ class VoiceRecognitionVAD:
         """
         Listens for audio input and responds appropriately when the wake word is detected.
         """
-        logger.info("Listening...")
         while True:  # Loop forever, but is 'paused' when new samples are not available
             sample, vad_confidence = self.sample_queue.get()
             result = self._handle_audio_sample(sample, vad_confidence)
+
             if result:
                 return result
 
@@ -226,14 +230,13 @@ class VoiceRecognitionVAD:
         Processes the detected audio and generates a response.
         """
         logger.info("Detected pause after speech. Processing...")
-
         logger.info("Stopping listening...")
         self.input_stream.stop()
-
+        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples,sampling_rate=SAMPLE_RATE,padding=True,return_tensors="pt")
         detected_text = self.asr(self.samples)
         detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         if detected_text:
-            return {"role": "user", "name": detected_speaker, "content": detected_text}
+            return {"role": "user", "name": detected_speaker, "content": detected_text,'wav2vec_samples': self.wav2vec_samples}
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead

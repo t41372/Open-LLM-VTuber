@@ -111,15 +111,18 @@ class PromptFormatter:
         :param conversation: The conversation history.
         :return: A dictionary formatted for Ollama.
         """
-        formatted_conversation = [
+        if conversation is not None:
+            formatted_conversation = [
             {
-                "role": msg["role"],
-                "name": msg.get("name"),
-                "content": msg["content"],
-                "emotions": msg.get("emotions", [])
+                "role": conversation["role"],
+                "name": conversation["name"],
+                "content": conversation["content"],
+                "emotions": conversation["emotions"]
             }
-            for msg in conversation
+
         ]
+        else:
+            formatted_conversation = []
         return {
             "system_prompt": system_prompt.strip(),
             "goals": goals.strip(),

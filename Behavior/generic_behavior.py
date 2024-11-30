@@ -38,16 +38,16 @@ class BehaviorActor(nn.Module):
 
 class GenericBehavior(metaclass=BehaviorMeta):
 
-    def __init__(self, actions: List[str], learning_rate=0.001, dominant_prob=0.7, actions_map=None):
+    def __init__(self, actions: List[str], learning_rate=0.001, dominant_prob=0.7, actions_map=None,action_context_prompt_file=None):
         self.actions = actions
-        self.actor_critic = BehaviorActor(14, 3)
+        self.actor_critic = BehaviorActor(16, 3)
         self.optimizer = optim.Adam(self.actor_critic.parameters(), lr=learning_rate)
         self.gamma = 0.99  # Discount factor
         self.dominant_prob = dominant_prob  # Probability of choosing the dominant action
         self.repeated_action_penalty = 0.1  # Penalty for repeating the same action
         self.last_action = None
         self.actions_map = actions_map  # Track the last action to apply the penalty
-        self.action_context_prompt_file = None
+        self.action_context_prompt_file = action_context_prompt_file
 
     def select_action(self, state: np.array) -> ActionInterface:
         """

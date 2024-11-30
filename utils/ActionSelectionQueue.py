@@ -68,10 +68,7 @@ class ActionSelectionQueue:
                     try:
                         # Directly run the async method and retrieve its result
                         current_input = InputQueue().get_input()
-                        result = PromptFormatter().format_for_ollama(OpenLLMVTuberMain().get_system_prompt(),
-                                                                     action.start_action(),
-                                                                     self.default_behavior.choose_behavior(),
-                                                                     current_input)
+
                     except Exception as e:
                         logger.error(f"Error fetching input: {e}")
                         continue
@@ -79,7 +76,11 @@ class ActionSelectionQueue:
                     if action.not_is_blocking_action:
                         OpenLLMVTuberMain().not_is_blocking_event.set()
                 else:
-                    result = action.start_action()
+                    current_input = None
+                result = PromptFormatter().format_for_ollama(OpenLLMVTuberMain().get_system_prompt(),
+                                                             action.start_action(),
+                                                             self.default_behavior.choose_behavior(),
+                                                             current_input)
                 logger.info(f"Processing action: {action.__class__.__name__}")
                 logger.info(f"Action result: {result}")
                 InferenceQueue().add_prompt(result)

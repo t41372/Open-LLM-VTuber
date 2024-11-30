@@ -1,10 +1,8 @@
 import asyncio
 import threading
+from typing import Any
 
-import numpy as np
 from loguru import logger
-
-from Emotion.EmotionHandler import EmotionHandler
 
 
 class InferenceQueue:
@@ -34,15 +32,12 @@ class InferenceQueue:
         future = asyncio.run_coroutine_threadsafe(self.async_get_prompt(), self.loop)
         return future.result()
 
-    async def async_add_prompt(self, input: str | np.ndarray):
+    async def async_add_prompt(self, input:Any):
         """
         Asynchronously adds an input to the queue.
         If the input is a string, it classifies the emotion and appends it.
         """
-        if isinstance(input, str):
-            emotion_handler = EmotionHandler()
-            classified_emotions = await emotion_handler.classify_emotion(input)
-            input += "\n" + 'user emotions:' + str(classified_emotions) + '\n'
+
         await self.queue.put(input)
 
     async def async_get_prompt(self, number_inputs=1):

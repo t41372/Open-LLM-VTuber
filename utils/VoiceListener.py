@@ -77,7 +77,7 @@ class VoiceListener:
                 logger.info("Waiting for user input...")
                 result = self.asr.transcribe_with_local_vad()
                 self.input_queue.add_input(result)
-                logger.info(f"Input received and added to queue: {result}")
+
             except Exception as e:
                 logger.error(f"Error in transcribing user input: {e}")
 
