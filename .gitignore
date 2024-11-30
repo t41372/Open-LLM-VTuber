@@ -14,7 +14,7 @@ conda
 # Sensitive data
 .env
 api_keys.py
-llm/user_credentials.json
+src/open_llm_vtuber/llm/user_credentials.json
 
 # Database files
 memory.db
@@ -25,10 +25,10 @@ server.log
 
 # Cache and models
 cache/*
-tts/asset
-tts/config
-asr/models*
-!asr/models/silero_vad.onnx
+src/open_llm_vtuber/tts/asset
+src/open_llm_vtuber/tts/config
+src/open_llm_vtuber/asr/models*
+!src/open_llm_vtuber/asr/models/silero_vad.onnx
 asset
 models/*
 !models/piper_voice

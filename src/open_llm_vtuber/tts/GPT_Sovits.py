@@ -2,7 +2,6 @@
 # change from xTTS.py
 ####
 
-import os
 import re
 import requests
 from tts.tts_interface import TTSInterface

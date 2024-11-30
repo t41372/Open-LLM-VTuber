@@ -14,17 +14,17 @@ import yaml
 import chardet
 
 import __init__
-from asr.asr_factory import ASRFactory
-from asr.asr_interface import ASRInterface
-from live2d_model import Live2dModel
-from llm.llm_factory import LLMFactory
-from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
-from tts.tts_factory import TTSFactory
-from tts.tts_interface import TTSInterface
-from translate.translate_interface import TranslateInterface
-from translate.translate_factory import TranslateFactory
-from utils.audio_preprocessor import audio_filter
+from .asr.asr_factory import ASRFactory
+from .asr.asr_interface import ASRInterface
+from .live2d_model import Live2dModel
+from .llm.llm_factory import LLMFactory
+from .llm.llm_interface import LLMInterface
+from .tts.tts_factory import TTSFactory
+from .tts.tts_interface import TTSInterface
+from .translate.translate_interface import TranslateInterface
+from .translate.translate_factory import TranslateFactory
+from .utils.audio_preprocessor import audio_filter
 
 
 class OpenLLMVTuberMain:
@@ -577,7 +577,7 @@ class OpenLLMVTuberMain:
         return any(text.strip().endswith(punct) for punct in punctuation_blacklist)
 
     def clean_cache(self):
-        cache_dir = "./cache"
+        cache_dir = "../../cache"
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
@@ -687,7 +687,7 @@ if __name__ == "__main__":
 
     logger.add(sys.stderr, level="DEBUG")
 
-    config = load_config_with_env("conf.yaml")
+    config = load_config_with_env("../../conf.yaml")
 
     vtuber_main = OpenLLMVTuberMain(config)
 

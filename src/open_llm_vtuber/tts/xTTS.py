@@ -1,4 +1,3 @@
-import os
 import requests
 from tts.tts_interface import TTSInterface
 

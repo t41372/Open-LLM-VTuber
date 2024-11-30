@@ -12,9 +12,10 @@ from loguru import logger
 from fastapi import FastAPI, WebSocket, APIRouter
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
-from main import OpenLLMVTuberMain
-from live2d_model import Live2dModel
-from tts.stream_audio import AudioPayloadPreparer
+
+from .main import OpenLLMVTuberMain
+from .live2d_model import Live2dModel
+from .tts.stream_audio import AudioPayloadPreparer
 import __init__
 
 
@@ -311,7 +312,7 @@ class WebSocketServer:
             Dict: Loaded configuration or None if loading fails
         """
         if filename == "conf.yaml":
-            return load_config_with_env("conf.yaml")
+            return load_config_with_env("../../conf.yaml")
 
         config_alts_dir = self.open_llm_vtuber_main_config.get(
             "CONFIG_ALTS_DIR", "config_alts"
@@ -381,7 +382,7 @@ class WebSocketServer:
     @staticmethod
     def clean_cache():
         """Clean the cache directory by removing and recreating it."""
-        cache_dir = "./cache"
+        cache_dir = "../../cache"
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
@@ -466,7 +467,7 @@ class ModelManager:
 
     def _init_asr(self) -> None:
         """Initialize ASR model"""
-        from asr.asr_factory import ASRFactory
+        from .asr.asr_factory import ASRFactory
 
         asr_model = self.config.get("ASR_MODEL")
         asr_config = self.config.get(asr_model, {})
@@ -475,7 +476,7 @@ class ModelManager:
 
     def _init_tts(self) -> None:
         """Initialize TTS model"""
-        from tts.tts_factory import TTSFactory
+        from .tts.tts_factory import TTSFactory
 
         tts_model = self.config.get("TTS_MODEL")
         tts_config = self.config.get(tts_model, {})
@@ -579,7 +580,7 @@ if __name__ == "__main__":
     atexit.register(WebSocketServer.clean_cache)
 
     # Load configurations from yaml file
-    config = load_config_with_env("conf.yaml")
+    config = load_config_with_env("../../conf.yaml")
 
     config["LIVE2D"] = True  # make sure the live2d is enabled
 

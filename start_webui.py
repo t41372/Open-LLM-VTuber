@@ -6,7 +6,7 @@ import os
 import platform
 import subprocess
 from pathlib import Path
-from utils.install_utils import InstallationManager
+from src.open_llm_vtuber.utils.install_utils import InstallationManager
 
 # Set HF_HOME to models folder in project directory
 os.environ["HF_HOME"] = str(Path(__file__).parent / "models")

@@ -1,5 +1,5 @@
 import unicodedata
-from translate.translate_interface import TranslateInterface
+from ..translate.translate_interface import TranslateInterface
 
 
 def audio_filter(

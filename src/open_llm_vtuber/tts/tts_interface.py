@@ -61,7 +61,7 @@ class TTSInterface(metaclass=abc.ABCMeta):
         Returns:
         str: the path to the generated cache file
         """
-        cache_dir = "./cache"
+        cache_dir = "cache"
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
 
