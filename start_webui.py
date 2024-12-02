@@ -23,6 +23,7 @@ def main():
         install_mgr.setup()
 
     # Activate environment and run server
+    install_mgr.check_environment()
     if platform.system().lower() == "windows":
         activate_cmd = f"call {install_mgr.activate_script} {install_mgr.env_name}"
     else:
