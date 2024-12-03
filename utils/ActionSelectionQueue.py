@@ -77,10 +77,8 @@ class ActionSelectionQueue:
                         OpenLLMVTuberMain().not_is_blocking_event.set()
                 else:
                     current_input = None
-                result = PromptFormatter().format_for_ollama(OpenLLMVTuberMain().get_system_prompt(),
-                                                             action.start_action(),
-                                                             self.default_behavior.choose_behavior(),
-                                                             current_input)
+                result = PromptFormatter().format_for_gpt(action.start_action(),
+                                                          self.default_behavior.choose_behavior(),
+                                                          current_input)
                 logger.info(f"Processing action: {action.__class__.__name__}")
-                logger.info(f"Action result: {result}")
                 InferenceQueue().add_prompt(result)

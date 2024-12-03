@@ -10,7 +10,6 @@ import numpy as np
 from fastapi import WebSocket
 
 from live2d_model import Live2dModel
-from llm.llm_factory import LLMFactory
 from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
 from translate.translate_factory import TranslateFactory
@@ -96,7 +95,7 @@ class OpenLLMVTuberMain:
             self.translator = None
 
         # Initialize the LLM instance
-        self.llm = self.init_llm()
+        self.llm = Letta()
 
     # Initialization methods
 
@@ -111,16 +110,6 @@ class OpenLLMVTuberMain:
             print("Proceed without Live2D.")
             return None
         return live2d_controller
-
-    def init_llm(self) -> LLMInterface:
-        llm_provider = self.config.get("LLM_PROVIDER")
-        llm_config = self.config.get(llm_provider, {})
-        system_prompt = self.get_system_prompt()
-
-        llm = LLMFactory.create_llm(
-            llm_provider=llm_provider, SYSTEM_PROMPT=system_prompt, **llm_config
-        )
-        return llm
 
     def init_tts(self) -> TTSInterface:
         tts_model = self.config.get("TTS_MODEL", "pyttsx3TTS")
@@ -171,7 +160,7 @@ class OpenLLMVTuberMain:
 
         # def _play_audio_file(self, sentence: str, filepath: str | None) -> None:
 
-    def get_system_prompt(self) -> str:
+    def get_persona_prompt(self) -> str:
         """
         Construct and return the system prompt based on the configuration file.
         """
@@ -195,7 +184,7 @@ class OpenLLMVTuberMain:
 
     # Main conversation methods
 
-    def  conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
+    async def conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
         """
         One iteration of the main conversation.
         1. Get user input (text or audio) if not provided as an argument
@@ -238,7 +227,7 @@ class OpenLLMVTuberMain:
         print(f"User input: {user_input}")
         if not self.not_is_blocking_event.is_set():
             self.not_is_blocking_event.wait()
-        chat_completion: Iterator[str] = self.llm.chat_iter(user_input)
+        chat_completion: Iterator[str] = await self.llm.chat_iter(user_input)
 
         if not self.config.get("TTS_ON", False):
             full_response = ""

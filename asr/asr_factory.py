@@ -44,13 +44,6 @@ class ASRFactory:
                 region=kwargs.get("region"),
                 callback=kwargs.get("callback"),
             )
-        elif system_name == "GroqWhisperASR":
-            from .groq_whisper_asr import VoiceRecognition as GroqWhisperASR
 
-            return GroqWhisperASR(
-                api_key=kwargs.get("api_key"),
-                model=kwargs.get("model"),
-                lang=kwargs.get("lang"),
-            )
         else:
             raise ValueError(f"Unknown ASR system: {system_name}")
