@@ -44,8 +44,15 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 
 English demo:
 
-https://github.com/user-attachments/assets/1a147c4c-68e6-4248-a429-47ef286cc9c8
 
+
+
+
+https://github.com/user-attachments/assets/f13b2f8e-160c-4e59-9bdb-9cfb6e57aca9
+
+
+English Demo:
+[YouTube](https://youtu.be/gJuPM_2qEZc)
 
 
 中文 demo:

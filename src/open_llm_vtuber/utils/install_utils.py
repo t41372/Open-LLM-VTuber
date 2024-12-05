@@ -115,13 +115,8 @@ class InstallationManager:
         else:
             subprocess.run(["bash", "-c", pip_install_cmd], check=True)
 
-    def setup(self):
-        """Run complete setup process"""
-        if not self.conda_dir.exists():
-            installer = self.download_miniconda()
-            self.install_miniconda(installer)
-
-        # Create environment if it doesn't exist
+    def check_environment(self):
+        """Check if 'open-llm-vtuber' environment exists and install if not"""
         result = subprocess.run(
             [str(self.conda_executable), "env", "list"],
             capture_output=True,
@@ -132,3 +127,12 @@ class InstallationManager:
             self.create_environment()
             self.install_conda_dependencies()
             self.install_pip_dependencies()
+
+    def setup(self):
+        """Run complete setup process"""
+        if not self.conda_dir.exists():
+            installer = self.download_miniconda()
+            self.install_miniconda(installer)
+
+        # Create environment if it doesn't exist
+        self.check_environment()
