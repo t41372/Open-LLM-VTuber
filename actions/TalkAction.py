@@ -1,8 +1,6 @@
 from actions.ActionInterface import ActionInterface
 from OpenLLMVtuber import OpenLLMVTuberMain
 
-from loguru import logger
-
 
 class TalkAction(ActionInterface):
 

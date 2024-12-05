@@ -6,9 +6,20 @@ from asr.asr_interface import ASRInterface
 from loguru import logger
 from translate.translate_interface import TranslateInterface
 from utils.InputQueue import InputQueue
+from utils.OutputQueue import OutputQueue
 
 
 class VoiceListener:
+    _instance = None
+    _lock = threading.Lock()  # Lock object to ensure thread safety
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:  # Check if instance already exists
+            with cls._lock:  # Ensure thread-safe instance creation
+                if cls._instance is None:  # Double-checked locking
+                    cls._instance = super(VoiceListener, cls).__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
     config: dict | None
     asr: ASRInterface | None
     translator: TranslateInterface | None
@@ -20,12 +31,13 @@ class VoiceListener:
         """
         Initializes the VoiceListener with threading and asyncio compatibility.
         """
-        self.config = configs
-        self.verbose = self.config.get("VERBOSE", False)
-        self.websocket = websocket
-        self.stop_event = threading.Event()
-        self.input_queue = InputQueue()
-
+        if not self._initialized:
+            self.config = configs
+            self.verbose = self.config.get("VERBOSE", False)
+            self.websocket = websocket
+            self.stop_event = threading.Event()
+            self.input_queue = InputQueue()
+            self.initialized = True
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
             if custom_asr is None:

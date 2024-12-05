@@ -13,13 +13,26 @@ from utils.PromptFormatter import PromptFormatter
 
 
 class ActionSelectionQueue:
+    _instance = None
+    _lock = threading.Lock()  # Lock object to ensure thread safety
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:  # Check if instance already exists
+            with cls._lock:  # Ensure thread-safe instance creation
+                if cls._instance is None:  # Double-checked locking
+                    cls._instance = super(ActionSelectionQueue, cls).__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self, default_behavior: GenericBehavior):
-        self.queue = queue.Queue()
-        self.thread = threading.Thread(target=self.run)
-        self.stop_event = threading.Event()
-        self.pause_event = threading.Event()
-        self.default_behavior = default_behavior  # Default behavior to be executed if the queue is empty
+        if not self._initialized:
+            self._initialized = True
+            self.queue = queue.Queue()
+            self.thread = threading.Thread(target=self.run)
+            self.stop_event = threading.Event()
+            self.pause_event = threading.Event()
+            self.default_behavior = default_behavior  # Default behavior to be executed if the queue is empty
+            logger.success(f"CREATING ACTION SELECTION QUEUE THREAD : {id(self)}, thread id {threading.get_ident()}")
 
     def start(self):
         """Starts the queue processing thread."""
@@ -81,4 +94,5 @@ class ActionSelectionQueue:
                                                           self.default_behavior.choose_behavior(),
                                                           current_input)
                 logger.info(f"Processing action: {action.__class__.__name__}")
-                InferenceQueue().add_prompt(result)
+                inference_queue=InferenceQueue()
+                inference_queue.add_prompt(result)

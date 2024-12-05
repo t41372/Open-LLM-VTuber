@@ -9,18 +9,24 @@ from Emotion.EmotionHandler import EmotionHandler
 
 class OutputQueue:
     _instance = None
+    _lock = threading.Lock()  # Lock object to ensure thread safety
 
     def __new__(cls, *args, **kwargs):
-        # Ensure only one instance of InputQueue is created
-        if cls._instance is None:
-            cls._instance = super(OutputQueue, cls).__new__(cls)
+        if cls._instance is None:  # Check if instance already exists
+            with cls._lock:  # Ensure thread-safe instance creation
+                if cls._instance is None:  # Double-checked locking
+                    cls._instance = super(OutputQueue, cls).__new__(cls)
+                    cls._instance._initialized = False
         return cls._instance
 
     def __init__(self):
-        self.queue = asyncio.Queue()
-        self.loop = asyncio.new_event_loop()  # Create a dedicated event loop for the queue
-        self.thread = threading.Thread(target=self._run_event_loop, daemon=True)
-        self.thread.start()
+        if not self._initialized:
+            self._initialized = True
+            self.queue = asyncio.Queue()
+            self.loop = asyncio.new_event_loop()  # Create a dedicated event loop for the queue
+            self.thread = threading.Thread(target=self._run_event_loop, daemon=True)
+            self.thread.start()
+            logger.success(f"CREATING OUTPUT QUEUE THREAD : {id(self)}, thread id {threading.get_ident()}")
 
     def _run_event_loop(self):
         asyncio.set_event_loop(self.loop)

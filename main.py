@@ -1,4 +1,5 @@
 import atexit
+import sys
 import threading
 
 import yaml
@@ -13,12 +14,14 @@ from utils.InputQueue import InputQueue
 from utils.OutputQueue import OutputQueue
 from utils.VoiceListener import VoiceListener
 
+import dotenv
+
 ## Main Thread for program, also works as "main-loop" for inference, uses data from the StateInfo class
 
 if __name__ == "__main__":
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
-
+    dotenv.load_dotenv()
     server = WebSocketServer(open_llm_vtuber_config=config)
     server.start()
     vtuber_main = OpenLLMVTuberMain(config)
@@ -38,12 +41,14 @@ if __name__ == "__main__":
     def _run_conversation_chain():
         try:
             action_selection_queue.start()
-            prompt=InferenceQueue().get_prompt()
-            inference_result=OpenLLMVTuberMain().conversation_chain(prompt)
+            prompt = inference_queue.get_prompt()
+            inference_result = OpenLLMVTuberMain().conversation_chain(prompt)
             OutputQueue().add_output(inference_result)
-        except InterruptedError as e:
+        except Exception as e:
             logger.error(f"😢Conversation was interrupted. {e}")
             listener.stop()
+
+
     while True:
         logger.critical("tts on: ", vtuber_main.config.get("TTS_ON", False))
         if not vtuber_main.config.get("TTS_ON", False):

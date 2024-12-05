@@ -58,18 +58,10 @@ class PromptFormatter:
         :return: Formatted conversation history section.
         """
         formatted_messages = []
-        for message in conversation:
-            role = message.get("role", "Unknown").capitalize()
-            name = message.get("name", "Unknown")
-            content = message.get("content", "No content")
-            emotions = message.get("emotions", [])
-            if emotions:
-                emotion_summary = ", ".join(
-                    [f"{emotion['label']} ({emotion['score']:.2f})" for emotion in emotions]
-                )
-                formatted_messages.append(f"{role} ({name}): {content}\nEmotions: {emotion_summary}")
-            else:
-                formatted_messages.append(f"{role} ({name}): {content}")
+        name = conversation["name"]
+        content = conversation["content"]
+        emotions = conversation["emotions"]
+        formatted_messages.append(f"{name}: {content}\nEmotions: {emotions}")
         return "\n".join(formatted_messages)
 
     def format_for_gpt(
@@ -114,14 +106,14 @@ class PromptFormatter:
         """
         if conversation is not None:
             formatted_conversation = [
-            {
-                "role": conversation["role"],
-                "name": conversation["name"],
-                "content": conversation["content"],
-                "emotions": conversation["emotions"]
-            }
+                {
+                    "role": conversation["role"],
+                    "name": conversation["name"],
+                    "content": conversation["content"],
+                    "emotions": conversation["emotions"]
+                }
 
-        ]
+            ]
         else:
             formatted_conversation = []
         return {

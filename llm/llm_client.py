@@ -1,5 +1,3 @@
-from typing import Iterator
-
 from letta import LLMConfig, EmbeddingConfig
 from letta import create_client
 from letta.schemas.memory import ChatMemory
@@ -7,6 +5,7 @@ from letta.schemas.memory import ChatMemory
 from llm.llm_interface import LLMInterface
 
 client = create_client()
+from loguru import logger
 
 
 # Initialize the MemGPT instance
@@ -34,11 +33,13 @@ class LettaLLMClient(LLMInterface):
 
         :return: Response from the agent.
         """
-        return self.client.send_message(
+        response = self.client.send_message(
             agent_id=self.agent.id,
             message=prompt,
             role="user"
         )
+        logger.error(response.usage)
+        return response.messages
 
     def reset_memory(self):
         """

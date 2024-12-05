@@ -10,6 +10,7 @@ import numpy as np
 from fastapi import WebSocket
 
 from live2d_model import Live2dModel
+from llm.llm_client import LettaLLMClient
 from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
 from translate.translate_factory import TranslateFactory
@@ -54,6 +55,7 @@ class OpenLLMVTuberMain:
             custom_tts: "TTSInterface" = None,
             websocket: Optional["WebSocket"] = None,
     ) -> None:
+        self._play_audio_file = None
         if hasattr(self, "_initialized") and self._initialized:
             return  # Skip reinitialization in singleton
         self._initialized = True  # Mark as initialized
@@ -95,7 +97,7 @@ class OpenLLMVTuberMain:
             self.translator = None
 
         # Initialize the LLM instance
-        self.llm = Letta()
+        self.llm = LettaLLMClient()
 
     # Initialization methods
 

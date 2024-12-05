@@ -143,11 +143,11 @@ class VoiceRecognitionVAD:
 
     def start(self):
         """
-        Starts the Glados voice assistant, continuously listening for input and responding.
+        Starts the voice assistant, continuously listening for input and responding.
         """
         logger.info("Starting Listening...")
         self.input_stream.start()
-        logger.info("Listening Running")
+
         return self._listen_and_respond()
 
     def start_listening(self) -> str:
