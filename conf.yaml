@@ -287,6 +287,24 @@ coquiTTS:
   # Device to run model on ("cuda", "cpu", or leave empty for auto-detect)
   device: ""
 
+# pip install sherpa-onnx
+# documentation: https://k2-fsa.github.io/sherpa/onnx/index.html
+# TTS models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+# see config_alts for more examples 
+SherpaOnnxTTS:
+    vits_model: "/path/to/tts-models/vits-melo-tts-zh_en/model.onnx"  # Path to VITS model file
+    vits_lexicon: "/path/to/tts-models/vits-melo-tts-zh_en/lexicon.txt"  # Path to lexicon file (optional)
+    vits_tokens: "/path/to/tts-models/vits-melo-tts-zh_en/tokens.txt"  # Path to tokens file
+    vits_data_dir: "" # "/path/to/tts-models/vits-piper-en_GB-cori-high/espeak-ng-data"  # Path to espeak-ng data (optional)
+    vits_dict_dir: "/path/to/tts-models/vits-melo-tts-zh_en/dict"  # Path to Jieba dict (optional, for Chinese)
+    tts_rule_fsts: "/path/to/tts-models/vits-melo-tts-zh_en/number.fst,/path/to/tts-models/vits-melo-tts-zh_en/phone.fst,/path/to/tts-models/vits-melo-tts-zh_en/date.fst,/path/to/tts-models/vits-melo-tts-zh_en/new_heteronym.fst" # Path to rule FSTs file (optional)
+    max_num_sentences: 2  # Max sentences per batch (or -1 for all)
+    sid: 1  # Speaker ID (for multi-speaker models)
+    provider: "cpu"  # Use "cpu", "cuda" (GPU), or "coreml" (Apple)
+    num_threads: 1  # Number of computation threads
+    speed: 1.0  # Speech speed (1.0 is normal)
+    debug: false  # Enable debug mode (True/False)
+
 #  ============== Translate (to only change the language for TTS) ==============
 # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
 
