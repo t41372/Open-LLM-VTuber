@@ -98,6 +98,10 @@ class TTSFactory:
                 latency=kwargs.get("latency"),
                 base_url=kwargs.get("base_url"),
             )
+        elif engine_type == "SherpaOnnxTTS":
+            from .sherpaOnnxTTS import TTSEngine as SherpaOnnxTTSEngine
+
+            return SherpaOnnxTTSEngine(**kwargs)
             
         else:
             raise ValueError(f"Unknown TTS engine type: {engine_type}")
