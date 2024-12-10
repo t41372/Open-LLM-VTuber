@@ -128,6 +128,7 @@ Currently supported Speech recognition backend
 - [Whisper](https://github.com/openai/whisper) (local)
 - [Groq Whisper](https://groq.com/) (API Key required). This is a hosted Whisper endpoint, which is fast and has a generous free limit every day.
 - [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Local, fast, supports various models including transducer, Paraformer, NeMo CTC, WeNet CTC, Whisper, TDNN CTC, and SenseVoice models.)
 - The microphone in the server terminal will be used by default. You can change the setting `MIC_IN_BROWSER` in the `conf.yaml` to move the microphone (and voice activation detection) to the browser (at the cost of latency, for now). You might want to use the microphone on your client (the browser) rather than the one on your server if you run the backend on a different machine or inside a VM or docker.
 
 Currently supported Text to Speech backend
@@ -139,6 +140,7 @@ Currently supported Text to Speech backend
 - [xTTSv2](https://github.com/daswer123/xtts-api-server) (Local, very resource-consuming)
 - [Edge TTS](https://github.com/rany2/edge-tts) (online, no API key required)
 - [Azure Text-to-Speech](https://azure.microsoft.com/en-us/products/ai-services/text-to-speech) (online, API Key required)
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Local, fast, supports various models. For English, piper models are recommended. For pure Chinese, consider using [sherpa-onnx-vits-zh-ll.tar.bz2](https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2). For a mix of Chinese and English, [vits-melo-tts-zh_en.tar.bz2](https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2) can be used, though the English pronunciation might not be ideal.)
 
 Fast Text Synthesis
 - Synthesize sentences as soon as they arrive, so there is no need to wait for the entire LLM response.
@@ -205,6 +207,12 @@ Edit the ASR_MODEL settings in the `conf.yaml` to change the provider.
 
 Here are the options you have for speech recognition:
 
+`sherpa-onnx` (local, runs very fast)
+- Install with `pip install sherpa-onnx`.  (~20MB)
+- Download your desired model from [sherpa-onnx ASR models](https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models).
+- Refer to `config_alts` in the repository for configuration examples and modify the model path in your `conf.yaml` accordingly.
+- Offers great performance and is significantly lighter than FunASR.
+
 
 `FunASR` (~~local~~) (Runs very fast even on CPU. Not sure how they did it)
 - [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. The result and speed are pretty good with the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group.
@@ -249,6 +257,11 @@ WhisperCPP coreML configuration:
 
 ## Install Speech Synthesis (text to speech) (TTS)
 Install the respective package and turn it on using the `TTS_MODEL` option in `conf.yaml`.
+
+`sherpa-onnx` (local)
+- Install with `pip install sherpa-onnx`.
+- Download your desired model from [sherpa-onnx TTS models](https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models).
+- Refer to `config_alts` in the repository for configuration examples and modify the model path in your `conf.yaml` accordingly.
 
 `pyttsx3TTS` (local, fast)
 - Install with the command `pip install py3-tts`.
