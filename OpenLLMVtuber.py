@@ -59,13 +59,13 @@ class OpenLLMVTuberMain:
         if hasattr(self, "_initialized") and self._initialized:
             return  # Skip reinitialization in singleton
         self._initialized = True  # Mark as initialized
-
         self.config = configs
         self.verbose = self.config.get("VERBOSE", False)
         self.websocket = websocket
         self.live2d = self.init_live2d()
         self._continue_exec_flag = threading.Event()
         self.not_is_blocking_event = threading.Event()
+        self.llm = LettaLLMClient()
         # clear
         self.not_is_blocking_event.clear()
         self._continue_exec_flag.set()  # Set the flag to continue execution
@@ -97,7 +97,6 @@ class OpenLLMVTuberMain:
             self.translator = None
 
         # Initialize the LLM instance
-        self.llm = LettaLLMClient()
 
     # Initialization methods
 
@@ -186,7 +185,7 @@ class OpenLLMVTuberMain:
 
     # Main conversation methods
 
-    async def conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
+    def conversation_chain(self, user_input: str | np.ndarray | None = None) -> str:
         """
         One iteration of the main conversation.
         1. Get user input (text or audio) if not provided as an argument
@@ -199,7 +198,8 @@ class OpenLLMVTuberMain:
         Returns:
         - str: The full response from the LLM
         """
-
+        persona_prompt = self.get_persona_prompt()
+        self.llm.initialize("user", persona_prompt)
         if not self._continue_exec_flag.wait(
                 timeout=self.EXEC_FLAG_CHECK_TIMEOUT
         ):  # Wait for the flag to be set
@@ -226,10 +226,9 @@ class OpenLLMVTuberMain:
         if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower() or user_input is None:
             print("Exiting...")
             exit()
-        print(f"User input: {user_input}")
         if not self.not_is_blocking_event.is_set():
             self.not_is_blocking_event.wait()
-        chat_completion: Iterator[str] = await self.llm.chat_iter(user_input)
+        chat_completion: Iterator[str] = self.llm.chat_iter(user_input)
 
         if not self.config.get("TTS_ON", False):
             full_response = ""
@@ -547,5 +546,3 @@ class OpenLLMVTuberMain:
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
-
-

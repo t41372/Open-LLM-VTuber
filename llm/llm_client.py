@@ -20,11 +20,18 @@ class LettaLLMClient(LLMInterface):
         self.agent = None
         self.memory = None
 
-    def initialize(self, name, persona, model):
-        self.client.set_default_llm_config(LLMConfig.default_config(model))
-        self.client.set_default_embedding_config(EmbeddingConfig.default_config(provider="openai"))
-        self.memory = ChatMemory(human=name, persona=persona)
-        self.agent = self.client.create_agent(name, memory=self.memory)
+    def initialize(self, name, persona, model="gpt-4o-mini"):
+        try:
+            self.client.set_default_llm_config(LLMConfig.default_config(model_name=model))
+            self.client.set_default_embedding_config(
+                EmbeddingConfig.default_config(model_name="text-embedding-ada-002"))
+            self.memory = ChatMemory(human='GoldRoger', persona=persona)
+            self.agent = self.client.create_agent(name=name,memory=self.memory)
+            self.client.get_agent_by_name()
+            logger.success(f"CREATED AGENT {self.agent.name}")
+        except ValueError as e:
+            logger.success(f"AGENT ALREADY EXISTS, FETCHING AGENT: {e}")
+            self.agent = client.get_agent_by_name(name)
 
     def chat_iter(self, prompt):
         """
@@ -33,13 +40,16 @@ class LettaLLMClient(LLMInterface):
 
         :return: Response from the agent.
         """
-        response = self.client.send_message(
-            agent_id=self.agent.id,
-            message=prompt,
-            role="user"
-        )
-        logger.error(response.usage)
-        return response.messages
+        try:
+            response = self.client.send_message(
+                agent_id=self.agent.id,
+                message=prompt,
+                role="agent"
+            )
+            logger.error(response.usage)
+            return response.messages
+        except Exception as e:
+            logger.error(e)
 
     def reset_memory(self):
         """

@@ -87,7 +87,8 @@ class VoiceListener:
         while not self.stop_event.is_set():
             try:
                 logger.info("Waiting for user input...")
-                result = self.asr.transcribe_with_local_vad()
+                user_input = self.input_queue.get_input()
+                result = self.asr.()
                 self.input_queue.add_input(result)
 
             except Exception as e:

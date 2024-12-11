@@ -79,6 +79,7 @@ class VoiceRecognitionVAD:
             asr_transcribe_func: Callable,
             wake_word: str | None = None,
     ) -> None:
+        wav2vec_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-large-xlsr-53")
         """
         Initializes the VoiceRecognition class, setting up necessary models, streams, and queues.
 
@@ -110,7 +111,6 @@ class VoiceRecognitionVAD:
         self.sample_queue = queue.Queue()
         self.buffer = queue.Queue(maxsize=BUFFER_SIZE // VAD_SIZE)
         self.recording_started = False
-        self.wav2vec_feature_extractor= Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-large-xlsr-53")
         self.wav2vec_samples =[]
         self.gap_counter = 0
         self.wake_word = wake_word
@@ -125,6 +125,9 @@ class VoiceRecognitionVAD:
             callback=self.audio_callback,
             blocksize=int(SAMPLE_RATE * VAD_SIZE / 1000),
         )
+
+    def get_wav2vec_feature_extractor(self):
+        return VoiceRecognitionVAD.wav2vec_feature_extractor
 
     def _setup_vad_model(self):
         """
@@ -225,12 +228,15 @@ class VoiceRecognitionVAD:
     #     )
     #     return closest_distance < SIMILARITY_THRESHOLD
 
-    def _process_detected_audio(self):
+    def _process_detected_audio(self,input_sample):
         """
         Processes the detected audio and generates a response.
         """
         logger.info("Detected pause after speech. Processing...")
         logger.info("Stopping listening...")
+        if input_sample is not None:
+            self.samples = input_sample[]
+
         self.input_stream.stop()
         self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples,sampling_rate=SAMPLE_RATE,padding=True,return_tensors="pt")
         detected_text = self.asr(self.samples)
