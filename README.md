@@ -304,6 +304,22 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 If you're using macOS, you need to enable the microphone permission of your terminal emulator (you run this program inside your terminal, right? Enable the microphone permission for your terminal). If you fail to do so, the speech recognition will not be able to hear you because it does not have permission to use your microphone.
 
 
+## VAD Tuning
+
+For web interface, this project utilizes client-side Voice Activity Detection (VAD) using the [ricky0123/vad-web](https://github.com/ricky0123/vad) library for efficient speech detection.
+
+**Web Interface Controls:**
+
+The following settings are available in the web interface to fine-tune the VAD:
+
+*   **Speech Prob. Threshold:** Controls the minimum speech probability for initial speech detection. Higher values require stronger speech input to trigger detection.
+*   **Negative Speech Threshold:** The probability threshold below which a frame is considered to not contain speech (i.e., part of a silence).
+*   **Redemption Frames:** Specifies how many consecutive frames of silence are required to end a speech segment. Higher values allow for more pause tolerance.
+
+**Tuning Tips:**
+
+Experiment with these parameters to find the optimal balance between sensitivity and accuracy for your environment and speaking style.
+
 
 ## Translation
 
