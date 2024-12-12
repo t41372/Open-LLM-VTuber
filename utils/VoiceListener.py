@@ -1,12 +1,15 @@
 import asyncio
 import threading
+
+from loguru import logger
 from websocket import WebSocket
+
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
-from loguru import logger
 from translate.translate_interface import TranslateInterface
+from utils.DiscordInputList import DiscordInputList
 from utils.InputQueue import InputQueue
-from utils.OutputQueue import OutputQueue
+from utils.StateInfo import StateInfo
 
 
 class VoiceListener:
@@ -20,6 +23,7 @@ class VoiceListener:
                     cls._instance = super(VoiceListener, cls).__new__(cls)
                     cls._instance._initialized = False
         return cls._instance
+
     config: dict | None
     asr: ASRInterface | None
     translator: TranslateInterface | None
@@ -37,6 +41,7 @@ class VoiceListener:
             self.websocket = websocket
             self.stop_event = threading.Event()
             self.input_queue = InputQueue()
+            self.discord_input_queue = DiscordInputList()
             self.initialized = True
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
@@ -87,10 +92,12 @@ class VoiceListener:
         while not self.stop_event.is_set():
             try:
                 logger.info("Waiting for user input...")
-                user_input = self.input_queue.get_input()
-                result = self.asr.()
+                if StateInfo().get_voice_interface().lower() not in 'discord':
+                    result = self.asr.transcribe_with_local_vad()
+                    self.input_queue.add_input(result)
+                    return None
+                result = self.asr._process_detected_audio(self.discord_input_queue.get_input('voice'))
                 self.input_queue.add_input(result)
-
             except Exception as e:
                 logger.error(f"Error in transcribing user input: {e}")
 

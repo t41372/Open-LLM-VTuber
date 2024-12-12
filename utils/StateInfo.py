@@ -13,6 +13,7 @@ class StateInfo(threading.Thread):
         self._requires_input = False
         self._is_interrupted = False
         self._is_running = False
+        self._voice_interface = None
 
         # Thread control
         self._stop_event = threading.Event()
@@ -66,6 +67,14 @@ class StateInfo(threading.Thread):
     def get_is_running(self):
         with self._lock:
             return self._is_running
+
+    def get_voice_interface(self):
+        with self._lock:
+            return self._voice_interface
+
+    def set_voice_interface(self, voice_interface):
+        with self._lock:
+            self._voice_interface = voice_interface
 
     def stop(self):
         """Signals the thread to stop."""

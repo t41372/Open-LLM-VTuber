@@ -1,27 +1,27 @@
+import threading
+
 import discord
 import asyncio
 import numpy as np
 
-from utils.InputQueue import InputQueue
-
-intents = discord.Intents.default()
-intents.messages = True
-intents.guilds = True
-intents.voice_states = True
-intents.message_content = True
-
-BOT_TOKEN = "YOUR_DISCORD_BOT_TOKEN"
+from utils.DiscordInputList import DiscordInputList
 
 
 class VoiceActivityBot(discord.Client):
-    def __init__(self, intents):
+    def __init__(self, intents=None):
         super().__init__(intents=intents)
         self.voice_client = None
         self.audio_buffer = {}  # Store audio per speaker {username: [audio_frames]}
         self.speaking_users = set()  # Track active speakers
         self.sample_rate = 16000  # Standard sample rate for PCM audio
         self.recording_task = None
-        self.input_queue = InputQueue()
+        self.input_queue = DiscordInputList()
+        self.thread = threading.Thread(target=self.run_bot, daemon=True)
+        self.thread.start()
+
+    def run_bot(self, bot_token):
+        # Run the bot
+        asyncio.run(self.start(bot_token))
 
     async def on_ready(self):
         print(f"Bot is ready and logged in as {self.user}")
@@ -95,7 +95,7 @@ class VoiceActivityBot(discord.Client):
                     self.audio_buffer[username].append(pcm_data)
                 for username, frames in self.audio_buffer.items():
                     combined_audio = np.concatenate(frames)
-                    self.input_queue.add_input({username: combined_audio})
+                    self.input_queue.add_input({'name': username, 'audio': combined_audio, 'type': 'audio'})
                 self.audio_buffer.clear()  # Clear buffer after processing
 
         except asyncio.CancelledError:
@@ -120,4 +120,3 @@ class VoiceActivityBot(discord.Client):
             if member.id == user_id:
                 return member.name
         return "Unknown"
-

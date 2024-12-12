@@ -28,4 +28,6 @@ melo~=1.1.0
 pyttsx3~=2.98
 gradio_client~=1.4.0
 torchaudio~=2.5.1
-letta~=0.5.5
+letta~=0.6.1
+discord~=2.3.2
+discord.py~=2.4.0

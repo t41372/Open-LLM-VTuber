@@ -69,17 +69,18 @@ class IdentifySpeaker:
             cls._instance = super(IdentifySpeaker, cls).__new__(cls)
         return cls._instance
 
-    def identify_speaker(self,audio_clip):
+    def identify_speaker(self, audio_clip):
         return "GoldRoger"
 
 
 class VoiceRecognitionVAD:
+    wav2vec_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-large-xlsr-53")
+
     def __init__(
             self,
             asr_transcribe_func: Callable,
             wake_word: str | None = None,
     ) -> None:
-        wav2vec_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-large-xlsr-53")
         """
         Initializes the VoiceRecognition class, setting up necessary models, streams, and queues.
 
@@ -111,7 +112,7 @@ class VoiceRecognitionVAD:
         self.sample_queue = queue.Queue()
         self.buffer = queue.Queue(maxsize=BUFFER_SIZE // VAD_SIZE)
         self.recording_started = False
-        self.wav2vec_samples =[]
+        self.wav2vec_samples = []
         self.gap_counter = 0
         self.wake_word = wake_word
 
@@ -163,7 +164,7 @@ class VoiceRecognitionVAD:
             str: The transcribed text
         """
         self.input_stream.start()
-        heard_text= self._listen_and_respond(returnText=True)
+        heard_text = self._listen_and_respond(returnText=True)
         self.reset()
         return heard_text
 
@@ -228,21 +229,24 @@ class VoiceRecognitionVAD:
     #     )
     #     return closest_distance < SIMILARITY_THRESHOLD
 
-    def _process_detected_audio(self,input_sample):
+    def _process_detected_audio(self, input_sample):
         """
         Processes the detected audio and generates a response.
         """
         logger.info("Detected pause after speech. Processing...")
         logger.info("Stopping listening...")
+        detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         if input_sample is not None:
-            self.samples = input_sample[]
+            self.samples = input_sample['']
+            detected_speaker= input_sample['name']
 
         self.input_stream.stop()
-        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples,sampling_rate=SAMPLE_RATE,padding=True,return_tensors="pt")
+        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples, sampling_rate=SAMPLE_RATE,
+                                                              padding=True, return_tensors="pt")
         detected_text = self.asr(self.samples)
-        detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
+
         if detected_text:
-            return {"name": detected_speaker, "content": detected_text,'wav2vec_samples': self.wav2vec_samples}
+            return {"name": detected_speaker, "content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead
