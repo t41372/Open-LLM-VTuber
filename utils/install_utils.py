@@ -107,7 +107,7 @@ class InstallationManager:
         # Install requirements.txt
         pip_install_cmd = f"{activate_cmd} && pip install -r requirements.txt"
         pip_install_cmd += (
-            " && pip install torch torchaudio funasr modelscope huggingface_hub"
+            " && pip install torch torchaudio funasr modelscope huggingface_hub onnx"
         )
 
         if platform.system().lower() == "windows":

@@ -208,7 +208,7 @@ Here are the options you have for speech recognition:
 
 `FunASR` (~~local~~) (Runs very fast even on CPU. Not sure how they did it)
 - [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. The result and speed are pretty good with the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group.
-- Install with `pip install -U funasr modelscope huggingface_hub`. Also, ensure you have torch (torch>=1.13) and torchaudio. Install them with `pip install torch torchaudio`
+- Install with `pip install -U funasr modelscope huggingface_hub`. Also, ensure you have torch (torch>=1.13) and torchaudio. Install them with `pip install torch torchaudio onnx` (FunASR now requires `onnx` as well)
 - It requires an internet connection on launch _even if the models are locally available_. See https://github.com/modelscope/FunASR/issues/1897
 
 `Faster-Whisper` (local)
