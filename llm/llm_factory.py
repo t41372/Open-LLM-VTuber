@@ -20,6 +20,13 @@ class LLMFactory:
                 organization_id=kwargs.get("ORGANIZATION_ID"),
                 verbose=kwargs.get("VERBOSE", False),
             )
+        elif llm_provider == "llamacpp":
+            from .llamacpp_llm import LLM as LlamaLLM
+            return LlamaLLM(
+                model_path=kwargs.get("MODEL_PATH"),
+                system=kwargs.get("SYSTEM_PROMPT"),
+                verbose=kwargs.get("VERBOSE", False),
+            )
         elif llm_provider == "mem0":
             from llm.mem0_llm import LLM as Mem0LLM
             return Mem0LLM(
