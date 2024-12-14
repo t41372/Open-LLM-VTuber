@@ -1,8 +1,5 @@
-import random
-
 from Behavior.generic_behavior import GenericBehavior
 from actions.TalkAction import TalkAction
-from utils.PromptLoader import PromptLoader
 
 
 class TalkBehavior(GenericBehavior):

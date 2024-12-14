@@ -1,5 +1,4 @@
 import atexit
-import os
 import threading
 
 import discord
@@ -27,28 +26,24 @@ if __name__ == "__main__":
     server = WebSocketServer(open_llm_vtuber_config=config)
     server.start()
     vtuber_main = OpenLLMVTuberMain(config)
+    voice_interface = "discord"
+    state_info = StateInfo()
+    state_info.set_voice_interface(voice_interface)
     listener = VoiceListener(config)
     input_queue = InputQueue()
     default_behavior = TalkBehavior()
     inference_queue = InferenceQueue()
-    voice_interface = "discord"
-    state_info=StateInfo()
-    state_info.set_voice_interface(voice_interface)
-    bot_token = os.getenv("BOT_TOKEN")
-
 
     ## discord bot spec
+
     intents = discord.Intents.default()
     intents.messages = True
     intents.guilds = True
     intents.voice_states = True
     intents.message_content = True
-    client = VoiceActivityBot(intents=intents)
+    discord_client = VoiceActivityBot(intents=intents)
 
-    if voice_interface == "discord":
-        client.run(bot_token)
-
-    ## live2de model
+    ## live2d model
     action_selection_queue = ActionSelectionQueue(default_behavior=default_behavior)
     config["LIVE2D"] = True
 

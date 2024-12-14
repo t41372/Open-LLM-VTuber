@@ -4,7 +4,20 @@ from loguru import logger
 
 
 class StateInfo(threading.Thread):
+    _instance = None
+    _lock = threading.Lock()  # Lock object to ensure thread safety
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:  # Check if instance already exists
+            with cls._lock:  # Ensure thread-safe instance creation
+                if cls._instance is None:  # Double-checked locking
+                    cls._instance = super(StateInfo, cls).__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+
     def __init__(self):
+        if hasattr(self, '_initialized') and self._initialized:
+            return  # Skip reinitialization if already initialized
         super(StateInfo, self).__init__()
         self.daemon = True  # Optional: Makes the thread exit when the main program exits
 
@@ -18,6 +31,7 @@ class StateInfo(threading.Thread):
         # Thread control
         self._stop_event = threading.Event()
         self._lock = threading.Lock()
+        logger.success(f"CREATING STATE INFO THREAD : {id(self)}, thread id {threading.get_ident()}")
 
     def run(self):
         """Main loop that monitors state variables."""

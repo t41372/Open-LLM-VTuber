@@ -229,7 +229,7 @@ class VoiceRecognitionVAD:
     #     )
     #     return closest_distance < SIMILARITY_THRESHOLD
 
-    def _process_detected_audio(self, input_sample):
+    def process_detected_audio(self, input_sample):
         """
         Processes the detected audio and generates a response.
         """

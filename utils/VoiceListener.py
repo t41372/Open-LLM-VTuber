@@ -92,11 +92,12 @@ class VoiceListener:
         while not self.stop_event.is_set():
             try:
                 logger.info("Waiting for user input...")
-                if StateInfo().get_voice_interface().lower() not in 'discord':
+                if StateInfo().get_voice_interface() not in 'discord':
                     result = self.asr.transcribe_with_local_vad()
                     self.input_queue.add_input(result)
                     return None
-                result = self.asr._process_detected_audio(self.discord_input_queue.get_input('voice'))
+                discord_voice_input=self.discord_input_queue.get_input('audio')
+                result = self.asr.asr_with_vad.process_detected_audio(discord_voice_input)
                 self.input_queue.add_input(result)
             except Exception as e:
                 logger.error(f"Error in transcribing user input: {e}")

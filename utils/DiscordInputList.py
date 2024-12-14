@@ -24,39 +24,42 @@ class DiscordInputList:
             self.loop = asyncio.new_event_loop()  # Create a dedicated event loop for the queue
             self.thread = threading.Thread(target=self._run_event_loop, daemon=True)
             self.thread.start()
+            self.condition = threading.Condition()
             logger.success(f"CREATING Discord INPUT QUEUE THREAD : {id(self)}, thread id {threading.get_ident()}")
 
     def _run_event_loop(self):
+        """Runs the asyncio event loop in a separate thread."""
         asyncio.set_event_loop(self.loop)
         self.loop.run_forever()
 
-    def add_input(self, input):
-        """Thread-safe method to add input to the list."""
-        asyncio.run_coroutine_threadsafe(self.async_add_input(input), self.loop)
+    def add_input(self, input: Any):
+        """Thread-safe method to add a prompt to the queue."""
+        with self.condition:
+            self.list.append(input)
+            logger.info(f"current input size: {len(self.list)}")
+            self.condition.notify_all()  # Notify all waiting threads
 
-    def get_input(self, message_type):
-        """Thread-safe method to get input from the list."""
-        future = asyncio.run_coroutine_threadsafe(self.async_get_input(message_type), self.loop)
-        return future.result()
+    def get_input(self, message_type) -> Any:
+        """Blocks until a prompt is available in the queue."""
+        with self.condition:
+            while len(self.list) == 0:
+                logger.info("Message list is empty. Waiting for input...")
+                self.condition.wait()  # Block until notified
 
-    async def async_add_input(self, input: Any):
-        """
-        Asynchronously adds an input to the list.
-        If the input is a string, it classifies the emotion and appends it.
-        """
-        logger.info(f"Inputs added to the queue: {input}")
-        self.list.append(input)
-
-    async def async_get_input(self, message_type="text"):
-        """
-        Asynchronously retrieves inputs from the queue.
-        :param message_type: The type of message to retrieve ie. text or audio etc..
-        :return: A list of inputs.
-        """
-        for message in self.list:
-            if message['type'] == message_type:
-                result = message
-                logger.info(f"Inputs retrieved from the queue: {result}")
-                self.list.append(result)
-                self.list.remove(message)
+            # Once notified, fetch the prompt
+            future = asyncio.run_coroutine_threadsafe(self.get(message_type), self.loop)
+            try:
+                result = future.result()  # This blocks until an item is available
+                logger.info(f"Prompt retrieved from queue: {result}")
                 return result
+            except Exception as e:
+                logger.error(f"Error while retrieving prompt: {e}")
+                return None
+
+    def get(self,message_type) -> Any:
+        for message in self.list:
+            if message.type == message_type:
+                result = self.list.pop(message.index)
+                return result
+
+

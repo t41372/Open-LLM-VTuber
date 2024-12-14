@@ -26,7 +26,10 @@ class LettaLLMClient(LLMInterface):
             self.client.set_default_embedding_config(
                 EmbeddingConfig.default_config(model_name="text-embedding-ada-002"))
             self.memory = ChatMemory(human='GoldRoger', persona=persona)
-            self.agent = self.client.create_agent(name=name,memory=self.memory)
+            if client.get_agent_id(agent_name=name) is None:
+                self.agent = self.client.create_agent(name=name,memory=self.memory)
+            else:
+                self.agent = self.client.get_agent(agent_name=name)
             self.client.get_agent_by_name()
             logger.success(f"CREATED AGENT {self.agent.name}")
         except ValueError as e:
