@@ -115,14 +115,14 @@ AzureASR:
 Faster-Whisper:
   model_path: "distil-medium.en" # distil-medium.en is an English-only model 
   #                               use distil-large-v3 if you have a good GPU
-  download_root: "asr/models"
+  download_root: "models/whisper"
   language: "en" # en, zh, or something else. put nothing for auto-detect.
   device: "auto" # cpu, cuda, or auto. faster-whisper doesn't support mps
 
 WhisperCPP:
   # all available models are listed on https://abdeladim-s.github.io/pywhispercpp/#pywhispercpp.constants.AVAILABLE_MODELS
   model_name: "small"
-  model_dir: "asr/models"
+  model_dir: "models/whisper"
   print_realtime: False
   print_progress: False
   
@@ -130,7 +130,7 @@ WhisperCPP:
 
 Whisper:
   name: "medium"
-  download_root: "asr/models"
+  download_root: "models/whisper"
   device: "cpu"
 
 # FunASR currently needs internet connection on launch
