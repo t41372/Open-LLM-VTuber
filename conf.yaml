@@ -1,4 +1,4 @@
-CONF_VERSION: "v0.4.0-alpha.2"
+CONF_VERSION: "v0.5.0-alpha.2"
 # Server
 PROTOCAL: "http://"
 HOST: "localhost"
@@ -14,7 +14,7 @@ REMOVE_SPECIAL_CHAR: True # remove special characters like emoji from audio gene
 
 #  ============== LLM Backend Settings ===================
 
-# Provider of LLM. Options available: "ollama", "memgpt", "mem0", "claude" 
+# Provider of LLM. Options available: "ollama", "memgpt", "mem0", "claude", "llamacpp"
 #   (or "fakellm for debug purposes")
 # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
 LLM_PROVIDER: "ollama"
@@ -37,6 +37,10 @@ claude:
   LLM_API_KEY: "YOUR API KEY HERE"
   MODEL: "claude-3-haiku-20240307"
   VERBOSE: False
+
+llamacpp:
+  MODEL_PATH: "<path-to-gguf-model-file>"
+  VERBOSE: True
 
 mem0:
   USER_ID: "user-0"
@@ -100,8 +104,8 @@ VOICE_INPUT_ON: True
 # Put your mic in the browser or in the terminal? (would increase latency)
 MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
-# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR"
-ASR_MODEL: "FunASR"
+# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR", "SherpaOnnxASR"
+ASR_MODEL: "Faster-Whisper"
 
 AzureASR:
   api_key: "azure_api_key"
@@ -142,6 +146,46 @@ FunASR:
   hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
   use_itn: False
   language: "auto" # zh, en, auto
+
+# pip install sherpa-onnx
+# documentation: https://k2-fsa.github.io/sherpa/onnx/index.html
+# ASR models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models
+SherpaOnnxASR:
+  model_type: "sense_voice" # "transducer", "paraformer", "nemo_ctc", "wenet_ctc", "whisper", "tdnn_ctc"
+  #  Choose only ONE of the following, depending on the model_type:
+  # --- For model_type: "transducer" ---
+  # encoder: ""        # Path to the encoder model (e.g., "path/to/encoder.onnx")
+  # decoder: ""        # Path to the decoder model (e.g., "path/to/decoder.onnx")
+  # joiner: ""         # Path to the joiner model (e.g., "path/to/joiner.onnx")
+  # --- For model_type: "paraformer" ---
+  # paraformer: ""     # Path to the paraformer model (e.g., "path/to/model.onnx")
+  # --- For model_type: "nemo_ctc" ---
+  # nemo_ctc: ""        # Path to the NeMo CTC model (e.g., "path/to/model.onnx")
+  # --- For model_type: "wenet_ctc" ---
+  # wenet_ctc: ""       # Path to the WeNet CTC model (e.g., "path/to/model.onnx")
+  # --- For model_type: "tdnn_ctc" ---
+  # tdnn_model: ""      # Path to the TDNN CTC model (e.g., "path/to/model.onnx")
+  # --- For model_type: "whisper" ---
+  # whisper_encoder: "" # Path to the Whisper encoder model (e.g., "path/to/encoder.onnx")
+  # whisper_decoder: "" # Path to the Whisper decoder model (e.g., "path/to/decoder.onnx")
+  # --- For model_type: "sense_voice" ---
+  sense_voice: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx" # Path to the SenseVoice model (e.g., "path/to/model.onnx")
+  tokens: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt" # Path to tokens.txt (required for all model types)
+  # --- Optional parameters (with defaults shown) ---
+  # hotwords_file: ""     # Path to hotwords file (if using hotwords)
+  # hotwords_score: 1.5   # Score for hotwords
+  # modeling_unit: ""     # Modeling unit for hotwords (if applicable)
+  # bpe_vocab: ""         # Path to BPE vocabulary (if applicable)
+  num_threads: 4 # Number of threads
+  # whisper_language: "" # Language for Whisper models (e.g., "en", "zh", etc. - if using Whisper)
+  # whisper_task: "transcribe"  # Task for Whisper models ("transcribe" or "translate" - if using Whisper)
+  # whisper_tail_paddings: -1   # Tail padding for Whisper models (if using Whisper)
+  # blank_penalty: 0.0    # Penalty for blank symbol
+  # decoding_method: "greedy_search"  # "greedy_search" or "modified_beam_search"
+  # debug: False # Enable debug mode
+  # sample_rate: 16000 # Sample rate (should match the model's expected sample rate)
+  # feature_dim: 80       # Feature dimension (should match the model's expected feature dimension)
+  use_itn: True # Enable ITN for SenseVoice models (should set to False if not using SenseVoice models)
 
 GroqWhisperASR:
   api_key: ""
@@ -246,6 +290,24 @@ coquiTTS:
   
   # Device to run model on ("cuda", "cpu", or leave empty for auto-detect)
   device: ""
+
+# pip install sherpa-onnx
+# documentation: https://k2-fsa.github.io/sherpa/onnx/index.html
+# TTS models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+# see config_alts for more examples 
+SherpaOnnxTTS:
+    vits_model: "/path/to/tts-models/vits-melo-tts-zh_en/model.onnx"  # Path to VITS model file
+    vits_lexicon: "/path/to/tts-models/vits-melo-tts-zh_en/lexicon.txt"  # Path to lexicon file (optional)
+    vits_tokens: "/path/to/tts-models/vits-melo-tts-zh_en/tokens.txt"  # Path to tokens file
+    vits_data_dir: "" # "/path/to/tts-models/vits-piper-en_GB-cori-high/espeak-ng-data"  # Path to espeak-ng data (optional)
+    vits_dict_dir: "/path/to/tts-models/vits-melo-tts-zh_en/dict"  # Path to Jieba dict (optional, for Chinese)
+    tts_rule_fsts: "/path/to/tts-models/vits-melo-tts-zh_en/number.fst,/path/to/tts-models/vits-melo-tts-zh_en/phone.fst,/path/to/tts-models/vits-melo-tts-zh_en/date.fst,/path/to/tts-models/vits-melo-tts-zh_en/new_heteronym.fst" # Path to rule FSTs file (optional)
+    max_num_sentences: 2  # Max sentences per batch (or -1 for all)
+    sid: 1  # Speaker ID (for multi-speaker models)
+    provider: "cpu"  # Use "cpu", "cuda" (GPU), or "coreml" (Apple)
+    num_threads: 1  # Number of computation threads
+    speed: 1.0  # Speech speed (1.0 is normal)
+    debug: false  # Enable debug mode (True/False)
 
 #  ============== Translate (to only change the language for TTS) ==============
 # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
