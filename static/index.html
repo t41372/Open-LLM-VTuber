@@ -325,6 +325,10 @@
                     break;
                 case "set-model":
                     console.log("set-model: ", message.text);
+                    
+                    model_url = this.wsUrl.value.replace("ws:", window.location.protocol).replace("/client-ws", "") + message.text.url;
+                    message.text.url = model_url;
+
                     live2dModule.init().then(() => {
                         live2dModule.loadModel(message.text);
                     });

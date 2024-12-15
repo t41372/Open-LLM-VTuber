@@ -11,6 +11,7 @@ import chardet
 from loguru import logger
 from fastapi import FastAPI, WebSocket, APIRouter
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.cors import CORSMiddleware 
 from starlette.websockets import WebSocketDisconnect
 from main import OpenLLMVTuberMain
 from live2d_model import Live2dModel
@@ -36,8 +37,18 @@ class WebSocketServer:
         """
         logger.info(f"t41372/Open-LLM-VTuber, version {__init__.__version__}")
         self.app = FastAPI()
+        # Add CORS middleware
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
         self.router = APIRouter()
         self.connected_clients: List[WebSocket] = []
+        
+        
         self.open_llm_vtuber_main_config = open_llm_vtuber_main_config
 
         # Initialize model manager
