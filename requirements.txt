@@ -19,4 +19,4 @@ edge-tts
 httpx
 faster_whisper
 chardet
-anthropic>=0.18.0
+anthropic

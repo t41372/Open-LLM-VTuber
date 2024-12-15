@@ -1,5 +1,5 @@
 import atexit
-
+import uvicorn
 from src.open_llm_vtuber.server import WebSocketServer
 from src.open_llm_vtuber.utils.utils import load_config_with_env
 
@@ -15,4 +15,5 @@ if __name__ == "__main__":
 
     # Initialize and run the WebSocket server
     server = WebSocketServer(open_llm_vtuber_main_config=config)
-    server.run(host=config["HOST"], port=config["PORT"])
+    uvicorn.run(app=server, host=config["HOST"], port=config["PORT"], log_level="info")
+    

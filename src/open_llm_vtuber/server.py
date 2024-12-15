@@ -1,11 +1,10 @@
-import atexit
 import os
 import shutil
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
-import uvicorn
+
 
 from .config.config_manager import load_config_with_env
 from .service.model_manager import ModelManager
@@ -49,14 +48,6 @@ class WebSocketServer:
         logger.info(f"t41372/Open-LLM-VTuber, version {self.config.get('__version__','unknown')}")
 
     def run(self, host, port):
-        uvicorn.run(self.app, host=host, port=port, log_level="info")
+        pass
+        
 
-if __name__ == "__main__":
-    atexit.register(WebSocketServer.clean_cache)
-
-    # Load configurations
-    config = load_config_with_env("conf.yaml")
-    config["LIVE2D"] = True  # ensure live2d is enabled
-
-    server = WebSocketServer(config)
-    server.run(host=config["HOST"], port=config["PORT"])

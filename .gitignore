@@ -11,6 +11,7 @@ lab.py
 .idea
 
 # Virtual environment
+.venv
 .conda
 conda
 
