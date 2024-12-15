@@ -10,7 +10,7 @@ from .config.config_manager import (
     load_config_file_with_guess_encoding,
     scan_config_alts_directory,
     load_new_config,
-    scan_bg_directory
+    scan_bg_directory,
 )
 
 
@@ -30,17 +30,19 @@ def create_routes(service_context):
         logger.info("Connection established")
 
         service_context.set_audio_output_func(
-            lambda s, f: audio_playback_func(websocket, service_context, s, f)
+            lambda sentence, filepath: audio_playback_func(
+                websocket, service_context, sentence, filepath
+            )
         )
 
         await websocket.send_text(
-            json.dumps({"type": "set-model", "text": service_context.live2d_model.model_info})
+            json.dumps(
+                {"type": "set-model", "text": service_context.live2d_model.model_info}
+            )
         )
         received_data_buffer = np.array([])
         # start mic
-        await websocket.send_text(
-            json.dumps({"type": "control", "text": "start-mic"})
-        )
+        await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
 
         conversation_task = None
 
@@ -73,14 +75,24 @@ def create_routes(service_context):
                     async def _run_conversation():
                         try:
                             await websocket.send_text(
-                                json.dumps({"type": "control", "text": "conversation-chain-start"})
+                                json.dumps(
+                                    {
+                                        "type": "control",
+                                        "text": "conversation-chain-start",
+                                    }
+                                )
                             )
                             await asyncio.to_thread(
                                 service_context.open_llm_vtuber.conversation_chain,
                                 user_input=user_input,
                             )
                             await websocket.send_text(
-                                json.dumps({"type": "control", "text": "conversation-chain-end"})
+                                json.dumps(
+                                    {
+                                        "type": "control",
+                                        "text": "conversation-chain-end",
+                                    }
+                                )
                             )
                             logger.info("One Conversation Loop Completed")
                         except asyncio.CancelledError:
@@ -98,7 +110,9 @@ def create_routes(service_context):
                 elif data.get("type") == "switch-config":
                     config_file = data.get("file")
                     if config_file:
-                        result = await handle_config_switch(websocket, service_context, config_file)
+                        result = await handle_config_switch(
+                            websocket, service_context, config_file
+                        )
                         if result:
                             l2d, open_llm_vtuber = result
                 elif data.get("type") == "fetch-backgrounds":
@@ -112,15 +126,19 @@ def create_routes(service_context):
         except WebSocketDisconnect:
             connected_clients.remove(websocket)
 
-
-    async def handle_config_switch(websocket: WebSocket, service_context, config_file: str):
+    async def handle_config_switch(
+        websocket: WebSocket, service_context, config_file: str
+    ):
         new_config = load_new_config(service_context.config, config_file)
         if new_config:
             try:
                 l2d, open_llm_vtuber = service_context.switch_config(new_config)
                 await websocket.send_text(
                     json.dumps(
-                        {"type": "config-switched", "message": f"Switched to config: {config_file}"}
+                        {
+                            "type": "config-switched",
+                            "message": f"Switched to config: {config_file}",
+                        }
                     )
                 )
                 await websocket.send_text(
@@ -133,12 +151,20 @@ def create_routes(service_context):
                 logger.error(f"Error switching configuration: {e}")
                 await websocket.send_text(
                     json.dumps(
-                        {"type": "error", "message": f"Error switching configuration: {str(e)}"}
+                        {
+                            "type": "error",
+                            "message": f"Error switching configuration: {str(e)}",
+                        }
                     )
                 )
         return None
 
-    def audio_playback_func(websocket: WebSocket, service_context, sentence: str | None, filepath: str | None):
+    def audio_playback_func(
+        websocket: WebSocket,
+        service_context,
+        sentence: str | None,
+        filepath: str | None,
+    ):
         if filepath is None:
             logger.info("No audio to be streamed. Response is empty.")
             return
