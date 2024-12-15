@@ -40,7 +40,7 @@ class VAD:
         self.reset()
         results = []
         for i in range(0, len(audio), self.window_size_samples):
-            chunk = audio[i : i + self.window_size_samples]
+            chunk = audio[i: i + self.window_size_samples]
             if len(chunk) < self.window_size_samples:
                 break
             ort_inputs = {

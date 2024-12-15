@@ -55,7 +55,7 @@ SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
 VAD_THRESHOLD = 0.7  # Threshold for VAD detection
 BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
-PAUSE_LIMIT = 1300  # Milliseconds of pause allowed before processing
+PAUSE_LIMIT = 1200  # Milliseconds of pause allowed before processing
 WAKE_WORD = "stella"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
@@ -164,11 +164,11 @@ class VoiceRecognitionVAD:
             str: The transcribed text
         """
         self.input_stream.start()
-        heard_text = self._listen_and_respond(returnText=True)
+        heard_text = self._listen_and_respond()
         self.reset()
         return heard_text
 
-    def _listen_and_respond(self, returnText=False):
+    def _listen_and_respond(self):
         """
         Listens for audio input and responds appropriately when the wake word is detected.
         """
@@ -213,7 +213,7 @@ class VoiceRecognitionVAD:
         if not vad_confidence:
             self.gap_counter += 1
             if self.gap_counter >= PAUSE_LIMIT // VAD_SIZE:
-                return self._process_detected_audio()
+                return self.process_detected_audio(self.samples)
         else:
             self.gap_counter = 0
 
@@ -236,10 +236,6 @@ class VoiceRecognitionVAD:
         logger.info("Detected pause after speech. Processing...")
         logger.info("Stopping listening...")
         detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
-        if input_sample is not None:
-            self.samples = input_sample['']
-            detected_speaker= input_sample['name']
-
         self.input_stream.stop()
         self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples, sampling_rate=SAMPLE_RATE,
                                                               padding=True, return_tensors="pt")
@@ -252,6 +248,28 @@ class VoiceRecognitionVAD:
         # so the reset function will be called in the _listen_and_respond function instead
         # self.reset()
         # self.input_stream.start()
+
+    def process_detected_audio_discord(self, input_sample):
+        """
+        Processes the detected audio and generates a response.
+        """
+        logger.info("Detected pause after speech. Processing...")
+        logger.info("Stopping listening...")
+        if input_sample is not None:
+            self.samples = input_sample['data']
+            detected_speaker = input_sample['name']
+        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples, sampling_rate=SAMPLE_RATE,
+                                                              padding=True, return_tensors="pt")
+        detected_text = self.discord_asr(self.samples)
+        if detected_text:
+            return {"name": detected_speaker, "content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
+
+    def discord_asr(self, samples: np.ndarray) -> str:
+        """
+        Performs automatic speech recognition on the collected samples.
+        """
+        detected_text = self.transcribe(samples)
+        return detected_text
 
     def asr(self, samples: List[np.ndarray]) -> str:
         """

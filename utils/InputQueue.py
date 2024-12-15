@@ -47,17 +47,20 @@ class InputQueue:
         Asynchronously adds an input to the queue.
         If the input is a string, it classifies the emotion and appends it.
         """
-        classified_emotions = await EmotionHandler().classify_emotion(input)
-        del input['wav2vec_samples']
-        input['emotions'] = classified_emotions
-        await self.queue.put(input)
+        result=[]
+        for dialogue in input:
+            classified_emotions = await EmotionHandler().classify_emotion(dialogue)
+            del dialogue['wav2vec_samples']
+            dialogue['emotions'] = classified_emotions
+            result.append(dialogue)
+        await self.queue.put(result)
 
-    async def async_get_input(self, number_inputs=1):
+    async def async_get_input(self):
         """
         Asynchronously retrieves inputs from the queue.
         :param number_inputs: Number of inputs to retrieve from the queue.
         :return: A list of inputs.
         """
         inputs_list = await self.queue.get()
-        logger.info(f"Inputs retrieved from the queue: {inputs_list}")
+        ##logger.info(f"Inputs retrieved from the queue: {inputs_list}")
         return inputs_list

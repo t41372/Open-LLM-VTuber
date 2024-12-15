@@ -1,18 +1,18 @@
 import asyncio
+import io
 import os
 import threading
 import time
-from collections import defaultdict
 
 import discord
 import dotenv
 import numpy as np
 from discord.ext import voice_recv
-from discord.ext.voice_recv import AudioSink, VoiceData
+from discord.ext.voice_recv import AudioSink
 from discord.opus import Decoder as OpusDecoder
 from loguru import logger
 
-from utils.DiscordInputList import DiscordInputList
+from asr.asr_with_vad import PAUSE_LIMIT
 
 
 class VoiceActivityBot(discord.Client):
@@ -22,7 +22,7 @@ class VoiceActivityBot(discord.Client):
         super().__init__(intents=intents)
         self.voice_client = None
         self.audio_buffer = {}  # Store audio per speaker {username: [audio_frames]}
-        self.sample_rate = 16000  # Standard sample rate for PCM audio
+        # Standard sample rate for PCM audio
         self.recording_task = None
         self.thread = threading.Thread(target=self.run_bot, daemon=True, args=[self.bot_token])
         self.thread.start()
@@ -65,107 +65,152 @@ class VoiceActivityBot(discord.Client):
         else:
             await text_channel.send("I'm not connected to any voice channel.")
 
+    def cb_func(self, member, vdata):
+        print(f"got data for{member},{vdata}")
+
     async def start_capture(self, text_channel):
         try:
             if not self.voice_client or not self.voice_client.is_connected():
                 await text_channel.send("I'm not connected to a voice channel.")
                 return
             await text_channel.send("Started capturing audio.")
-            sink = NumPySink()
+            ##sink = BasicSink(self.cb_func)
+            sink = StreamedNumPySink()
             self.voice_client.listen(sink)
+            logger.info("Listening...")
+
         except Exception as e:
             logger.critical(f"Failed to start capture: {e}")
 
 
-class NumPySink(AudioSink):
-    """Endpoint AudioSink that generates a wav file.
-    Best used in conjunction with a silence generating sink. (TBD)
-    """
-    CHANNELS = OpusDecoder.CHANNELS
-    SAMPLE_WIDTH = OpusDecoder.SAMPLE_SIZE // OpusDecoder.CHANNELS
-    SAMPLING_RATE = OpusDecoder.SAMPLING_RATE
-    PAUSE_LIMIT = 1300
-
-    def __init__(self):
-        super().__init__()
-        self.user_buffers = defaultdict(list)  # Buffers for each user's data
-        self.last_active_time = {}  # Last activity time for each user
-        self.transcription_delay = 1.3  # 1300ms delay to stop transcribing
-        self.min_duration = 0.05  # Minimum duration in seconds (50ms)
-        self.sample_rate = 16000  # Sample rate (16 kHz)
-        self.input_queue = DiscordInputList()
-
+class StreamedNumPySink(AudioSink):
     def wants_opus(self) -> bool:
         return False
 
+    def __init__(self):
+        super().__init__()
+        self.sample_rate = OpusDecoder.SAMPLING_RATE
+        self.channels = OpusDecoder.CHANNELS
+        self.sample_width = OpusDecoder.SAMPLE_SIZE // OpusDecoder.CHANNELS
+        self.pause_limit = PAUSE_LIMIT / 1000
+        self.min_duration = 1 # minimum length of speech
+        self.chunk_size = 1200  # Size of each chunk in bytes
+        self.active_streams = {}  # {speaker_name: BytesIO stream}
+        self.min_samples = int(self.sample_rate * self.min_duration)
+        self.last_active_times = {}  # {speaker_name: last active timestamp}
+        self.last_global_activity = time.time()  # Last time any speaker wrote data
+        self.finalized_sessions = []  # List of finalized speaker sessions
+        self._stop_event = threading.Event()
+        self.thread = threading.Thread(target=self.keep_time, daemon=True)
+        self.thread.start()
+
     def write(self, user, data):
         """
-        Capture PCM data from a Discord user, buffer it, and return transcriptions
-        when the user stops speaking.
-
-        Args:
-            user (discord.User): The Discord user speaking.
-            data (VoiceData): The PCM audio data received.
-
-        Returns:
-            list: A list of dicts with {name, timestamp, data} fields for transcriptions.
+        Write PCM data for a user into their respective stream.
         """
-        if user is None or not hasattr(user, 'name'):
+        if user is None or not hasattr(user, 'display_name'):
             return
 
+        user_id = user.display_name
         current_time = time.time()
-        user_id = user.id
 
-        # Initialize user's buffer and last active time if not present
-        if user_id not in self.user_buffers:
-            self.user_buffers[user_id] = []
-            self.last_active_time[user_id] = current_time
+        # Update global activity time
+        self.last_global_activity = current_time
 
-        # Append PCM data to the user's buffer with a timestamp
-        self.user_buffers[user_id].append({
-            'timestamp': current_time,
-            'data': np.frombuffer(data.pcm, dtype=np.int16)
-        })
-        self.last_active_time[user_id] = current_time
+        # Initialize or update the active stream for the user
+        if user_id not in self.active_streams:
+            self.active_streams[user_id] = io.BytesIO()
+            self.last_active_times[user_id] = current_time
 
-        # Check for users who have stopped speaking
-        to_transcribe = []
-        for user_id, last_time in list(self.last_active_time.items()):
-            if current_time - last_time > self.transcription_delay:
-                # Combine the user's audio data into a single numpy array
-                combined_data = []
-                start_time = None
+        # Append PCM data to the stream
+        self.active_streams[user_id].write(data.pcm)
+        self.last_active_times[user_id] = current_time
 
-                for entry in self.user_buffers[user_id]:
-                    duration = len(entry['data']) / self.sample_rate
-                    if duration >= self.min_duration:
-                        combined_data.append(entry['data'])
-                        if start_time is None:
-                            start_time = entry['timestamp']
+    def finalize_stream(self, speaker_name):
+        """
+        Finalize a single speaker's stream and store it in the finalized sessions if it meets the minimum duration.
+        """
+        if speaker_name not in self.active_streams:
+            return
 
-                if combined_data:
-                    # Concatenate all data into a single array
-                    full_data = np.concatenate(combined_data)
+        # Retrieve the stream and convert to NumPy array
+        stream = self.active_streams[speaker_name]
+        stream.seek(0)
+        raw_data = stream.read()
 
-                    # Append transcription data
-                    to_transcribe.append({
-                        'name': user.name,
-                        'timestamp': start_time,
-                        'data': full_data,
-                        'type': 'audio'
-                    })
+        audio_array = np.frombuffer(raw_data, dtype=np.int16)
+        if self.channels == 2:
+            audio_array = audio_array.reshape(-1, 2)
 
-                # Clear the user's buffer and remove their last active time
-                del self.user_buffers[user_id]
-                del self.last_active_time[user_id]
+        # Check if the audio meets the minimum duration threshold
+        if len(audio_array) >= self.min_samples:
+            # Append the finalized session
+            self.finalized_sessions.append({"name": speaker_name, "data": audio_array})
+        else:
+            print(f"Ignored small chunk for {speaker_name}: {len(audio_array)} samples")
 
-        # Return the transcriptions sorted by timestamp
-        result = sorted(to_transcribe, key=lambda x: x['timestamp'])
-        self.input_queue.add_input(result)
+        # Clean up the stream
+        stream.close()
+        del self.active_streams[speaker_name]
+        del self.last_active_times[speaker_name]
 
-    def cleanup(self) -> None:
-        try:
-            self.user_buffers.clear()
-            self.last_active_time.clear()
-        except Exception as e:
-            logger.warning("NumPySink got error closing file on cleanup", exc_info=True)
+    def keep_time(self):
+        """
+        Periodically check for global inactivity and finalize the conversation if needed.
+        """
+        while not self._stop_event.is_set():
+            current_time = time.time()
+
+            # Finalize streams for speakers who have been inactive beyond the pause limit
+            for speaker_name, last_active_time in list(self.last_active_times.items()):
+                if current_time - last_active_time > self.pause_limit:
+                    self.finalize_stream(speaker_name)
+
+            # Finalize the conversation if no activity globally
+            if current_time - self.last_global_activity > self.pause_limit:
+                self.process_conversation_end()
+
+            time.sleep(0.1)  # Small delay to reduce CPU usage
+
+    def process_conversation_end(self):
+        """
+        Finalize all remaining streams and process the conversation data.
+        """
+        print("Conversation ended. Finalizing all streams...")
+
+        # Finalize all remaining streams
+        for speaker_name in list(self.active_streams.keys()):
+            self.finalize_stream(speaker_name)
+
+        # Process the finalized data
+        self.process_finalized_sessions()
+
+        # Reset state for the next conversation
+        self.reset_state()
+
+    def process_finalized_sessions(self):
+        """
+        Process all finalized speaker sessions.
+        """
+        for session in self.finalized_sessions:
+            print(f"Speaker: {session['name']}, Data Shape: {session['data'].shape}")
+
+
+    def reset_state(self):
+        """
+        Reset state for the next conversation.
+        """
+        self.active_streams.clear()
+        self.last_active_times.clear()
+        self.finalized_sessions.clear()
+        self.last_global_activity = time.time()
+
+    def cleanup(self):
+        """
+        Clean up all resources and stop the background thread.
+        """
+        self._stop_event.set()
+        self.thread.join()
+        # Finalize any remaining streams
+        for speaker_name in list(self.active_streams.keys()):
+            self.finalize_stream(speaker_name)

@@ -68,7 +68,7 @@ class PromptFormatter:
             self,
             goals: str,
             action_context: str,
-            conversation: List[Dict[str, Union[str, List[Dict[str, float]]]]]
+            conversation:List[Dict[str, Union[str, List[Dict[str, float]]]]]
     ) -> str:
         """
         Format the prompt for GPT.
@@ -142,7 +142,7 @@ class PromptFormatter:
         :return: A formatted string or dictionary for the LLM.
         """
         if llm.lower() == "gpt":
-            return self.format_for_gpt(persona_prompt, goals, action_context, conversation)
+            return self.format_for_gpt(goals, action_context, conversation)
         elif llm.lower() == "ollama":
             return self.format_for_ollama(persona_prompt, goals, action_context, conversation)
         else:

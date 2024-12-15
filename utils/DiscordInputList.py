@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import threading
 from typing import Any
 
@@ -25,7 +26,7 @@ class DiscordInputList:
             self.thread = threading.Thread(target=self._run_event_loop, daemon=True)
             self.thread.start()
             self.condition = threading.Condition()
-            logger.success(f"CREATING Discord INPUT QUEUE THREAD : {id(self)}, thread id {threading.get_ident()}")
+            logger.success(f"CREATING Discord INPUT List THREAD : {id(self)}, thread id {threading.get_ident()}")
 
     def _run_event_loop(self):
         """Runs the asyncio event loop in a separate thread."""
@@ -35,7 +36,7 @@ class DiscordInputList:
     def add_input(self, input: Any):
         """Thread-safe method to add a prompt to the queue."""
         with self.condition:
-            self.list.append(input)
+            self.list.append(copy.deepcopy(input))
             logger.info(f"current input size: {len(self.list)}")
             self.condition.notify_all()  # Notify all waiting threads
 
@@ -48,18 +49,18 @@ class DiscordInputList:
 
             # Once notified, fetch the prompt
             future = asyncio.run_coroutine_threadsafe(self.get(message_type), self.loop)
+
             try:
                 result = future.result()  # This blocks until an item is available
-                logger.info(f"Prompt retrieved from queue: {result}")
                 return result
             except Exception as e:
                 logger.error(f"Error while retrieving prompt: {e}")
                 return None
 
-    def get(self,message_type) -> Any:
-        for message in self.list:
-            if message.type == message_type:
-                result = self.list.pop(message.index)
-                return result
+    async def get(self, message_type) -> Any:
+        for index, message in enumerate(self.list):
+            if message["type"] == message_type:
+                # Remove the message in place
+                return self.list.pop(index)
 
 
