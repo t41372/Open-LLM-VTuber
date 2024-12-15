@@ -1,3 +1,6 @@
+# temporary gitignores
+asr/models
+
 # macOS system files
 .DS_Store
 
