@@ -94,7 +94,6 @@ memgpt:
 
 # ============== Live2D front-end Settings ==============
 
-LIVE2D: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 LIVE2D_MODEL: "shizuku-local"
 
 #  ============== Voice Interaction Settings ==============
