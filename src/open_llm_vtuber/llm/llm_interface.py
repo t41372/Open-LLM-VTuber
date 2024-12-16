@@ -1,8 +1,25 @@
 import abc
-from typing import Iterator
+import asyncio
+from typing import Iterator, AsyncIterator
 
 
 class LLMInterface(metaclass=abc.ABCMeta):
+
+    async def async_chat_iter(self, prompt: str) -> AsyncIterator[str]:
+        """
+        Asynchronously sends a chat prompt to an agent and returns the response.
+        This function will have to store the user message and ai response back to the memory.
+
+        By default, this runs the synchronous chat_iter in a coroutine.
+        Subclasses can override this method to provide true async implementation.
+
+        Parameters:
+        - prompt (str): The message or question to send to the agent.
+
+        Returns:
+        - str: The response from the agent.
+        """
+        return await asyncio.to_thread(self.chat_iter, prompt)
 
     @abc.abstractmethod
     def chat_iter(self, prompt: str) -> Iterator[str]:

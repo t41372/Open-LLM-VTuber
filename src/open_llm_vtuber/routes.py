@@ -1,10 +1,11 @@
 import json
 import asyncio
 import numpy as np
-import os
 from fastapi import APIRouter, WebSocket
 from starlette.websockets import WebSocketDisconnect
 from loguru import logger
+from .conversation import conversation_chain
+from .service.service_context import ServiceContext
 from .config.config_manager import (
     load_config_with_env,
     load_config_file_with_guess_encoding,
@@ -14,7 +15,7 @@ from .config.config_manager import (
 )
 
 
-def create_routes(service_context):
+def create_routes(service_context: ServiceContext):
 
     router = APIRouter()
     connected_clients = []
@@ -72,35 +73,41 @@ def create_routes(service_context):
 
                     received_data_buffer = np.array([])
 
-                    async def _run_conversation():
-                        try:
-                            await websocket.send_text(
-                                json.dumps(
-                                    {
-                                        "type": "control",
-                                        "text": "conversation-chain-start",
-                                    }
-                                )
+                    try:
+                        await websocket.send_text(
+                            json.dumps(
+                                {
+                                    "type": "control",
+                                    "text": "conversation-chain-start",
+                                }
                             )
-                            await asyncio.to_thread(
-                                service_context.open_llm_vtuber.conversation_chain,
-                                user_input=user_input,
-                            )
-                            await websocket.send_text(
-                                json.dumps(
-                                    {
-                                        "type": "control",
-                                        "text": "conversation-chain-end",
-                                    }
-                                )
-                            )
-                            logger.info("One Conversation Loop Completed")
-                        except asyncio.CancelledError:
-                            logger.info("Conversation task was cancelled.")
-                        except InterruptedError as e:
-                            logger.info(f"Conversation was interrupted: {e}")
+                        )
+                        # await asyncio.to_thread(
+                        #     service_context.open_llm_vtuber.conversation_chain,
+                        #     user_input=user_input,
+                        # )
+                        
+                        #! TODO
+                        conversation_task = await conversation_chain(
+                            user_input=user_input,
+                            
+                        )
 
-                    conversation_task = asyncio.create_task(_run_conversation())
+                        await websocket.send_text(
+                            json.dumps(
+                                {
+                                    "type": "control",
+                                    "text": "conversation-chain-end",
+                                }
+                            )
+                        )
+                        logger.info("One Conversation Loop Completed")
+                    except asyncio.CancelledError:
+                        logger.info("Conversation task was cancelled.")
+                    except InterruptedError as e:
+                        logger.info(f"Conversation was interrupted: {e}")
+
+                    # conversation_task = asyncio.create_task(_run_conversation())
 
                 elif data.get("type") == "fetch-configs":
                     config_files = scan_config_alts_directory(service_context.config)

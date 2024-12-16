@@ -7,8 +7,7 @@ import json
 
 from ..service.model_manager import ModelManager
 from ..main import OpenLLMVTuberMain 
-from ..live2d_model import Live2dModel          
-from ..tts.stream_audio import AudioPayloadPreparer 
+from ..live2d_model import Live2dModel
 
 class ServiceContext:
     def __init__(self, config: Dict, model_manager: ModelManager):
@@ -26,10 +25,6 @@ class ServiceContext:
             custom_tts=custom_tts
         )
 
-        self.audio_preparer = AudioPayloadPreparer()
-
-    def set_audio_output_func(self, func):
-        self.open_llm_vtuber.set_audio_output_func(func)
 
     def switch_config(self, new_config: Dict) -> Tuple[Live2dModel, OpenLLMVTuberMain]:
         self.model_manager.update_models(new_config)

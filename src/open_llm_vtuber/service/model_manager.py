@@ -20,7 +20,7 @@ class ModelCache:
 
 
 class ModelManager:
-    """Manager for ASR and TTS models"""
+    """Manager for working ASR and TTS models"""
     def __init__(self, config: Dict):
         self.config = config
         self._old_config = config.copy()

@@ -1,9 +1,28 @@
 import abc
 import os
-from playsound3 import playsound
+import asyncio
 
 
 class TTSInterface(metaclass=abc.ABCMeta):
+    
+    
+    async def async_generate_audio(self, text: str, file_name_no_ext=None) -> str:
+        """
+        Asynchronously generate speech audio file using TTS.
+        
+        By default, this runs the synchronous generate_audio in a coroutine.
+        Subclasses can override this method to provide true async implementation.
+        
+        text: str
+            the text to speak
+        file_name_no_ext (optional and deprecated): str
+            name of the file without file extension
+
+        Returns:
+        str: the path to the generated audio file
+
+        """
+        return await asyncio.to_thread(self.generate_audio, text, file_name_no_ext)
 
     @abc.abstractmethod
     def generate_audio(self, text: str, file_name_no_ext=None) -> str:
@@ -38,15 +57,6 @@ class TTSInterface(metaclass=abc.ABCMeta):
             os.remove(filepath)
         except Exception as e:
             print(f"Failed to remove file {filepath}: {e}")
-
-    def play_audio_file_local(self, audio_file_path: str) -> None:
-        """
-        Play the audio file locally on this device (not stream to some kind of live2d front end).
-
-        audio_file_path: str
-            the path to the audio file
-        """
-        playsound(audio_file_path)
         
 
     def generate_cache_file_name(self, file_name_no_ext=None, file_extension="wav"):
