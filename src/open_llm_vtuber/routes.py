@@ -37,7 +37,7 @@ def create_routes(service_context):
 
         await websocket.send_text(
             json.dumps(
-                {"type": "set-model", "text": service_context.live2d_model.model_info}
+                {"type": "set-model", "model_info": service_context.live2d_model.model_info}
             )
         )
         received_data_buffer = np.array([])
@@ -142,7 +142,7 @@ def create_routes(service_context):
                     )
                 )
                 await websocket.send_text(
-                    json.dumps({"type": "set-model", "text": l2d.model_info})
+                    json.dumps({"type": "set-model", "model_info": l2d.model_info})
                 )
                 logger.info(f"Configuration switched to {config_file}")
 
