@@ -100,12 +100,13 @@ sequenceDiagram
 ~~~json
 {
 	"type": "set-model",
-	"text": {}
+	"model_info": {}
 }
 ~~~
 
-- `text`: The configuration JSON of the Live2D model from `model-dict.json`.
+- `model_info`: The configuration JSON of the Live2D model from `model-dict.json`.
 
+> the second property: `text` was changed to `model_info` in `v1.0.0`
 
 
 ### Audio
