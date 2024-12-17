@@ -24,7 +24,6 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
     dotenv.load_dotenv()
     server = WebSocketServer(open_llm_vtuber_config=config)
-    server.start()
     vtuber_main = OpenLLMVTuberMain(config)
     voice_interface = "discord"
     state_info = StateInfo()
@@ -56,8 +55,10 @@ if __name__ == "__main__":
         try:
             action_selection_queue.start()
             prompt = inference_queue.get_prompt()
+           ## VoiceActivityBot().send_message(prompt)
             inference_result = vtuber_main.conversation_chain(prompt)
             OutputQueue().add_output(inference_result)
+
         except Exception as e:
             logger.error(f"😢Conversation was interrupted. {e}")
             listener.stop()

@@ -1,6 +1,7 @@
 import asyncio
 import threading
 from typing import Any
+
 from loguru import logger
 
 
@@ -35,6 +36,7 @@ class InferenceQueue:
         """Thread-safe method to add a prompt to the queue."""
         with self.condition:
             asyncio.run_coroutine_threadsafe(self.queue.put(input), self.loop)
+
             logger.info(f"current queue size: {self.queue.qsize()}")
             self.condition.notify_all()  # Notify all waiting threads
 

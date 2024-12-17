@@ -199,7 +199,7 @@ class OpenLLMVTuberMain:
         - str: The full response from the LLM
         """
         persona_prompt = self.get_persona_prompt()
-        self.llm.initialize("user", persona_prompt)
+        self.llm.initialize("Stella", persona_prompt)
         if not self._continue_exec_flag.wait(
                 timeout=self.EXEC_FLAG_CHECK_TIMEOUT
         ):  # Wait for the flag to be set
@@ -218,10 +218,6 @@ class OpenLLMVTuberMain:
         c[1] = "\033[94m"
         c[2] = "\033[92m"
         c[3] = "\033[0m"
-
-        # Apply the color to the console output
-        print(f"{c[color_code]}New Conversation Chain started!")
-
         # if user_input is not string, make it string
         if user_input.strip().lower() == self.config.get("EXIT_PHRASE", "exit").lower() or user_input is None:
             print("Exiting...")
@@ -229,24 +225,24 @@ class OpenLLMVTuberMain:
         if not self.not_is_blocking_event.is_set():
             self.not_is_blocking_event.wait()
         chat_completion: Iterator[str] = self.llm.chat_iter(user_input)
+        #
+        # if not self.config.get("TTS_ON", False):
+        #     full_response = ""
+        #     for char in chat_completion:
+        #         if not self._continue_exec_flag.is_set():
+        #             self._interrupt_post_processing()
+        #             print("\nInterrupted!")
+        #             return None
+        #         full_response += char
+        #         print(char, end="")
+        #     return full_response
+        #
+        # full_response = self.speak(chat_completion)
+        # if self.verbose:
+        #     print(f"\nComplete response: [\n{full_response}\n]")
+        #
+        # print(f"{c[color_code]}Conversation completed.")
 
-        if not self.config.get("TTS_ON", False):
-            full_response = ""
-            for char in chat_completion:
-                if not self._continue_exec_flag.is_set():
-                    self._interrupt_post_processing()
-                    print("\nInterrupted!")
-                    return None
-                full_response += char
-                print(char, end="")
-            return full_response
-
-        full_response = self.speak(chat_completion)
-        if self.verbose:
-            print(f"\nComplete response: [\n{full_response}\n]")
-
-        print(f"{c[color_code]}Conversation completed.")
-        return full_response
 
     def speak(self, chat_completion: Iterator[str]) -> str:
         """

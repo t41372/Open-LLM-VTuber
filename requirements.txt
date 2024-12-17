@@ -31,3 +31,5 @@ torchaudio~=2.5.1
 letta~=0.6.1
 discord~=2.3.2
 discord.py~=2.4.0
+openai-whisper~=20240930
+speechbrain~=1.0.2

@@ -57,18 +57,20 @@ class PromptFormatter:
                              Each entry represents a single message (e.g., from user or agent).
         :return: Formatted conversation history section.
         """
-        formatted_messages = []
-        name = conversation["name"]
-        content = conversation["content"]
-        emotions = conversation["emotions"]
-        formatted_messages.append(f"{name}: {content}\nEmotions: {emotions}")
-        return "\n".join(formatted_messages)
+        formatted_messages = ''
+        for message in conversation:
+            name = message["name"]
+            content = message["content"]
+            emotions = message["emotions"]
+            current_message = f"{name}: {content}\nEmotions: {emotions}\n"
+            formatted_messages += current_message
+        return formatted_messages
 
     def format_for_gpt(
             self,
             goals: str,
             action_context: str,
-            conversation:List[Dict[str, Union[str, List[Dict[str, float]]]]]
+            conversation: List[Dict[str, Union[str, List[Dict[str, float]]]]]
     ) -> str:
         """
         Format the prompt for GPT.
@@ -121,7 +123,7 @@ class PromptFormatter:
             "goals": goals.strip(),
             "action_context": action_context.strip(),
             "conversation_history": formatted_conversation,
-            "system_prompt": "Generate a response based on the system prompt, goals, action context, and conversation history."
+            "system_prompt": "Generate a response based on the system prompt, goals, action context, and conversation history, consider your emotions, the user emotions and respond only if you want to"
         }
 
     def format_prompt(

@@ -42,18 +42,21 @@ from loguru import logger
 import sys
 import os
 
+from scipy.io.wavfile import write
 from transformers import Wav2Vec2FeatureExtractor
+
+from utils.StateInfo import StateInfo
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
-
+from discord.opus import Decoder as OpusDecoder
 import vad
 
 # Using pathlib for OS-independent paths
 VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
 SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
-VAD_THRESHOLD = 0.7  # Threshold for VAD detection
+VAD_THRESHOLD = 0.3  # Threshold for VAD detection
 BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
 PAUSE_LIMIT = 1200  # Milliseconds of pause allowed before processing
 WAKE_WORD = "stella"  # Wake word for activation
@@ -104,7 +107,8 @@ class VoiceRecognitionVAD:
         """
 
         self._setup_audio_stream()
-        self._setup_vad_model()
+        if StateInfo().get_voice_interface() is None:
+            self._setup_vad_model()
         self.transcribe = asr_transcribe_func
 
         # Initialize sample queues and state flags
@@ -253,23 +257,23 @@ class VoiceRecognitionVAD:
         """
         Processes the detected audio and generates a response.
         """
-        logger.info("Detected pause after speech. Processing...")
-        logger.info("Stopping listening...")
-        if input_sample is not None:
-            self.samples = input_sample['data']
-            detected_speaker = input_sample['name']
-        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples, sampling_rate=SAMPLE_RATE,
+        voice_speech_data= input_sample['data']
+        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=voice_speech_data,
+                                                              sampling_rate= SAMPLE_RATE,
                                                               padding=True, return_tensors="pt")
-        detected_text = self.discord_asr(self.samples)
+        detected_text = self.discord_asr(voice_speech_data)
         if detected_text:
-            return {"name": detected_speaker, "content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
+            return {'name':input_sample['name'],"content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
 
     def discord_asr(self, samples: np.ndarray) -> str:
         """
         Performs automatic speech recognition on the collected samples.
         """
-        detected_text = self.transcribe(samples)
-        return detected_text
+        try:
+            detected_text = self.transcribe(samples)
+            return detected_text
+        except Exception as e:
+            logger.error(e)
 
     def asr(self, samples: List[np.ndarray]) -> str:
         """

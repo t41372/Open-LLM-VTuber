@@ -99,7 +99,7 @@ class VoiceListener:
                 result = []
                 discord_voice_input = self.discord_input_queue.get_input('audio')['data']
                 for dialogue in discord_voice_input:
-                    result.append(self.asr.asr_with_vad.process_detected_audio_discord(dialogue))
+                    result.append(self.asr.transcribe_discord_message_with_local_vad(dialogue))
                 self.input_queue.add_input(result)
             except Exception as e:
                 logger.error(f"Error in transcribing user input: {e}")

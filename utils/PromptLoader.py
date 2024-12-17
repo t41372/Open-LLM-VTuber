@@ -16,7 +16,6 @@ class PromptLoader:
         try:
             with open(prompt_file, 'r') as file:
                 self.prompt = file.read()
-            logger.info(f"Prompt loaded: {self.prompt}")
         except FileNotFoundError:
             logger.info(f"Prompt file {prompt_file} not found.")
             self.prompt = "Default prompt"

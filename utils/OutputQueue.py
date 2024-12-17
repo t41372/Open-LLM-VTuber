@@ -46,10 +46,6 @@ class OutputQueue:
         Asynchronously adds an messages to the queue.
         If the input is a string, it classifies the emotion and appends it.
         """
-        if isinstance(input, str):
-            emotion_handler = EmotionHandler()
-            classified_emotions = await emotion_handler.classify_emotion(input)
-            input += "\n" + 'user emotions:' + str(classified_emotions) + '\n'
         await self.queue.put(input)
 
     async def async_get_output(self, number_inputs=1):
@@ -59,5 +55,4 @@ class OutputQueue:
         :return: A list of inputs.
         """
         inputs_list = await self.queue.get()
-        logger.info(f"Inputs retrieved from the queue: {inputs_list}")
         return inputs_list

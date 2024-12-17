@@ -22,6 +22,18 @@ class ASRInterface(metaclass=abc.ABCMeta):
             self.asr_with_vad = VoiceRecognitionVAD(self.transcribe_np)
         return self.asr_with_vad.start_listening()
 
+    def transcribe_discord_message_with_local_vad(self,input_sample) -> str:
+        """Activate the microphone on this device, transcribe audio when a pause in speech is detected using VAD, and return the transcription.
+
+        This method should block until a transcription is available.
+
+        Returns:
+            The transcription of the speech audio.
+        """
+        if self.asr_with_vad is None:
+            self.asr_with_vad = VoiceRecognitionVAD(self.transcribe_np)
+        return self.asr_with_vad.process_detected_audio_discord(input_sample)
+
     @abc.abstractmethod
     def transcribe_np(self, audio: np.ndarray) -> str:
         """Transcribe speech audio in numpy array format and return the transcription.

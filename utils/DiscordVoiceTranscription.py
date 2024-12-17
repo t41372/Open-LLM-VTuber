@@ -7,20 +7,44 @@ import time
 import discord
 import dotenv
 import numpy as np
+import torch
+import torchaudio
 from discord.ext import voice_recv
 from discord.ext.voice_recv import AudioSink
 from discord.opus import Decoder as OpusDecoder
 from loguru import logger
+from scipy.io.wavfile import write
 
-from asr.asr_with_vad import PAUSE_LIMIT
+from asr.asr_with_vad import PAUSE_LIMIT, VAD_THRESHOLD
+from asr.vad import SAMPLE_RATE
+from utils.DiscordInputList import DiscordInputList
+from utils.OutputQueue import OutputQueue
+
+model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad', force_reload=False)
+(get_speech_ts, save_audio, read_audio, VADIterator, collect_chunks) = utils
 
 
 class VoiceActivityBot(discord.Client):
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:  # Check if instance already exists
+            with cls._lock:  # Ensure thread-safe instance creation
+                if cls._instance is None:  # Double-checked locking
+                    cls._instance = super(VoiceActivityBot, cls).__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+
     def __init__(self, intents=None):
+        if hasattr(self, '_initialized') and self._initialized:
+            return
+        self._initialized = True
         dotenv.load_dotenv()
         self.bot_token = os.getenv("BOT_TOKEN")
         super().__init__(intents=intents)
         self.voice_client = None
+        self.message_channel = 1212177824803328004
         self.audio_buffer = {}  # Store audio per speaker {username: [audio_frames]}
         # Standard sample rate for PCM audio
         self.recording_task = None
@@ -50,6 +74,13 @@ class VoiceActivityBot(discord.Client):
         elif message.content.startswith("!capture"):
             await self.start_capture(message.channel)
 
+    async def _send_text_message(self, text):
+        channel = self.get_channel(self.message_channel)
+        await channel.send(text)
+
+    def send_message(self, text):
+        asyncio.run_coroutine_threadsafe(self._send_text_message(text), asyncio.get_event_loop()).result()
+
     async def join_voice_channel(self, channel, text_channel):
         try:
             self.voice_client = await channel.connect(cls=voice_recv.VoiceRecvClient)
@@ -65,20 +96,29 @@ class VoiceActivityBot(discord.Client):
         else:
             await text_channel.send("I'm not connected to any voice channel.")
 
-    def cb_func(self, member, vdata):
-        print(f"got data for{member},{vdata}")
+    async def consumer(self, channel: discord.TextChannel):
+        """"Fetch chunks from the queue and send them as messages to a Discord channel."""
+        while True:
+            text_chunk = OutputQueue().get_output()
+            if text_chunk is None:
+                return
+            await channel.send(text_chunk)
+            time.sleep(0.5)
+            # Send the text chunk to Discord
 
     async def start_capture(self, text_channel):
         try:
-            if not self.voice_client or not self.voice_client.is_connected():
-                await text_channel.send("I'm not connected to a voice channel.")
-                return
-            await text_channel.send("Started capturing audio.")
-            ##sink = BasicSink(self.cb_func)
-            sink = StreamedNumPySink()
-            self.voice_client.listen(sink)
-            logger.info("Listening...")
+            while True:
+                if not self.voice_client or not self.voice_client.is_connected():
+                    await text_channel.send("I'm not connected to a voice channel.")
+                    return
+                await text_channel.send("Started capturing audio.")
 
+                if not self.voice_client.is_listening():
+                    sink = StreamedNumPySink()
+                    self.voice_client.listen(sink)
+                consumer_task = asyncio.create_task(self.consumer(text_channel))
+                await consumer_task
         except Exception as e:
             logger.critical(f"Failed to start capture: {e}")
 
@@ -89,17 +129,18 @@ class StreamedNumPySink(AudioSink):
 
     def __init__(self):
         super().__init__()
+        self.vad_sample_rate = SAMPLE_RATE
         self.sample_rate = OpusDecoder.SAMPLING_RATE
         self.channels = OpusDecoder.CHANNELS
         self.sample_width = OpusDecoder.SAMPLE_SIZE // OpusDecoder.CHANNELS
         self.pause_limit = PAUSE_LIMIT / 1000
-        self.min_duration = 1 # minimum length of speech
-        self.chunk_size = 1200  # Size of each chunk in bytes
+        self.min_duration = 1  # minimum length of speech
+
+        self.vad_threshold = VAD_THRESHOLD  # Confidence threshold for VAD
         self.active_streams = {}  # {speaker_name: BytesIO stream}
-        self.min_samples = int(self.sample_rate * self.min_duration)
         self.last_active_times = {}  # {speaker_name: last active timestamp}
-        self.last_global_activity = time.time()  # Last time any speaker wrote data
-        self.finalized_sessions = []  # List of finalized speaker sessions
+        self.finalized_sessions = []  # List of finalized sessions
+        self.last_global_activity = time.time()  # Last activity time
         self._stop_event = threading.Event()
         self.thread = threading.Thread(target=self.keep_time, daemon=True)
         self.thread.start()
@@ -126,75 +167,83 @@ class StreamedNumPySink(AudioSink):
         self.active_streams[user_id].write(data.pcm)
         self.last_active_times[user_id] = current_time
 
-    def finalize_stream(self, speaker_name):
-        """
-        Finalize a single speaker's stream and store it in the finalized sessions if it meets the minimum duration.
-        """
-        if speaker_name not in self.active_streams:
-            return
-
-        # Retrieve the stream and convert to NumPy array
-        stream = self.active_streams[speaker_name]
-        stream.seek(0)
-        raw_data = stream.read()
-
-        audio_array = np.frombuffer(raw_data, dtype=np.int16)
-        if self.channels == 2:
-            audio_array = audio_array.reshape(-1, 2)
-
-        # Check if the audio meets the minimum duration threshold
-        if len(audio_array) >= self.min_samples:
-            # Append the finalized session
-            self.finalized_sessions.append({"name": speaker_name, "data": audio_array})
-        else:
-            print(f"Ignored small chunk for {speaker_name}: {len(audio_array)} samples")
-
-        # Clean up the stream
-        stream.close()
-        del self.active_streams[speaker_name]
-        del self.last_active_times[speaker_name]
-
-    def keep_time(self):
-        """
-        Periodically check for global inactivity and finalize the conversation if needed.
-        """
-        while not self._stop_event.is_set():
-            current_time = time.time()
-
-            # Finalize streams for speakers who have been inactive beyond the pause limit
-            for speaker_name, last_active_time in list(self.last_active_times.items()):
-                if current_time - last_active_time > self.pause_limit:
-                    self.finalize_stream(speaker_name)
-
-            # Finalize the conversation if no activity globally
-            if current_time - self.last_global_activity > self.pause_limit:
-                self.process_conversation_end()
-
-            time.sleep(0.1)  # Small delay to reduce CPU usage
-
     def process_conversation_end(self):
         """
         Finalize all remaining streams and process the conversation data.
         """
-        print("Conversation ended. Finalizing all streams...")
-
-        # Finalize all remaining streams
         for speaker_name in list(self.active_streams.keys()):
             self.finalize_stream(speaker_name)
 
-        # Process the finalized data
-        self.process_finalized_sessions()
+        # Process the finalized data with VAD
 
-        # Reset state for the next conversation
+        # Reset for the next conversation
+        if len(self.finalized_sessions) > 0:
+            self.apply_vad_to_finalized_audio()
+            DiscordInputList().add_input({'type': 'audio', 'data': self.finalized_sessions})
         self.reset_state()
 
-    def process_finalized_sessions(self):
+    def finalize_stream(self, speaker_name):
         """
-        Process all finalized speaker sessions.
+        Finalize a single speaker's stream.
+        """
+        if speaker_name not in self.active_streams:
+            return
+
+        # Retrieve audio from the stream
+        stream = self.active_streams[speaker_name]
+        stream.seek(0)
+        raw_data = stream.read()
+        stream.close()
+
+        # Convert PCM data to NumPy array
+        audio_array = np.frombuffer(raw_data, dtype=np.int16)
+
+        # Append the finalized session
+        self.finalized_sessions.append({"name": speaker_name, "data": audio_array})
+
+        # Remove the stream
+        del self.active_streams[speaker_name]
+        del self.last_active_times[speaker_name]
+
+    def apply_vad_to_finalized_audio(self):
+        """
+        Apply Silero VAD to all finalized speaker audio.
         """
         for session in self.finalized_sessions:
-            print(f"Speaker: {session['name']}, Data Shape: {session['data'].shape}")
+            audio_array = session["data"]
 
+            # Resample to 16 kHz (required for Silero VAD)
+            if self.sample_rate != self.vad_sample_rate:
+                audio_array = self.resample_pcm_with_torchaudio(audio_array, self.sample_rate, self.vad_sample_rate)
+
+            # Convert NumPy array to PyTorch tensor
+            audio_tensor = self.convert_to_tensor(audio_array)
+
+            # Run VAD on the audio
+            speech_timestamps = get_speech_ts(audio_tensor, model, sampling_rate=self.vad_sample_rate)
+
+            # Extract speech chunks based on VAD results
+            if not speech_timestamps:
+                continue
+            speech_data_tensor = collect_chunks(speech_timestamps, audio_tensor)
+
+            # Convert the resulting PyTorch tensor back to NumPy array
+            speech_data = self.convert_to_array(speech_data_tensor)
+            # Replace session data with VAD-processed audio
+            session["data"] = speech_data
+
+    def keep_time(self):
+        """
+        Periodically check for global inactivity and finalize speakers.
+        """
+        while not self._stop_event.is_set():
+            current_time = time.time()
+
+            # Check for global inactivity
+            if current_time - self.last_global_activity > self.pause_limit:
+                self.process_conversation_end()
+
+            time.sleep(0.1)
 
     def reset_state(self):
         """
@@ -207,10 +256,55 @@ class StreamedNumPySink(AudioSink):
 
     def cleanup(self):
         """
-        Clean up all resources and stop the background thread.
+        Clean up all resources.
         """
         self._stop_event.set()
         self.thread.join()
-        # Finalize any remaining streams
-        for speaker_name in list(self.active_streams.keys()):
-            self.finalize_stream(speaker_name)
+        self.process_conversation_end()
+
+    def resample_pcm_with_torchaudio(self, pcm_data, orig_sample_rate, target_sample_rate):
+        """
+        Resample PCM data from the original sample rate to the target sample rate using TorchAudio.
+
+        Args:
+            pcm_data (numpy.ndarray): PCM data as a NumPy array (int16 format).
+            orig_sample_rate (int): Original sample rate (e.g., 48000 Hz).
+            target_sample_rate (int): Target sample rate (e.g., 16000 Hz).
+
+        Returns:
+            numpy.ndarray: Resampled PCM data as a NumPy array.
+
+        """
+        if self.channels == 2:
+            pcm_data = pcm_data.reshape(-1, 2)  # Shape: (num_samples, 2)
+            # Convert stereo to mono by averaging channels
+            pcm_data = pcm_data.mean(axis=1).astype(np.int16)
+
+        audio_tensor = self.convert_to_tensor(pcm_data)
+
+        # Step 2: Normalize PCM data to [-1.0, 1.0]
+
+        # Step 3: Resample the audio
+        resampled_audio = torchaudio.functional.resample(
+            audio_tensor, orig_freq=orig_sample_rate, new_freq=target_sample_rate
+        )
+
+        # Step 4: Convert back to int16 PCM format
+        resampled_audio = self.convert_to_array(resampled_audio)
+
+        # Step 5: Convert PyTorch tensor back to NumPy array
+        return resampled_audio
+
+    def convert_to_tensor(self, audio_array):
+        if not isinstance(audio_array, np.ndarray):
+            raise ValueError("Input must be a NumPy array.")
+
+        # Convert to float32 and normalize to [-1.0, 1.0]
+        return torch.tensor(audio_array, dtype=torch.float32) / 32768.0
+
+    def convert_to_array(self, audio_tensor):
+        if not isinstance(audio_tensor, torch.Tensor):
+            raise ValueError("Input must be a PyTorch tensor.")
+
+        # Scale back to int16 and clamp to valid range
+        return (audio_tensor * 32768.0).clamp(-32768, 32767).short().numpy()
