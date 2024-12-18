@@ -39,16 +39,18 @@
         <input type="text" id="wsUrl" placeholder="WebSocket URL">
         <div class="sensitivity-container">
             <span class="sensitivity-label">Speech Prob. Threshold:</span>
-            <input type="number" id="speechProbThreshold" min="1" max="100" value="97" title="Speech Detection Confidence Level Threshold (%)">
+            <input type="number" id="speechProbThreshold" min="1" max="100" value="98"
+                title="Speech Detection Confidence Level Threshold (%)">
         </div>
-         <div class="sensitivity-container">
+        <div class="sensitivity-container">
             <span class="sensitivity-label">Negative Speech Threshold:</span>
             <input type="number" id="negativeSpeechThreshold" min="0" max="100" value="15"
                 title="Speech detection absence threshold (%)">
         </div>
         <div class="sensitivity-container">
             <span class="sensitivity-label">Redemption Frames:</span>
-            <input type="number" id="redemptionFrames" min="1" max="100" value="20" title="Number of silent frames to wait before ending speech">
+            <input type="number" id="redemptionFrames" min="1" max="100" value="20"
+                title="Number of silent frames to wait before ending speech">
         </div>
         <select id="configDropdown" aria-label="Configuration Selection">
             <option value="">Select Configuration</option>
@@ -111,7 +113,7 @@
         let negativeSpeechThreshold = document.getElementById('negativeSpeechThreshold');
         let redemptionFrames = document.getElementById('redemptionFrames');
 
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             const savedThreshold = localStorage.getItem('speechProbThreshold');
             if (savedThreshold) {
                 speechProbThreshold.value = savedThreshold;
@@ -178,9 +180,9 @@
             });
         }
 
-        speechProbThreshold.addEventListener('change', async function() {
+        speechProbThreshold.addEventListener('change', async function () {
             localStorage.setItem('speechProbThreshold', this.value);
-            
+
             if (myvad) {
                 await myvad.pause();
                 await init_vad();
@@ -191,8 +193,8 @@
                 }
             }
         });
-        
-        negativeSpeechThreshold.addEventListener('change', async function() {
+
+        negativeSpeechThreshold.addEventListener('change', async function () {
             localStorage.setItem('negativeSpeechThreshold', this.value);
             if (myvad) {
                 await myvad.pause();
@@ -205,9 +207,9 @@
             }
         });
 
-        redemptionFrames.addEventListener('change', async function() {
+        redemptionFrames.addEventListener('change', async function () {
             localStorage.setItem('redemptionFrames', this.value);
-             if (myvad) {
+            if (myvad) {
                 await myvad.pause();
                 await init_vad();
                 if (micToggleState) {
@@ -302,10 +304,22 @@
                             audioTaskQueue = new TaskQueue(20);
                             break;
                         case "conversation-chain-end":
-                            setState("idle");
-                            if (!voiceInterruptionOn) {
-                                start_mic();
-                            }
+                            // the conversation chain end signal will now be 
+                            // received once the backend finishes sending the audio.
+                            // and the frontend will still be playing audio at that time.
+                            // this is different from the previous versions
+                            audioTaskQueue.addTask(() => {
+                                return new Promise((resolve, reject) => {
+                                    setState("idle");
+                                    if (!voiceInterruptionOn) {
+                                        start_mic();
+                                    }
+                                    resolve();
+                                }).catch(error => {
+                                    console.error("Conversation chain ending... error? How is it possible to have an error at this stage?:", error);
+                                });
+                            });
+
                             break;
                     }
                     break;
@@ -324,13 +338,13 @@
                     }
                     break;
                 case "set-model":
-                    console.log("set-model: ", message.text);
-                    
-                    model_url = this.wsUrl.value.replace("ws:", window.location.protocol).replace("/client-ws", "") + message.text.url;
-                    message.text.url = model_url;
+                    console.log("set-model: ", message.model_info);
+
+                    model_url = this.wsUrl.value.replace("ws:", window.location.protocol).replace("/client-ws", "") + message.model_info.url;
+                    message.model_info.url = model_url;
 
                     live2dModule.init().then(() => {
-                        live2dModule.loadModel(message.text);
+                        live2dModule.loadModel(message.model_info);
                     });
                     break;
                 case "listExpressions":
@@ -350,7 +364,7 @@
                     }
                     micStateBeforeConfigSwitch = null;  // reset the state
                     break;
-                 case "background-files":
+                case "background-files":
                     populateBgDropdown(message.files);
                     break;
                 default:
@@ -362,8 +376,8 @@
         function fetchConfigurations() {
             ws.send(JSON.stringify({ type: "fetch-configs" }));
         }
-        
-         function fetchBackgrounds() {
+
+        function fetchBackgrounds() {
             ws.send(JSON.stringify({ type: "fetch-backgrounds" }));
         }
 
@@ -377,7 +391,7 @@
             });
         }
 
-         function populateBgDropdown(files) {
+        function populateBgDropdown(files) {
             bgDropdown.innerHTML = '<option value="">Select Background</option>';
             files.forEach(file => {
                 const option = document.createElement('option');
@@ -386,7 +400,7 @@
                 bgDropdown.appendChild(option);
             });
         }
-        
+
         configDropdown.addEventListener('change', function () {
             const selectedConfig = configDropdown.value;
             if (selectedConfig) {
@@ -394,16 +408,16 @@
                 document.getElementById("message").textContent = "Switching configuration...";
                 // avoid the mic being on when switching config
                 micStateBeforeConfigSwitch = micToggleState;
-                 if (micToggleState) {
-                     stop_mic();
-                 }
+                if (micToggleState) {
+                    stop_mic();
+                }
 
                 interrupt();
                 ws.send(JSON.stringify({ type: "switch-config", file: selectedConfig }));
             }
         });
 
-         bgDropdown.addEventListener('change', function () {
+        bgDropdown.addEventListener('change', function () {
             const selectedBg = bgDropdown.value;
             if (selectedBg) {
                 document.body.style.backgroundImage = `url('./bg/${selectedBg}')`;
@@ -451,8 +465,8 @@
 
         audioTaskQueue = new TaskQueue(20); // 100ms delay between tasks
         async function addAudioTask(audio_base64, volumes, slice_length, text = null, expression_list = null) {
-             console.log(`1. Adding audio task ${text} to queue`);
-             
+            console.log(`1. Adding audio task ${text} to queue`);
+
             // skip the task if interrupted
             if (state === "interrupted") {
                 console.log("Skipping audio task due to interrupted state");
@@ -461,7 +475,7 @@
 
             audioTaskQueue.addTask(() => {
                 return new Promise((resolve, reject) => {
-                    playAudioLipSync(audio_base64, volumes, slice_length, text, expression_list, onComplete=resolve);
+                    playAudioLipSync(audio_base64, volumes, slice_length, text, expression_list, onComplete = resolve);
                 }).catch(error => {
                     console.log("Audio task error:", error);
                 });
@@ -469,21 +483,21 @@
         }
 
         function playAudioLipSync(audio_base64, volumes, slice_length, text = null, expression_list = null, onComplete) {
-              if (state === "interrupted") {
+            if (state === "interrupted") {
                 console.error("Audio playback blocked. State:", state);
                 onComplete();
                 return;
             }
 
             fullResponse += text;
-            
+
             if (text) {
                 document.getElementById("message").textContent = text;
             }
 
             const displayExpression = expression_list ? expression_list[0] : null;
             console.log("Start playing audio: ", text);
-           
+
             try {
                 model2.speak("data:audio/wav;base64," + audio_base64, {
                     expression: displayExpression,
@@ -566,14 +580,14 @@
 
         // toggle the text input
         let textInputVisible = false;
-        sendText.addEventListener('click', function() {
+        sendText.addEventListener('click', function () {
             textInputVisible = !textInputVisible;
             textInput.classList.toggle('hidden');
             sendText.textContent = textInputVisible ? "📝Hide Text Input" : "📝Show Text Input";
         });
 
         // send text when enter is pressed
-        textInput.addEventListener('keypress', function(e) {
+        textInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 handleTextSubmit();
             }

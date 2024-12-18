@@ -5,27 +5,13 @@ from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-
-from .config.config_manager import load_config_with_env
-from .service.model_manager import ModelManager
 from .service.service_context import ServiceContext
+
 from .routes import create_routes
 
-class WebSocketServer:
-    @staticmethod
-    def clean_cache():
-        """Clean the cache directory by removing and recreating it."""
-        cache_dir = "./cache"
-        if os.path.exists(cache_dir):
-            shutil.rmtree(cache_dir)
-            os.makedirs(cache_dir)
 
-    def __init__(self, open_llm_vtuber_main_config):
-        self.config = open_llm_vtuber_main_config
-        
-        # Initialize model manager and service context
-        self.model_manager = ModelManager(self.config)
-        self.service_context = ServiceContext(self.config, self.model_manager)
+class WebSocketServer:
+    def __init__(self, config: dict):
 
         self.app = FastAPI()
 
@@ -38,16 +24,30 @@ class WebSocketServer:
             allow_headers=["*"],
         )
 
+        # Load configurations and initialize the default context cache
+        default_context_cache = ServiceContext()
+        default_context_cache.load_from_config(config)
+
         # Include routes
-        self.app.include_router(create_routes(self.service_context))
-        
+        self.app.include_router(
+            create_routes(default_context_cache=default_context_cache)
+        )
+
         # Mount static files
-        self.app.mount("/live2d-models", StaticFiles(directory="live2d-models"), name="live2d-models")
+        self.app.mount(
+            "/live2d-models",
+            StaticFiles(directory="live2d-models"),
+            name="live2d-models",
+        )
         self.app.mount("/", StaticFiles(directory="./static", html=True), name="static")
 
-        logger.info(f"t41372/Open-LLM-VTuber, version {self.config.get('__version__','unknown')}")
-
-    def run(self, host, port):
+    def run(self):
         pass
-        
 
+    @staticmethod
+    def clean_cache():
+        """Clean the cache directory by removing and recreating it."""
+        cache_dir = "./cache"
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+            os.makedirs(cache_dir)

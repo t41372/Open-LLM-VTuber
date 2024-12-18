@@ -19,7 +19,10 @@ class LLMInterface(metaclass=abc.ABCMeta):
         Returns:
         - str: The response from the agent.
         """
-        return await asyncio.to_thread(self.chat_iter, prompt)
+        
+        iterator = await asyncio.to_thread(self.chat_iter, prompt)
+        for item in iterator:
+            yield item
 
     @abc.abstractmethod
     def chat_iter(self, prompt: str) -> Iterator[str]:

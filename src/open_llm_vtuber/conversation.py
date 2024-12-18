@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import uuid
 import json
 from typing import AsyncIterator
@@ -20,7 +20,6 @@ from .utils.stream_audio import prepare_audio_payload
 
 
 async def conversation_chain(
-    self,
     user_input: str | np.ndarray,
     asr_engine: ASRInterface,
     llm_engine: LLMInterface,
@@ -41,13 +40,82 @@ async def conversation_chain(
     Returns:
     - str: The full response from the LLM
     """
-    random_emoji = np.random.choice([
-        "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🌵", "🎄", "🌲", "🌳", "🌴", "🌱", "🌿", "☘️", "🍀", 
-        "🍂", "🍁", "🍄", "🌾", "💐", "🌹","🌸", 
-        "🌛", "🌍", "⭐️", "🔥","🌈","🌩", "⛄️", "🎃", "🎄", "🎉", "🎏", "🎗", "🀄️", 
-        "🎭", "🎨", "🧵", "🪡", "🧶", "🥽", "🥼", "🦺", "👔", "👕", 
-        "👜", "👑", ])
-    
+    random_emoji = np.random.choice(
+        [
+            "🐶",
+            "🐱",
+            "🐭",
+            "🐹",
+            "🐰",
+            "🦊",
+            "🐻",
+            "🐼",
+            "🐨",
+            "🐯",
+            "🦁",
+            "🐮",
+            "🐷",
+            "🐸",
+            "🐵",
+            "🐔",
+            "🐧",
+            "🐦",
+            "🐤",
+            "🐣",
+            "🐥",
+            "🦆",
+            "🦅",
+            "🦉",
+            "🦇",
+            "🐺",
+            "🐗",
+            "🐴",
+            "🦄",
+            "🐝",
+            "🌵",
+            "🎄",
+            "🌲",
+            "🌳",
+            "🌴",
+            "🌱",
+            "🌿",
+            "☘️",
+            "🍀",
+            "🍂",
+            "🍁",
+            "🍄",
+            "🌾",
+            "💐",
+            "🌹",
+            "🌸",
+            "🌛",
+            "🌍",
+            "⭐️",
+            "🔥",
+            "🌈",
+            "🌩",
+            "⛄️",
+            "🎃",
+            "🎄",
+            "🎉",
+            "🎏",
+            "🎗",
+            "🀄️",
+            "🎭",
+            "🎨",
+            "🧵",
+            "🪡",
+            "🧶",
+            "🥽",
+            "🥼",
+            "🦺",
+            "👔",
+            "👕",
+            "👜",
+            "👑",
+        ]
+    )
+
     # Apply the color to the console output
     logger.info(f"New Conversation Chain {random_emoji} started!")
 
@@ -60,10 +128,11 @@ async def conversation_chain(
 
     print(f"User input: {user_input}")
 
-    chat_completion: AsyncIterator[str] = await llm_engine.async_chat_iter(user_input)
-
     full_response: str = ""
     sentence_buffer: str = ""
+
+    chat_completion: AsyncIterator[str] = llm_engine.async_chat_iter(user_input)
+
     async for token in chat_completion:
         sentence_buffer += token
         full_response += token
@@ -84,9 +153,9 @@ async def conversation_chain(
             tts_engine=tts_engine,
             websocket_send=websocket_send,
         )
-        
+
     logger.info(f"Conversation Chain {random_emoji} completed!")
-    
+
     return full_response
 
 
@@ -98,7 +167,7 @@ async def speak(
 ) -> None:
     """
     Generate and stream the audio to the frontend
-    
+
     Parameters:
     - sentence_buffer (str): The sentence to be spoken
     - live2d_model (Live2dModel): The Live2D model to use
@@ -112,18 +181,19 @@ async def speak(
         return
     logger.debug(f"🏃Generating audio for '''{sentence_buffer}'''...")
 
-    emotion, sentence_buffer = live2d_model.extract_emotion(text=sentence_buffer)
+    emotion = live2d_model.extract_emotion(str_to_check=sentence_buffer)
 
     logger.debug(f"emotion: {emotion}, content: {sentence_buffer}")
 
     try:
         audio_file_path = await tts_engine.async_generate_audio(
-            text=sentence_buffer, file_name_no_ext=f"{datetime.now().strftime("%Y%m%d_%H%M%S")}_{str(uuid.uuid4())[:8]}"
+            text=sentence_buffer,
+            file_name_no_ext=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}",
         )
     except Exception as e:
         logger.error(f"Error generating audio: {e}")
         return
-    
+
     try:
         audio_payload = prepare_audio_payload(
             audio_path=audio_file_path,
