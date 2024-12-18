@@ -5,7 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from .service.service_context import ServiceContext
+from .service_context import ServiceContext
 
 from .routes import create_routes
 

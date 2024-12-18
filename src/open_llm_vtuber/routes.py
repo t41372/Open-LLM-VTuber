@@ -6,9 +6,8 @@ from fastapi import APIRouter, WebSocket
 from starlette.websockets import WebSocketDisconnect
 from loguru import logger
 from .conversation import conversation_chain
-from .service.service_context_old import OldServiceContext
-from .service.service_context import ServiceContext
-from .config.config_manager import (
+from .service_context import ServiceContext
+from .utils.config_loader import (
     load_config,
     load_config,
     scan_config_alts_directory,

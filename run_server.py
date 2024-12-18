@@ -3,7 +3,7 @@ import tomli
 import uvicorn
 from loguru import logger
 from src.open_llm_vtuber.server import WebSocketServer
-from src.open_llm_vtuber.config.config_manager import load_config
+from open_llm_vtuber.utils.config_loader import load_config
 
 
 @logger.catch
