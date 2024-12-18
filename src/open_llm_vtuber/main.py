@@ -1,3 +1,9 @@
+"""
+Warning:
+This file is deprecated and will be removed. The code is not used in the project anymore.
+It is kept here for reference purposes only because the translator is not yet implemented.
+"""
+
 import os
 import re
 import random
