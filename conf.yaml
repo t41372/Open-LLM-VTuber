@@ -2,6 +2,8 @@ CONF_VERSION: "v0.5.0-alpha.2"
 
 # System Settings
 SYSTEM_CONFIG:
+  CONF_NAME: "shizuku-local"
+  CONF_UID: "shizuku-local-001"
   PROTOCAL: "http://"
   HOST: "localhost"
   PORT: 12393
@@ -345,9 +347,3 @@ MEMORY_DB_PATH: "./memory.db"
 
 # Memory snapshot: Do you want to backup the memory database file before talking?
 MEMORY_SNAPSHOT: True
-
-
-
-
-
-

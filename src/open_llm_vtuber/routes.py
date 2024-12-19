@@ -14,6 +14,7 @@ from .utils.config_loader import (
     load_new_config,
     scan_bg_directory,
 )
+from .chat_history_manager import create_new_history, store_message, get_history_uids, get_history, delete_history
 
 
 def create_routes(default_context_cache: ServiceContext):
@@ -23,12 +24,6 @@ def create_routes(default_context_cache: ServiceContext):
     @router.websocket("/client-ws")
     async def websocket_endpoint(websocket: WebSocket):
         await websocket.accept()
-        await websocket.send_text(
-            json.dumps({"type": "full-text", "text": "Connection established"})
-        )
-
-        connected_clients.append(websocket)
-        logger.info("Connection established")
 
         session_service_context: ServiceContext = ServiceContext()
         session_service_context.load_cache(
@@ -42,6 +37,23 @@ def create_routes(default_context_cache: ServiceContext):
         await websocket.send_text(
             json.dumps(
                 {
+                    "type": "config-info",
+                    "conf_name": session_service_context.system_config.get("CONF_NAME"),
+                    "conf_uid": session_service_context.system_config.get("CONF_UID"),
+                }
+            )
+        )
+
+        await websocket.send_text(
+            json.dumps({"type": "full-text", "text": "Connection established"})
+        )
+
+        connected_clients.append(websocket)
+        logger.info("Connection established")
+
+        await websocket.send_text(
+            json.dumps(
+                {
                     "type": "set-model",
                     "model_info": session_service_context.live2d_model.model_info,
                 }
@@ -51,12 +63,48 @@ def create_routes(default_context_cache: ServiceContext):
         # start mic
         await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
 
+        conf_uid = session_service_context.system_config.get("CONF_UID", "")
+        current_history_uid = create_new_history(conf_uid)  # Create new history for this session
+        session_service_context.llm_engine.clear_memory()
+
         current_conversation_task: asyncio.Task | None = None
+        ai_message_buffer: str = ""
+
+        await websocket.send_text(
+            json.dumps({
+                "type": "new-history-created",
+                "history_uid": current_history_uid
+            })
+        )
 
         try:
             while True:
                 message = await websocket.receive_text()
                 data = json.loads(message)
+
+                if data.get("type") == "fetch-history-uids":
+                    uids = get_history_uids(conf_uid)
+                    await websocket.send_text(
+                        json.dumps({
+                            "type": "history-uids",
+                            "uids": uids
+                        })
+                    )
+                    continue
+
+                if data.get("type") == "fetch-and-set-history":
+                    history_uid = data.get("history_uid")
+                    if history_uid:
+                        messages = get_history(conf_uid, history_uid)
+                        current_history_uid = history_uid
+                        session_service_context.llm_engine.set_memory_from_history(messages)
+                        await websocket.send_text(
+                            json.dumps({
+                                "type": "history-data",
+                                "messages": messages
+                            })
+                        )
+                    continue
 
                 if data.get("type") == "interrupt-signal":
                     if current_conversation_task is not None:
@@ -65,6 +113,13 @@ def create_routes(default_context_cache: ServiceContext):
                             logger.info(
                                 "Conversation task was NOT cancelled. Likely because there is no running task."
                             )
+                    interrupted_ai_msg = data.get("text") or ""
+                    if interrupted_ai_msg:
+                        ai_message_buffer = interrupted_ai_msg
+                    logger.info(
+                        "Conversation was interrupted. Using partial AI msg: "
+                        + ai_message_buffer
+                    )
 
                 elif data.get("type") == "mic-audio-data":
                     received_data_buffer = np.append(
@@ -106,11 +161,18 @@ def create_routes(default_context_cache: ServiceContext):
                                 llm_engine=session_service_context.llm_engine,
                                 live2d_model=session_service_context.live2d_model,
                                 websocket_send=websocket.send_text,
+                                conf_uid=conf_uid,
+                                history_uid=current_history_uid,
                             )
                         )
 
-                        await current_conversation_task
+                        ai_message_buffer = await current_conversation_task
                         current_conversation_task = None
+                        if ai_message_buffer:
+                            store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
+                            logger.info(
+                                f"Stored AI message: {ai_message_buffer[:50]}..."
+                            )
 
                         await websocket.send_text(
                             json.dumps(
@@ -124,6 +186,11 @@ def create_routes(default_context_cache: ServiceContext):
                     except asyncio.CancelledError:
                         #! TODO: Handle interruption memory and clean up
                         logger.info("Conversation task was cancelled.")
+                        if ai_message_buffer:
+                            store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
+                            logger.info(
+                                f"Stored interrupted AI message: {ai_message_buffer[:50]}..."
+                            )
                     except InterruptedError as e:
                         logger.info(f"Conversation was interrupted: {e}")
 
@@ -147,11 +214,38 @@ def create_routes(default_context_cache: ServiceContext):
                     await websocket.send_text(
                         json.dumps({"type": "background-files", "files": bg_files})
                     )
+                elif data.get("type") == "create-new-history":
+                    current_history_uid = create_new_history(conf_uid)
+                    session_service_context.llm_engine.clear_memory()
+                    await websocket.send_text(
+                        json.dumps({
+                            "type": "new-history-created",
+                            "history_uid": current_history_uid
+                        })
+                    )
+                    continue
+                elif data.get("type") == "delete-history":
+                    history_uid = data.get("history_uid")
+                    if history_uid:
+                        success = delete_history(conf_uid, history_uid)
+                        await websocket.send_text(
+                            json.dumps({
+                                "type": "history-deleted",
+                                "success": success,
+                                "history_uid": history_uid
+                            })
+                        ) 
+                        if history_uid == current_history_uid:
+                            current_history_uid = None
+                        continue
                 else:
                     logger.info("Unknown data type received.")
 
         except WebSocketDisconnect:
             connected_clients.remove(websocket)
+
+        if ai_message_buffer:
+            store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
 
     async def handle_config_switch(
         websocket: WebSocket, service_context: ServiceContext, config_file_name: str
@@ -188,6 +282,17 @@ def create_routes(default_context_cache: ServiceContext):
                         }
                     )
                 )
+
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "config-info",
+                            "conf_name": service_context.system_config.get("CONF_NAME"),
+                            "conf_uid": service_context.system_config.get("CONF_UID"),
+                        }
+                    )
+                )
+
                 await websocket.send_text(
                     json.dumps(
                         {
