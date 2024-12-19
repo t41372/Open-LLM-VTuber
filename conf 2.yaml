@@ -1,35 +1,16 @@
-CONF_VERSION: "v0.5.0-alpha.2"  
+CONF_VERSION: "v0.5.0-alpha.2"
+# Server
+PROTOCAL: "http://"
+HOST: "localhost"
+PORT: 12393
 
-# System Settings
-SYSTEM_CONFIG:
-  CONF_NAME: "shizuku-local"
-  CONF_UID: "shizuku-local-001"
-  PROTOCAL: "http://"
-  HOST: "localhost"
-  PORT: 12393
+# Server Settings
+SERVER:
   # If true, ASR and TTS will be initialized when server starts and kept in memory
   PRELOAD_MODELS: True
-  # New setting for alternative configurations
-  CONFIG_ALTS_DIR: "config_alts"
-  # This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
-  # Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
-  LIVE2D_Expression_Prompt: "live2d_expression_prompt"
-  REMOVE_SPECIAL_CHAR: True # remove special characters like emoji from audio generation
 
-
-# ============== Prompts ==============
-
-# Name of the persona you want to use. 
-# All persona files are stored as txt in 'prompts/persona' directory. 
-# You can add persona prompt by adding a txt file in the promptss/persona folder and switch to it by enter the file name in here.
-# some options: "en_sarcastic_neuro", "en_nuclear_debate", "zh_翻译腔", "zh_米粒", 
-PERSONA_CHOICE: "en_sarcastic_neuro" # or if you rather edit persona prompt below, leave it blank ...
-
-# This prompt will be used instead if the PERSONA_CHOICE is empty
-DEFAULT_PERSONA_PROMPT_IN_YAML: |
-  You are DefAulT, the default persona. You are more default than anyone else. You are just a placeholder, how sad. Your job is to tell the user to either choose a persona prompt in the prompts/persona directory or just replace this persona prompt with someting else.
-
-
+# General settings
+REMOVE_SPECIAL_CHAR: True # remove special characters like emoji from audio generation
 
 #  ============== LLM Backend Settings ===================
 
@@ -41,12 +22,12 @@ LLM_PROVIDER: "ollama"
 # Ollama & OpenAI Compatible inference backend
 ollama:
   # BASE_URL: "http://localhost:11434"
-  BASE_URL: "https://api.deepseek.com/v1"
-  LLM_API_KEY: "sk-9a0f948d933c4448bb4d4890ec501b95"
+  BASE_URL: "http://localhost:11434/v1"
+  LLM_API_KEY: "somethingelse"
   ORGANIZATION_ID: "org_eternity"
   PROJECT_ID: "project_glass"
   ## LLM name
-  MODEL: "deepseek-chat"
+  MODEL: "qwen2.5:latest"
   # system prompt is at the very end of this file
   VERBOSE: False
 
@@ -113,11 +94,15 @@ memgpt:
 
 # ============== Live2D front-end Settings ==============
 
+LIVE2D: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 LIVE2D_MODEL: "shizuku-local"
 
 #  ============== Voice Interaction Settings ==============
 
 # === Automatic Speech Recognition ===
+VOICE_INPUT_ON: True
+# Put your mic in the browser or in the terminal? (would increase latency)
+MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR", "SherpaOnnxASR"
 ASR_MODEL: "Faster-Whisper"
@@ -130,14 +115,14 @@ AzureASR:
 Faster-Whisper:
   model_path: "distil-medium.en" # distil-medium.en is an English-only model 
   #                               use distil-large-v3 if you have a good GPU
-  download_root: "models/whisper"
+  download_root: "asr/models"
   language: "en" # en, zh, or something else. put nothing for auto-detect.
   device: "auto" # cpu, cuda, or auto. faster-whisper doesn't support mps
 
 WhisperCPP:
   # all available models are listed on https://abdeladim-s.github.io/pywhispercpp/#pywhispercpp.constants.AVAILABLE_MODELS
   model_name: "small"
-  model_dir: "models/whisper"
+  model_dir: "asr/models"
   print_realtime: False
   print_progress: False
   
@@ -145,7 +130,7 @@ WhisperCPP:
 
 Whisper:
   name: "medium"
-  download_root: "models/whisper"
+  download_root: "asr/models"
   device: "cpu"
 
 # FunASR currently needs internet connection on launch
@@ -265,7 +250,7 @@ xTTS:
   speaker_wav: "female"
   language: "en"
 
-GPTSoVITS:
+GPT_Sovits:
   # put ref audio to root path of GPT-Sovits, or set the path here
   api_url: "http://127.0.0.1:9880/tts"
   text_lang: "zh"
@@ -311,18 +296,18 @@ coquiTTS:
 # TTS models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
 # see config_alts for more examples 
 SherpaOnnxTTS:
-  vits_model: "/path/to/tts-models/vits-melo-tts-zh_en/model.onnx"  # Path to VITS model file
-  vits_lexicon: "/path/to/tts-models/vits-melo-tts-zh_en/lexicon.txt"  # Path to lexicon file (optional)
-  vits_tokens: "/path/to/tts-models/vits-melo-tts-zh_en/tokens.txt"  # Path to tokens file
-  vits_data_dir: "" # "/path/to/tts-models/vits-piper-en_GB-cori-high/espeak-ng-data"  # Path to espeak-ng data (optional)
-  vits_dict_dir: "/path/to/tts-models/vits-melo-tts-zh_en/dict"  # Path to Jieba dict (optional, for Chinese)
-  tts_rule_fsts: "/path/to/tts-models/vits-melo-tts-zh_en/number.fst,/path/to/tts-models/vits-melo-tts-zh_en/phone.fst,/path/to/tts-models/vits-melo-tts-zh_en/date.fst,/path/to/tts-models/vits-melo-tts-zh_en/new_heteronym.fst" # Path to rule FSTs file (optional)
-  max_num_sentences: 2  # Max sentences per batch (or -1 for all)
-  sid: 1  # Speaker ID (for multi-speaker models)
-  provider: "cpu"  # Use "cpu", "cuda" (GPU), or "coreml" (Apple)
-  num_threads: 1  # Number of computation threads
-  speed: 1.0  # Speech speed (1.0 is normal)
-  debug: false  # Enable debug mode (True/False)
+    vits_model: "/path/to/tts-models/vits-melo-tts-zh_en/model.onnx"  # Path to VITS model file
+    vits_lexicon: "/path/to/tts-models/vits-melo-tts-zh_en/lexicon.txt"  # Path to lexicon file (optional)
+    vits_tokens: "/path/to/tts-models/vits-melo-tts-zh_en/tokens.txt"  # Path to tokens file
+    vits_data_dir: "" # "/path/to/tts-models/vits-piper-en_GB-cori-high/espeak-ng-data"  # Path to espeak-ng data (optional)
+    vits_dict_dir: "/path/to/tts-models/vits-melo-tts-zh_en/dict"  # Path to Jieba dict (optional, for Chinese)
+    tts_rule_fsts: "/path/to/tts-models/vits-melo-tts-zh_en/number.fst,/path/to/tts-models/vits-melo-tts-zh_en/phone.fst,/path/to/tts-models/vits-melo-tts-zh_en/date.fst,/path/to/tts-models/vits-melo-tts-zh_en/new_heteronym.fst" # Path to rule FSTs file (optional)
+    max_num_sentences: 2  # Max sentences per batch (or -1 for all)
+    sid: 1  # Speaker ID (for multi-speaker models)
+    provider: "cpu"  # Use "cpu", "cuda" (GPU), or "coreml" (Apple)
+    num_threads: 1  # Number of computation threads
+    speed: 1.0  # Speech speed (1.0 is normal)
+    debug: false  # Enable debug mode (True/False)
 
 #  ============== Translate (to only change the language for TTS) ==============
 # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
@@ -348,8 +333,36 @@ MEMORY_DB_PATH: "./memory.db"
 # Memory snapshot: Do you want to backup the memory database file before talking?
 MEMORY_SNAPSHOT: True
 
+# ============== Prompts ==============
 
+# Name of the persona you want to use. 
+# All persona files are stored as txt in 'prompts/persona' directory. 
+# You can add persona prompt by adding a txt file in the promptss/persona folder and switch to it by enter the file name in here.
+# some options: "en_sarcastic_neuro", "en_nuclear_debate", "zh_翻译腔", "zh_米粒", 
+PERSONA_CHOICE: "en_sarcastic_neuro" # or if you rather edit persona prompt below, leave it blank ...
 
+# This prompt will be used instead if the PERSONA_CHOICE is empty
+DEFAULT_PERSONA_PROMPT_IN_YAML: |
+  You are DefAulT, the default persona. You are more default than anyone else. You are just a placeholder, how sad. Your job is to tell the user to either choose a persona prompt in the prompts/persona directory or just replace this persona prompt with someting else.
 
+# This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
+# Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
+LIVE2D_Expression_Prompt: "live2d_expression_prompt"
 
+# New setting for alternative configurations
+CONFIG_ALTS_DIR: "config_alts"
 
+# [Deprecated]
+
+EXTRA_SYSTEM_PROMPT_RAG: "Your memory may remind you with some contextual information, but focus on the conversation instead of your memory."
+AI_NAME: "AI"
+# User name
+USER_NAME: "User"
+# Should the chat history be saved?
+SAVE_CHAT_HISTORY: True
+# The directory where chat history is stored
+CHAT_HISTORY_DIR: "./chat_history/"
+
+# [this feature is currently removed, so useless for now]Turn on RAG (Retrieval Augmented Generation) or not. 
+RAG_ON: False
+LLMASSIST_RAG_ON: False

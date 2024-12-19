@@ -17,6 +17,7 @@ from .translate.translate_factory import TranslateFactory
 from .utils.audio_preprocessor import audio_filter
 from .utils.sentence_divider import is_complete_sentence
 from .utils.stream_audio import prepare_audio_payload
+from .chat_history_manager import store_message
 
 
 async def conversation_chain(
@@ -26,6 +27,8 @@ async def conversation_chain(
     tts_engine: TTSInterface,
     live2d_model: Live2dModel,
     websocket_send: WebSocket.send,
+    conf_uid: str = "",
+    history_uid: str = "",
 ) -> str:
     """
     One iteration of the main conversation.
@@ -122,10 +125,13 @@ async def conversation_chain(
     # if user_input is not string, make it string
     if user_input is None:
         logger.warning("❓User input is None. Aborting conversation.")
+        return ""
     elif isinstance(user_input, np.ndarray):
         print("transcribing...")
         user_input: str = await asr_engine.async_transcribe_np(user_input)
 
+    store_message(conf_uid, history_uid, "human", user_input)
+    
     print(f"User input: {user_input}")
 
     full_response: str = ""

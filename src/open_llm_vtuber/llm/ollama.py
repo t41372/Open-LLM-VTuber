@@ -157,6 +157,26 @@ class LLM(LLMInterface):
             }
         )
 
+    def clear_memory(self):
+        """Clear the memory, only keep the system prompt"""
+        system_message = next((msg for msg in self.memory if msg["role"] == "system"), None)
+        self.memory = []
+        if system_message:
+            self.memory.append(system_message)
+
+    def set_memory_from_history(self, messages: list):
+        """Set the memory from history"""
+        system_message = next((msg for msg in self.memory if msg["role"] == "system"), None)
+        self.memory = []
+        if system_message:
+            self.memory.append(system_message)
+        
+        for msg in messages:
+            self.memory.append({
+                "role": "user" if msg["role"] == "human" else "assistant",
+                "content": msg["content"]
+            })
+
 
 def test():
     llm = LLM(
