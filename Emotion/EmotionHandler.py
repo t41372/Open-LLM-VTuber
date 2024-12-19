@@ -6,7 +6,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from transformers import AutoModelForAudioClassification
+from loguru import logger
+
+from transformers import AutoModelForAudioClassification, pipeline
 
 emotions = ["anger", "calm", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
 state_size = len(emotions) * 2  # Both emotion rewards and initiatives as part of the state
@@ -49,12 +51,13 @@ class EmotionHandler:
         self.repeated_tone_count = 0
         self.random_factor = 0.3  # Starting at 30% for randomness
         self.high_initiative_threshold = 1.3  # Threshold for high initiatives
-        self.classifier = AutoModelForAudioClassification.from_pretrained(
-            "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition")
-
+        # self.classifier = AutoModelForAudioClassification.from_pretrained(
+        #     "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition")
+        self.classifier = pipeline("sentiment-analysis", model="michellejieli/emotion_text_classifier", device="cuda")
         # Q-learning parameters
         self.current_user_emotion = 'neutral'
         self.current_llm_emotion = ['neutral']
+
         self.state_size = state_size
         self.action_size = action_size
         self.gamma = gamma  # Discount factor
@@ -73,16 +76,31 @@ class EmotionHandler:
         self.loss_fn = nn.MSELoss()
 
     async def classify_emotion(self, input_text):
-        """Stub for emotion classifier."""
+        """Traditional text based emotion classifier"""
+
         if input_text is None:
             return None
+
         try:
-            input_tensor = input_text['wav2vec_samples'].input_values.float()
+            ##input_tensor = input_text['wav2vec_samples'].input_values.float()
+            result = self.classifier.forward(input_text)
+            classified_emotions = dict(zip(self.emotions, list(round(float(i), 2) for i in result[0][0])))
+            return classified_emotions
+        except Exception as e:
+            logger.error(e)
+        return None
+
+    async def classify_audio_emotion(self, input_audio):
+        """Classifies emotions based on audio input, more expensive and can introduce significant latency, do it only if you have a good GPU"""
+        if input_audio is None:
+            return None
+        try:
+            input_tensor = input_audio['wav2vec_samples'].input_values.float()
             result = self.classifier.forward(input_tensor)
             classified_emotions = dict(zip(self.emotions, list(round(float(i), 4) for i in result[0][0])))
             return classified_emotions
         except Exception as e:
-            print(e)
+            logger.error(e)
         return None
 
     def choose_emotions_based_on_initiative(self):
@@ -164,7 +182,7 @@ class EmotionHandler:
         """Store experiences in memory."""
         self.memory.append((previous_state, action, reward, current_state, done))
 
-    def get_llm_response_emotion(self, user_prompt_emotion: str) -> list[Any]:
+    def get_llm_response_emotion(self) -> list[Any]:
         """
         Simulates generating an LLM response based on the chosen emotions.
         """

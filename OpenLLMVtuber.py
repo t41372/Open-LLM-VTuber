@@ -203,9 +203,6 @@ class OpenLLMVTuberMain:
         if not self._continue_exec_flag.wait(
                 timeout=self.EXEC_FLAG_CHECK_TIMEOUT
         ):  # Wait for the flag to be set
-            print(
-                ">> Execution flag not set. In interruption state for too long. Exiting conversation chain."
-            )
             raise InterruptedError(
                 "Conversation chain interrupted. Wait flag timeout reached."
             )
@@ -224,7 +221,7 @@ class OpenLLMVTuberMain:
             exit()
         if not self.not_is_blocking_event.is_set():
             self.not_is_blocking_event.wait()
-        chat_completion: Iterator[str] = self.llm.chat_iter(user_input)
+        self.llm.chat_iter(user_input)
         #
         # if not self.config.get("TTS_ON", False):
         #     full_response = ""

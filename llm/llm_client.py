@@ -38,7 +38,9 @@ class LettaLLMClient(LLMInterface):
                 logger.success(f"CREATED AGENT {self.agent.name}")
             else:
                 self.agent = self.client.get_agent(agent_id=self.agent_id)
-                logger.success(f"AGENT ALREADY EXISTS, FETCHING AGENT: {self.agent.name}")
+                persona_id = self.client.get_persona_id(name=name)
+                self.client.update_persona(persona_id=persona_id)
+                logger.success(f"AGENT ALREADY EXISTS, UPDATING AGENT: {self.agent.name}")
         except ValueError as e:
             logger.error(e)
 
@@ -53,6 +55,7 @@ class LettaLLMClient(LLMInterface):
             agent_id=self.agent.id,
             message=prompt
         )
+        combined_output=""
         temp_chunks = []
         for chunk in response:
             try:
@@ -64,19 +67,14 @@ class LettaLLMClient(LLMInterface):
 
                     # When 5 chunks are collected, add them to the output queue
                     if len(temp_chunks) == 10:
-                        combined_output = "".join(temp_chunks)  # Combine the 5 chunks
+                        combined_output = "".join(temp_chunks)  # Combine the 10 chunks
                         OutputQueue().add_output(combined_output)
                         temp_chunks = []  # Reset temporary list
-
             except Exception:
-
                 continue  # Skip invalid or incomplete chunks
+        if len(temp_chunks)>0:
+            OutputQueue().add_output(combined_output) ## flush out any last remaining chunks
 
-            # for message in response.messages:
-            #     if message.message_type == self.inference_message_key:
-            #         function_call_message= json.loads(message.json())['function_call']['arguments']
-            #         return json.loads(function_call_message)['message']
-            # return response.messages
 
     def reset_memory(self):
         """

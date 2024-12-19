@@ -31,25 +31,24 @@ SOFTWARE.
 This modified version is also distributed under the MIT License.
 """
 
+import os
 import queue
+import sys
 from pathlib import Path
 from typing import Callable, List
 
 import numpy as np
 import sounddevice as sd
+import torch
 from loguru import logger
-
-import sys
-import os
-
-from scipy.io.wavfile import write
-from transformers import Wav2Vec2FeatureExtractor
+from transformers import Wav2Vec2FeatureExtractor, pipeline
 
 from utils.StateInfo import StateInfo
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
-from discord.opus import Decoder as OpusDecoder
+
+from utils.GenderClassifierModel import ECAPA_gender
 import vad
 
 # Using pathlib for OS-independent paths
@@ -119,6 +118,10 @@ class VoiceRecognitionVAD:
         self.wav2vec_samples = []
         self.gap_counter = 0
         self.wake_word = wake_word
+        self.gender_classifier = ECAPA_gender.from_pretrained("JaesungHuh/voice-gender-classifier")
+        self.gender_classifier.eval()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.gender_classifier.to(self.device)
 
     def _setup_audio_stream(self):
         """
@@ -257,13 +260,17 @@ class VoiceRecognitionVAD:
         """
         Processes the detected audio and generates a response.
         """
-        voice_speech_data= input_sample['data']
-        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=voice_speech_data,
-                                                              sampling_rate= SAMPLE_RATE,
-                                                              padding=True, return_tensors="pt")
+        voice_speech_data = input_sample['data']
+        # self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=voice_speech_data,
+        #                                                       sampling_rate= SAMPLE_RATE,
+        #                                                       padding=True, return_tensors="pt")
+        with torch.no_grad():
+            detected_gender = self.gender_classifier.predict(voice_speech_data, device=self.device)
         detected_text = self.discord_asr(voice_speech_data)
         if detected_text:
-            return {'name':input_sample['name'],"content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
+
+            return {'name': input_sample['name'], "content": detected_text, 'gender': detected_gender}
+            #return {'name':input_sample['name'],"content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
 
     def discord_asr(self, samples: np.ndarray) -> str:
         """

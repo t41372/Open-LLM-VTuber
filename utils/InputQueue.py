@@ -47,10 +47,10 @@ class InputQueue:
         Asynchronously adds an input to the queue.
         If the input is a string, it classifies the emotion and appends it.
         """
-        result=[]
+        result = []
         for dialogue in input:
             classified_emotions = await EmotionHandler().classify_emotion(dialogue)
-            del dialogue['wav2vec_samples']
+            ## del dialogue['wav2vec_samples']
             dialogue['emotions'] = classified_emotions
             result.append(dialogue)
         await self.queue.put(result)
