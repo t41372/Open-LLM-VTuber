@@ -62,6 +62,7 @@ def create_routes(default_context_cache: ServiceContext):
         await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
 
         conf_uid = session_service_context.system_config.get("CONF_UID", "")
+        
         current_history_uid = create_new_history(conf_uid)  # Create new history for this session
         session_service_context.llm_engine.clear_memory()
 
