@@ -1,8 +1,8 @@
 from datetime import datetime
 import uuid
 import json
-from typing import AsyncIterator
-
+import asyncio
+from typing import AsyncIterator, List
 import numpy as np
 from loguru import logger
 from fastapi import WebSocket
@@ -19,6 +19,71 @@ from .utils.sentence_divider import is_complete_sentence
 from .utils.stream_audio import prepare_audio_payload
 from .chat_history_manager import store_message
 
+class TTSTaskManager:
+    def __init__(self):
+        self.task_list: List[asyncio.Task] = []
+        self.next_index_to_play: int = 0
+    
+    def clear(self):
+        self.task_list.clear()
+        self.next_index_to_play = 0
+
+    async def speak(
+        self,
+        sentence_buffer: str,
+        live2d_model: Live2dModel,
+        tts_engine: TTSInterface,
+        websocket_send: WebSocket.send,
+    ) -> None:
+        if not sentence_buffer or not sentence_buffer.strip():
+            logger.error(
+                f'TTS receives "{sentence_buffer}", which is empty. So nothing to be spoken.'
+            )
+            return
+        
+        logger.debug(f"🏃Generating audio for '''{sentence_buffer}'''...")
+        emotion = live2d_model.extract_emotion(str_to_check=sentence_buffer)
+        logger.debug(f"emotion: {emotion}, content: {sentence_buffer}")
+
+        current_task_index = len(self.task_list)
+        tts_task = asyncio.create_task(
+            tts_engine.async_generate_audio(
+                text=sentence_buffer,
+                file_name_no_ext=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}",
+            )
+        )
+        self.task_list.append(tts_task)
+
+        try:
+            while current_task_index != self.next_index_to_play:
+                await asyncio.sleep(0.01)
+
+            audio_file_path = await tts_task
+
+            try:
+                audio_payload = prepare_audio_payload(
+                    audio_path=audio_file_path,
+                    display_text=sentence_buffer,
+                    expression_list=[emotion],
+                )
+            except Exception as e:
+                logger.error(f"Error preparing audio payload: {e}")
+                return
+
+            logger.debug("Sending Audio payload.")
+            await websocket_send(json.dumps(audio_payload))
+            
+            tts_engine.remove_file(audio_file_path)
+            logger.debug("Payload sent. Audio cache file cleaned.")
+
+            self.next_index_to_play += 1
+
+            if current_task_index == len(self.task_list) - 1:
+                self.clear()
+
+        except Exception as e:
+            logger.error(f"Error in speak function: {e}")
+            self.next_index_to_play += 1
 
 async def conversation_chain(
     user_input: str | np.ndarray,
@@ -134,6 +199,8 @@ async def conversation_chain(
     
     print(f"User input: {user_input}")
 
+    tts_manager = TTSTaskManager()
+    
     full_response: str = ""
     sentence_buffer: str = ""
 
@@ -143,7 +210,7 @@ async def conversation_chain(
         sentence_buffer += token
         full_response += token
         if is_complete_sentence(sentence_buffer) and sentence_buffer.strip():
-            await speak(
+            await tts_manager.speak(
                 sentence_buffer=sentence_buffer,
                 live2d_model=live2d_model,
                 tts_engine=tts_engine,
@@ -151,67 +218,19 @@ async def conversation_chain(
             )
             sentence_buffer = ""
 
-    # If there's still something in the buffer, speak it
     if sentence_buffer:
-        await speak(
+        await tts_manager.speak(
             sentence_buffer=sentence_buffer,
             live2d_model=live2d_model,
             tts_engine=tts_engine,
             websocket_send=websocket_send,
         )
 
+    # Wait for all TTS tasks to complete
+    if tts_manager.task_list:
+        await asyncio.gather(*tts_manager.task_list)
+        tts_manager.clear()
+
     logger.info(f"Conversation Chain {random_emoji} completed!")
 
     return full_response
-
-
-async def speak(
-    sentence_buffer: str,
-    live2d_model: Live2dModel,
-    tts_engine: TTSInterface,
-    websocket_send: WebSocket.send,
-) -> None:
-    """
-    Generate and stream the audio to the frontend
-
-    Parameters:
-    - sentence_buffer (str): The sentence to be spoken
-    - live2d_model (Live2dModel): The Live2D model to use
-    - tts_engine (TTSInterface): The TTS engine to use
-    - websocket_send (WebSocket.send): The function to send the audio to the frontend
-    """
-    if not sentence_buffer or not sentence_buffer.strip():
-        logger.error(
-            f'TTS receives "{sentence_buffer}", which is empty. So nothing to be spoken.'
-        )
-        return
-    logger.debug(f"🏃Generating audio for '''{sentence_buffer}'''...")
-
-    emotion = live2d_model.extract_emotion(str_to_check=sentence_buffer)
-
-    logger.debug(f"emotion: {emotion}, content: {sentence_buffer}")
-
-    try:
-        audio_file_path = await tts_engine.async_generate_audio(
-            text=sentence_buffer,
-            file_name_no_ext=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}",
-        )
-    except Exception as e:
-        logger.error(f"Error generating audio: {e}")
-        return
-
-    try:
-        audio_payload = prepare_audio_payload(
-            audio_path=audio_file_path,
-            display_text=sentence_buffer,
-            expression_list=[emotion],
-        )
-    except Exception as e:
-        logger.error(f"Error preparing audio payload: {e}")
-        return
-    logger.debug("Sending Audio payload.")
-    await websocket_send(json.dumps(audio_payload))
-    # clean up
-    sentence_buffer = ""
-    tts_engine.remove_file(audio_file_path)
-    logger.debug("Payload sent. Audio cache file cleaned.")
