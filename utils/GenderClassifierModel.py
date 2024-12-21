@@ -1,6 +1,6 @@
 ## This script is based on the https://github.com/TaoRuijie/ECAPA-TDNN/blob/main/model.py
 ## I made some changes to the original code for training a binary classifier.
-
+import io
 import math
 from typing import Optional
 
@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import torchaudio
 from huggingface_hub import PyTorchModelHubMixin
 from numpy import ndarray
+from scipy.io.wavfile import write
 
 
 class SEModule(nn.Module):
@@ -158,10 +159,13 @@ class ECAPA_gender(nn.Module, PyTorchModelHubMixin):
         return x
 
     def predict(self, audio: ndarray, device: torch.device) -> str:
-        audio = torch.tensor(audio, dtype=torch.float32) / 32768.0
-        audio = audio.to(device)
-        self.eval()
+        byte_io = io.BytesIO()
+        write(byte_io, 16000, audio)  # Write PCM data to a WAV format
+        byte_io.seek(0)
 
+        waveform, loaded_sample_rate = torchaudio.load(byte_io)
+        audio = waveform.to(device)
+        self.eval()
         with torch.no_grad():
             output = self.forward(audio)
             _, pred = output.max(1)

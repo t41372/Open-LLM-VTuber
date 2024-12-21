@@ -48,10 +48,15 @@ class InputQueue:
         If the input is a string, it classifies the emotion and appends it.
         """
         result = []
+
         for dialogue in input:
-            classified_emotions = await EmotionHandler().classify_emotion(dialogue)
+            if dialogue['type'] == 'text':
+                classified_emotions = await EmotionHandler().classify_emotion(dialogue['content'])
+            else:
+                classified_emotions = await EmotionHandler().classify_audio_emotion(dialogue['audio_data'])
             ## del dialogue['wav2vec_samples']
             dialogue['emotions'] = classified_emotions
+            del dialogue['audio_data']
             result.append(dialogue)
         await self.queue.put(result)
 

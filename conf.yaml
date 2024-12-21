@@ -55,11 +55,11 @@ VOICE_INPUT_ON: True
 MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR"
-ASR_MODEL: "Whisper"
+ASR_MODEL: "Faster-Whisper"
 
 # Faster whisper config
 Faster-Whisper:
-  model_path: "distil-medium.en"
+  model_path: "distil-large-v3"
   download_root: "asr/models"
   language: "en"
   device: "cuda" # cpu, cuda, or auto. faster-whisper doesn't support mps
@@ -74,7 +74,7 @@ WhisperCPP:
   language: "en" # en, zh, auto, 
 
 Whisper:
-  name: "medium"
+  name: "small"
   download_root: "asr/models"
   device: "cuda"
 

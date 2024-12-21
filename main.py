@@ -1,5 +1,6 @@
 import atexit
 import threading
+import time
 
 import discord
 import dotenv
@@ -7,6 +8,7 @@ import yaml
 from loguru import logger
 
 from Behavior.TalkBehavior import TalkBehavior
+from Emotion.EmotionHandler import EmotionHandler
 from OpenLLMVtuber import OpenLLMVTuberMain
 from server import WebSocketServer
 from utils.ActionSelectionQueue import ActionSelectionQueue
@@ -23,7 +25,7 @@ if __name__ == "__main__":
     with open("conf.yaml", "rb") as f:
         config = yaml.safe_load(f)
     dotenv.load_dotenv()
-    server = WebSocketServer(open_llm_vtuber_config=config)
+
     vtuber_main = OpenLLMVTuberMain(config)
     voice_interface = "discord"
     state_info = StateInfo()
@@ -41,27 +43,28 @@ if __name__ == "__main__":
     intents.voice_states = True
     intents.message_content = True
     discord_client = VoiceActivityBot(intents=intents)
+    emotion_handler = EmotionHandler()
 
     ## live2d model
     action_selection_queue = ActionSelectionQueue(default_behavior=default_behavior)
     config["LIVE2D"] = True
 
-    atexit.register(WebSocketServer.clean_cache)
     atexit.register(vtuber_main.clean_cache)
 
 
     def _run_conversation_chain():
-
         try:
+            listener.start()
             action_selection_queue.start()
-            prompt = inference_queue.get_prompt()
-           ## VoiceActivityBot().send_message(prompt)
-            inference_result = vtuber_main.conversation_chain(prompt)
-            OutputQueue().add_output(inference_result)
-
+            while True:  # Loop to keep running the conversation chain
+                prompt = inference_queue.get_prompt()
+                vtuber_main.conversation_chain(prompt)
         except Exception as e:
             logger.error(f"😢Conversation was interrupted. {e}")
+        finally:
             listener.stop()
+            action_selection_queue.stop()
+            logger.info("Listener and action selection queue stopped.")
 
 
     while True:
@@ -69,7 +72,6 @@ if __name__ == "__main__":
         if not vtuber_main.config.get("TTS_ON", False):
             logger.error("its indeed off")
         else:
-            listener.start()
             threading.Thread(name='Main LLM Thread', target=_run_conversation_chain).start()
             if input(">>> say i and press enter to interrupt: ") == "i":
                 logger.error("\n\n!!!!!!!!!! interrupt !!!!!!!!!!!!...\n")

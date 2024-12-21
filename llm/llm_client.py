@@ -39,7 +39,7 @@ class LettaLLMClient(LLMInterface):
             else:
                 self.agent = self.client.get_agent(agent_id=self.agent_id)
                 persona_id = self.client.get_persona_id(name=name)
-                self.client.update_persona(persona_id=persona_id)
+                ##self.client.update_persona(persona_id=persona_id)
                 logger.success(f"AGENT ALREADY EXISTS, UPDATING AGENT: {self.agent.name}")
         except ValueError as e:
             logger.error(e)
@@ -73,6 +73,7 @@ class LettaLLMClient(LLMInterface):
             except Exception:
                 continue  # Skip invalid or incomplete chunks
         if len(temp_chunks)>0:
+            combined_output = "".join(temp_chunks)
             OutputQueue().add_output(combined_output) ## flush out any last remaining chunks
 
 

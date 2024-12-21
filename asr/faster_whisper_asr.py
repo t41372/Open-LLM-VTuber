@@ -1,5 +1,6 @@
 import numpy as np
 from faster_whisper import WhisperModel
+
 from .asr_interface import ASRInterface
 
 
@@ -10,7 +11,7 @@ class VoiceRecognition(ASRInterface):
 
     def __init__(
         self,
-        model_path: str = "distil-medium.en",
+        model_path: str = "distil-small.en",
         download_root: str = None,
         language: str = "en",
         device: str = "auto",
@@ -21,11 +22,10 @@ class VoiceRecognition(ASRInterface):
         self.model = WhisperModel(
             model_path,
             download_root=download_root,
-            device=device,
-            compute_type="float32",
-        )
-        self.asr_with_vad = None
+            device=device
 
+
+        )
     # Implemented in asr_interface.py
     # def transcribe_with_local_vad(self) -> str:
 
@@ -36,6 +36,7 @@ class VoiceRecognition(ASRInterface):
             beam_size=5 if self.BEAM_SEARCH else 1,
             language=self.LANG,
             condition_on_previous_text=False,
+            vad_filter=True
         )
 
         text = [segment.text for segment in segments]

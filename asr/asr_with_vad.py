@@ -55,9 +55,9 @@ import vad
 VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
 SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
-VAD_THRESHOLD = 0.3  # Threshold for VAD detection
+VAD_THRESHOLD = 0.5  # Threshold for VAD detection
 BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
-PAUSE_LIMIT = 1200  # Milliseconds of pause allowed before processing
+PAUSE_LIMIT = 800  # Milliseconds of pause allowed before processing
 WAKE_WORD = "stella"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
@@ -76,7 +76,6 @@ class IdentifySpeaker:
 
 
 class VoiceRecognitionVAD:
-    wav2vec_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-large-xlsr-53")
 
     def __init__(
             self,
@@ -244,12 +243,10 @@ class VoiceRecognitionVAD:
         logger.info("Stopping listening...")
         detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         self.input_stream.stop()
-        self.wav2vec_samples = self.wav2vec_feature_extractor(raw_speech=self.samples, sampling_rate=SAMPLE_RATE,
-                                                              padding=True, return_tensors="pt")
         detected_text = self.asr(self.samples)
 
         if detected_text:
-            return {"name": detected_speaker, "content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
+            return {"name": detected_speaker, "content": detected_text, 'type': 'text'}
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead
@@ -268,9 +265,7 @@ class VoiceRecognitionVAD:
             detected_gender = self.gender_classifier.predict(voice_speech_data, device=self.device)
         detected_text = self.discord_asr(voice_speech_data)
         if detected_text:
-
-            return {'name': input_sample['name'], "content": detected_text, 'gender': detected_gender}
-            #return {'name':input_sample['name'],"content": detected_text, 'wav2vec_samples': self.wav2vec_samples}
+            return {'name': input_sample['name'], "content": detected_text, 'gender': detected_gender, 'type': 'audio','audio_data':voice_speech_data}
 
     def discord_asr(self, samples: np.ndarray) -> str:
         """

@@ -7,12 +7,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from loguru import logger
+from torch.xpu import device
 
-from transformers import AutoModelForAudioClassification, pipeline
+from transformers import AutoModelForAudioClassification, pipeline, AutoFeatureExtractor
 
 emotions = ["anger", "calm", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
 state_size = len(emotions) * 2  # Both emotion rewards and initiatives as part of the state
 action_size = 3
+
 
 
 # Define the Deep Q-Network (DQN) architecture
@@ -51,9 +53,12 @@ class EmotionHandler:
         self.repeated_tone_count = 0
         self.random_factor = 0.3  # Starting at 30% for randomness
         self.high_initiative_threshold = 1.3  # Threshold for high initiatives
-        # self.classifier = AutoModelForAudioClassification.from_pretrained(
-        #     "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition")
-        self.classifier = pipeline("sentiment-analysis", model="michellejieli/emotion_text_classifier", device="cuda")
+
+        self.classifier = pipeline("sentiment-analysis", model="michellejieli/emotion_text_classifier", device="cuda") ## for text data
+
+        self.audio_classifier = AutoModelForAudioClassification.from_pretrained("firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3") ## for audio data
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained("firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3", do_normalize=False)
+        self.id2label = self.audio_classifier.config.id2label
         # Q-learning parameters
         self.current_user_emotion = 'neutral'
         self.current_llm_emotion = ['neutral']
@@ -74,7 +79,7 @@ class EmotionHandler:
         self.model = DQN(state_size, action_size)
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.loss_fn = nn.MSELoss()
-
+        logger.success(f"CREATING EMOTION HANDLER THREAD : {id(self)}")
     async def classify_emotion(self, input_text):
         """Traditional text based emotion classifier"""
 
@@ -82,9 +87,8 @@ class EmotionHandler:
             return None
 
         try:
-            ##input_tensor = input_text['wav2vec_samples'].input_values.float()
-            result = self.classifier.forward(input_text)
-            classified_emotions = dict(zip(self.emotions, list(round(float(i), 2) for i in result[0][0])))
+            result = self.classifier(input_text)
+            classified_emotions = dict(zip(self.emotions, list(round(float(i), 2) for i in result[0])))
             return classified_emotions
         except Exception as e:
             logger.error(e)
@@ -92,13 +96,36 @@ class EmotionHandler:
 
     async def classify_audio_emotion(self, input_audio):
         """Classifies emotions based on audio input, more expensive and can introduce significant latency, do it only if you have a good GPU"""
+        max_duration=30.0
+        max_length = int(self.feature_extractor.sampling_rate * max_duration)
+        if len(input_audio) > max_length:
+            audio_array = input_audio[:max_length]
+        else:
+            audio_array = np.pad(input_audio, (0, max_length - len(input_audio)))
+
+        inputs = self.feature_extractor(
+            audio_array,
+            sampling_rate=self.feature_extractor.sampling_rate,
+            max_length=max_length,
+            truncation=True,
+            return_tensors="pt",
+        )
         if input_audio is None:
             return None
         try:
-            input_tensor = input_audio['wav2vec_samples'].input_values.float()
-            result = self.classifier.forward(input_tensor)
-            classified_emotions = dict(zip(self.emotions, list(round(float(i), 4) for i in result[0][0])))
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model = self.audio_classifier.to(device)
+            inputs = {key: value.to(device) for key, value in inputs.items()}
+
+            with torch.no_grad():
+                outputs = model(**inputs)
+
+            logits = outputs.logits
+            predicted_id = torch.argmax(logits, dim=-1).item()
+            classified_emotions = self.id2label[predicted_id]
+
             return classified_emotions
+
         except Exception as e:
             logger.error(e)
         return None
