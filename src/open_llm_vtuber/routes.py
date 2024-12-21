@@ -12,7 +12,7 @@ from .utils.config_loader import (
     scan_config_alts_directory,
     scan_bg_directory,
 )
-from .chat_history_manager import create_new_history, store_message, get_history_uids, get_history, delete_history
+from .chat_history_manager import create_new_history, store_message, get_history, delete_history, get_history_list
 
 
 def create_routes(default_context_cache: ServiceContext):
@@ -65,8 +65,13 @@ def create_routes(default_context_cache: ServiceContext):
         current_history_uid = create_new_history(conf_uid)  # Create new history for this session
         session_service_context.llm_engine.clear_memory()
 
-        current_conversation_task: asyncio.Task | None = None
-        ai_message_buffer: str = ""
+        histories = get_history_list(conf_uid)
+        await websocket.send_text(
+            json.dumps({
+                "type": "history-list",
+                "histories": histories
+            })
+        )
 
         await websocket.send_text(
             json.dumps({
@@ -75,17 +80,20 @@ def create_routes(default_context_cache: ServiceContext):
             })
         )
 
+        current_conversation_task: asyncio.Task | None = None
+        ai_message_buffer: str = ""
+
         try:
             while True:
                 message = await websocket.receive_text()
                 data = json.loads(message)
 
-                if data.get("type") == "fetch-history-uids":
-                    uids = get_history_uids(conf_uid)
+                if data.get("type") == "fetch-history-list":
+                    histories = get_history_list(conf_uid)
                     await websocket.send_text(
                         json.dumps({
-                            "type": "history-uids",
-                            "uids": uids
+                            "type": "history-list",
+                            "histories": histories
                         })
                     )
                     continue

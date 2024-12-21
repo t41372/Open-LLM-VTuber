@@ -105,3 +105,51 @@ def delete_history(conf_uid: str, history_uid: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to delete history file: {e}")
     return False 
+def get_history_list(conf_uid: str) -> List[dict]:
+    """Get list of histories with their latest messages"""
+    if not conf_uid:
+        return []
+    
+    histories = []
+    conf_dir = _ensure_conf_dir(conf_uid)
+    empty_history_uids = []  
+    
+    try:
+        for filename in os.listdir(conf_dir):
+            if not filename.endswith('.json'):
+                continue
+                
+            history_uid = filename[:-5]
+            filepath = os.path.join(conf_dir, filename)
+            
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    messages = json.load(f)
+                    if not messages:  
+                        empty_history_uids.append(history_uid)
+                        continue
+                        
+                    latest_message = messages[-1]
+                    history_info = {
+                        "uid": history_uid,
+                        "latest_message": latest_message,
+                        "timestamp": latest_message["timestamp"] if latest_message else None
+                    }
+                    histories.append(history_info)
+            except Exception as e:
+                logger.error(f"Error reading history file {filename}: {e}")
+                continue
+        
+        for uid in empty_history_uids:
+            try:
+                os.remove(os.path.join(conf_dir, f"{uid}.json"))
+                logger.info(f"Removed empty history file: {uid}")
+            except Exception as e:
+                logger.error(f"Failed to remove empty history file {uid}: {e}")
+                
+        histories.sort(key=lambda x: x["timestamp"] if x["timestamp"] else "", reverse=True)
+        return histories
+        
+    except Exception as e:
+        logger.error(f"Error listing histories: {e}")
+        return []
