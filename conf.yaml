@@ -105,7 +105,7 @@ VOICE_INPUT_ON: True
 MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
 
 # speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR", "SherpaOnnxASR"
-ASR_MODEL: "Faster-Whisper"
+ASR_MODEL: "FunASR"
 
 AzureASR:
   api_key: "azure_api_key"
