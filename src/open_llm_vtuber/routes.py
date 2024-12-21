@@ -9,9 +9,7 @@ from .conversation import conversation_chain
 from .service_context import ServiceContext
 from .utils.config_loader import (
     load_config,
-    load_config,
     scan_config_alts_directory,
-    load_new_config,
     scan_bg_directory,
 )
 from .chat_history_manager import create_new_history, store_message, get_history_uids, get_history, delete_history
