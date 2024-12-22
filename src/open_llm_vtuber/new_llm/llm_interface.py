@@ -6,23 +6,7 @@ from typing import Iterator, AsyncIterator
 class LLMInterface(metaclass=abc.ABCMeta):
     
     
-    
-    
-    def chat_completion(self, messages: dict) -> Iterator[str]:
-        """
-        A wrapper to standardize the LLM callinng. This method should call the 
-        LLM and return an iterator to the response. Each iteration of the iterator
-        should contain only string.
-        
-        Parameters:
-        - messages: a dictionary of the entire chat history with the system prompt
-        
-        Returns:
-        - An iterator to the response from the agent
-        """
-        raise NotImplementedError
 
-    @DeprecationWarning
     async def async_chat_iter(self, prompt: str) -> AsyncIterator[str]:
         """
         Asynchronously sends a chat prompt to an agent and returns the response.
@@ -42,7 +26,6 @@ class LLMInterface(metaclass=abc.ABCMeta):
         for item in iterator:
             yield item
 
-    @DeprecationWarning
     @abc.abstractmethod
     def chat_iter(self, prompt: str) -> Iterator[str]:
         """
@@ -56,6 +39,8 @@ class LLMInterface(metaclass=abc.ABCMeta):
         - Iterator[str]: An iterator to the response from the agent.
         """
         raise NotImplementedError
+    
+    
 
     def handle_interrupt(self, heard_response: str) -> None:
         """

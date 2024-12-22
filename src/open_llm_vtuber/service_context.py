@@ -30,6 +30,11 @@ class ServiceContext:
         self.tts_engine: TTSInterface = None
         self.llm_engine: LLMInterface = None
         # self.translate: TranslateInterface
+        
+        self.system_prompt: str = ""
+        # the short term memory for llm WITHOUT the system message
+        self.memory:list[str] = None
+        
 
     # ==== Initializers
 
