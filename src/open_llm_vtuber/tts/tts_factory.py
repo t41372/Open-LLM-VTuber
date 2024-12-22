@@ -64,8 +64,8 @@ class TTSFactory:
                 speaker_wav=kwargs.get("speaker_wav"),
                 language=kwargs.get("language"),
             )
-        elif engine_type == "GPT_Sovits":
-            from .GPT_Sovits import TTSEngine as GSVEngine
+        elif engine_type == "GPTSoVITS":
+            from .GPTSoVITS import TTSEngine as GSVEngine
 
             return GSVEngine(
                 api_url=kwargs.get("api_url"),
