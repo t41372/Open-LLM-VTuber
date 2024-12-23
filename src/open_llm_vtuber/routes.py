@@ -218,7 +218,10 @@ def create_routes(default_context_cache: ServiceContext):
                         )
                     )
                     await websocket.send_text(
-                        json.dumps({"type": "config-files", "files": config_files})
+                        json.dumps({
+                            "type": "config-files", 
+                            "configs": config_files  
+                        })
                     )
                 elif data.get("type") == "switch-config":
                     config_file_name: str = data.get("file")
@@ -254,16 +257,14 @@ def create_routes(default_context_cache: ServiceContext):
         - config_file_name (str): The name of the configuration file.
         """
         try:
-            new_config = None
-
             if config_file_name == "conf.yaml":
                 new_config = load_config("conf.yaml")
-
-            config_alts_dir = service_context.system_config.get(
-                "CONFIG_ALTS_DIR", "config_alts"
-            )
-            file_path = os.path.join(config_alts_dir, config_file_name)
-            new_config = load_config(file_path)
+            else:
+                config_alts_dir = service_context.system_config.get(
+                    "CONFIG_ALTS_DIR", "config_alts"
+                )
+                file_path = os.path.join(config_alts_dir, config_file_name)
+                new_config = load_config(file_path)
 
             if new_config:
                 service_context.load_from_config(new_config)
@@ -275,17 +276,7 @@ def create_routes(default_context_cache: ServiceContext):
                         }
                     )
                 )
-
-                await websocket.send_text(
-                    json.dumps(
-                        {
-                            "type": "config-info",
-                            "conf_name": service_context.system_config.get("CONF_NAME"),
-                            "conf_uid": service_context.system_config.get("CONF_UID"),
-                        }
-                    )
-                )
-
+                
                 await websocket.send_text(
                     json.dumps(
                         {
@@ -295,6 +286,8 @@ def create_routes(default_context_cache: ServiceContext):
                     )
                 )
                 logger.info(f"Configuration switched to {config_file_name}")
+            else:
+                raise ValueError(f"Failed to load configuration from {config_file_name}")
 
         except Exception as e:
             logger.error(f"Error switching configuration: {e}")

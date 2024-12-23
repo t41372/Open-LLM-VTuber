@@ -1,3 +1,7 @@
+SYSTEM_CONFIG:
+  CONF_NAME: "sherpaASR_sense_voice"
+  CONF_UID: "sherpaASR_sense_voice"
+
 #  ============== Voice Interaction Settings ==============
 
 # === Automatic Speech Recognition ===

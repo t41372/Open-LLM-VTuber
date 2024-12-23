@@ -1,3 +1,7 @@
+SYSTEM_CONFIG:
+  CONF_NAME: "sherpaASRTTS_sense_voice_piper_en"
+  CONF_UID: "sherpaASRTTS_sense_voice_piper_en"
+
 #  ============== Voice Interaction Settings ==============
 
 # === Automatic Speech Recognition ===

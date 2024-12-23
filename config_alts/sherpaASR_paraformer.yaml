@@ -1,3 +1,7 @@
+SYSTEM_CONFIG:
+  CONF_NAME: "sherpaASR_paraformer"
+  CONF_UID: "sherpaASR_paraformer"
+
 #  ============== Voice Interaction Settings ==============
 
 # === Automatic Speech Recognition ===

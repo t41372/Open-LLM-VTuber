@@ -39,21 +39,38 @@ def load_config(file_path: str) -> dict | None:
         return None
 
 
-def scan_config_alts_directory(config_alts_dir: str) -> list[str]:
+def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
     """
-    Scan the config_alts directory and return a list of config files.
-
+    Scan the config_alts directory and return a list of config information.
+    Each config info contains the filename and its display name from the config.
+    
     Parameters:
     - config_alts_dir (str): The path to the config_alts directory.
-
+    
     Returns:
-    - list[str]: A list of config files.
+    - list[dict]: A list of dicts containing config info:
+        - filename: The actual config file name
+        - name: Display name from config, falls back to filename if not specified
     """
-    config_files = ["conf.yaml"]
+    config_files = []
+    
+    # Add default config first
+    default_config = load_config("conf.yaml")
+    config_files.append({
+        "filename": "conf.yaml",
+        "name": default_config.get("CONF_NAME", "conf.yaml") if default_config else "conf.yaml"
+    })
+    
+    # Scan other configs
     for root, _, files in os.walk(config_alts_dir):
         for file in files:
             if file.endswith(".yaml"):
-                config_files.append(file)
+                config = load_config(os.path.join(root, file))
+                config_files.append({
+                    "filename": file,
+                    "name": config.get("CONF_NAME", file) if config else file
+                })
+                
     return config_files
 
 

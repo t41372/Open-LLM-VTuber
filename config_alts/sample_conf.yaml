@@ -3,6 +3,10 @@
 # Live2D Settings
 LIVE2D_MODEL: "player_unit_00003"
 
+SYSTEM_CONFIG:
+  CONF_NAME: "player_unit_00003"
+  CONF_UID: "player_unit_00003"
+
 # TTS Settings
 # TTS_ON: True
 # TTS_MODEL: "edgeTTS"
