@@ -1,4 +1,3 @@
-import os
 import json
 import asyncio
 import numpy as np
@@ -8,7 +7,6 @@ from loguru import logger
 from .conversation import conversation_chain
 from .service_context import ServiceContext
 from .utils.config_loader import (
-    load_config,
     scan_config_alts_directory,
     scan_bg_directory,
 )
@@ -213,8 +211,8 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "switch-config":
                     config_file_name: str = data.get("file")
                     if config_file_name:
-                        await handle_config_switch(
-                            websocket, session_service_context, config_file_name
+                        await session_service_context.handle_config_switch(
+                            websocket, config_file_name
                         )
                 elif data.get("type") == "fetch-backgrounds":
                     bg_files = scan_bg_directory()
@@ -254,71 +252,6 @@ def create_routes(default_context_cache: ServiceContext):
         if ai_message_buffer:
             store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
 
-    async def handle_config_switch(
-        websocket: WebSocket, service_context: ServiceContext, config_file_name: str
-    ) -> None:
-        """
-        Handle the configuration switch request.
-        Change the configuration to a new config and notify the client.
-
-        Parameters:
-        - websocket (WebSocket): The WebSocket connection.
-        - service_context (ServiceContext): The ServiceContext instance.
-            New configuration will be loaded into this instance.
-        - config_file_name (str): The name of the configuration file.
-        """
-        try:
-            new_config = None
-
-            if config_file_name == "conf.yaml":
-                new_config = load_config("conf.yaml")
-
-            config_alts_dir = service_context.system_config.get(
-                "CONFIG_ALTS_DIR", "config_alts"
-            )
-            file_path = os.path.join(config_alts_dir, config_file_name)
-            new_config = load_config(file_path)
-
-            if new_config:
-                service_context.load_from_config(new_config)
-                await websocket.send_text(
-                    json.dumps(
-                        {
-                            "type": "config-switched",
-                            "message": f"Switched to config: {config_file_name}",
-                        }
-                    )
-                )
-
-                await websocket.send_text(
-                    json.dumps(
-                        {
-                            "type": "config-info",
-                            "conf_name": service_context.system_config.get("CONF_NAME"),
-                            "conf_uid": service_context.system_config.get("CONF_UID"),
-                        }
-                    )
-                )
-
-                await websocket.send_text(
-                    json.dumps(
-                        {
-                            "type": "set-model",
-                            "model_info": service_context.live2d_model.model_info,
-                        }
-                    )
-                )
-                logger.info(f"Configuration switched to {config_file_name}")
-
-        except Exception as e:
-            logger.error(f"Error switching configuration: {e}")
-            await websocket.send_text(
-                json.dumps(
-                    {
-                        "type": "error",
-                        "message": f"Error switching configuration: {str(e)}",
-                    }
-                )
-            )
+    
 
     return router

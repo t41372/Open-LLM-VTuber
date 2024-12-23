@@ -1,6 +1,9 @@
+import os
+import json
 from typing import Dict
 
 from loguru import logger
+from fastapi import APIRouter, WebSocket
 
 from prompts import prompt_loader
 from .live2d_model import Live2dModel
@@ -13,6 +16,8 @@ from .asr.asr_factory import ASRFactory
 from .tts.tts_factory import TTSFactory
 from .llm.llm_factory import LLMFactory
 from .translate.translate_factory import TranslateFactory
+
+from .utils.config_loader import load_config
 
 
 class ServiceContext:
@@ -30,6 +35,26 @@ class ServiceContext:
         self.tts_engine: TTSInterface = None
         self.llm_engine: LLMInterface = None
         # self.translate: TranslateInterface
+
+        self.llm_provider: str = None
+        self.llm_persona_choice: str = None
+        self.llm_text_prompt: str = None
+        
+    def __str__(self):
+        return (
+            f"ServiceContext:\n"
+            f"  System Config: {'Loaded' if self.system_config else 'Not Loaded'}\n"
+            f"    Details: {json.dumps(self.system_config, indent=6) if self.system_config else 'None'}\n"
+            f"  Live2D Model: {self.live2d_model.model_info if self.live2d_model else 'Not Loaded'}\n"
+            f"  ASR Engine: {type(self.asr_engine).__name__ if self.asr_engine else 'Not Loaded'}\n"
+            f"    Config: {json.dumps(self.asr_config, indent=6) if self.asr_config else 'None'}\n"
+            f"  TTS Engine: {type(self.tts_engine).__name__ if self.tts_engine else 'Not Loaded'}\n"
+            f"    Config: {json.dumps(self.tts_config, indent=6) if self.tts_config else 'None'}\n"
+            f"  LLM Engine: {type(self.llm_engine).__name__ if self.llm_engine else 'Not Loaded'}\n"
+            f"    Config: {json.dumps(self.llm_config, indent=6) if self.llm_config else 'None'}\n"
+            f"  LLM Provider: {self.llm_provider or 'Not Set'}\n"
+            f"  LLM Persona: {self.llm_persona_choice or 'Not Set'}"
+        )
 
     # ==== Initializers
 
@@ -56,20 +81,20 @@ class ServiceContext:
         """
         Load the ServiceContext with the config.
         Reinitialize the instances if the config is different.
-        
+
         Parameters:
         - config (Dict): The configuration dictionary.
         """
-        self.system_config = config.get("SYSTEM_CONFIG")
+        self.system_config = config.get("SYSTEM_CONFIG") if config.get("SYSTEM_CONFIG") else self.system_config
         self.init_live2d(config.get("LIVE2D_MODEL"))
         self.init_asr(config.get("ASR_MODEL"), config.get(config.get("ASR_MODEL")))
         self.init_tts(config.get("TTS_MODEL"), config.get(config.get("TTS_MODEL")))
-        
+
         logger.debug(config.get("LLM_PROVIDER"))
         logger.debug(config.get(config.get("LLM_PROVIDER")))
         logger.debug(config.get("PERSONA_CHOICE"))
         logger.debug(config.get("DEFAULT_PERSONA_PROMPT_IN_YAML"))
-        
+
         self.init_llm(
             config.get("LLM_PROVIDER"),
             config.get(config.get("LLM_PROVIDER")),
@@ -104,11 +129,32 @@ class ServiceContext:
     def init_llm(
         self, llm_provider: str, llm_config: dict, persona_choice: str, text_prompt: str
     ) -> None:
-        system_prompt = self.get_system_prompt(persona_choice, text_prompt)
+        # Use existing values if new parameters are None
+        new_llm_provider = llm_provider if llm_provider is not None else self.llm_provider
+        new_llm_config = llm_config if llm_config is not None else self.llm_config
+        new_persona_choice = persona_choice if persona_choice is not None else self.llm_persona_choice
+        new_text_prompt = text_prompt if text_prompt is not None else self.llm_text_prompt
+
+        # Check if any parameters have changed
+        if (self.llm_engine is not None and
+            new_llm_provider == self.llm_provider and
+            new_llm_config == self.llm_config and
+            new_persona_choice == self.llm_persona_choice and
+            new_text_prompt == self.llm_text_prompt):
+            logger.debug("LLM already initialized with the same config.")
+            return
+
+        system_prompt = self.get_system_prompt(new_persona_choice, new_text_prompt)
 
         self.llm_engine = LLMFactory.create_llm(
-            llm_provider=llm_provider, SYSTEM_PROMPT=system_prompt, **llm_config
+            llm_provider=new_llm_provider, SYSTEM_PROMPT=system_prompt, **new_llm_config
         )
+
+        # Save the current configuration
+        self.llm_provider = new_llm_provider
+        self.llm_config = new_llm_config
+        self.llm_persona_choice = new_persona_choice
+        self.llm_text_prompt = new_text_prompt
 
     # ==== utils
 
@@ -133,3 +179,72 @@ class ServiceContext:
         logger.debug(system_prompt)
 
         return system_prompt
+
+    async def handle_config_switch(
+        self,
+        websocket: WebSocket,
+        config_file_name: str,
+    ) -> None:
+        """
+        Handle the configuration switch request.
+        Change the configuration to a new config and notify the client.
+
+        Parameters:
+        - websocket (WebSocket): The WebSocket connection.
+        - config_file_name (str): The name of the configuration file.
+        """
+        try:
+            new_config = None
+
+            if config_file_name == "conf.yaml":
+                new_config = load_config("conf.yaml")
+
+            config_alts_dir = self.system_config.get("CONFIG_ALTS_DIR", "config_alts")
+            file_path = os.path.join(config_alts_dir, config_file_name)
+            new_config = load_config(file_path)
+
+            if new_config:
+                logger.error(self)
+                self.load_from_config(new_config)
+                logger.error(self)
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "config-switched",
+                            "message": f"Switched to config: {config_file_name}",
+                        }
+                    )
+                )
+
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "config-info",
+                            "conf_name": self.system_config.get("CONF_NAME"),
+                            "conf_uid": self.system_config.get("CONF_UID"),
+                        }
+                    )
+                )
+
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "set-model",
+                            "model_info": self.live2d_model.model_info,
+                        }
+                    )
+                )
+                logger.info(f"Configuration switched to {config_file_name}")
+
+        except Exception as e:
+            logger.error(f"Error switching configuration: {e}")
+            logger.info(self)
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "error",
+                        "message": f"Error switching configuration: {str(e)}",
+                    }
+                )
+            )
+            raise e
