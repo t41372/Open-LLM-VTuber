@@ -39,7 +39,7 @@ class ServiceContext:
         self.llm_provider: str = None
         self.llm_persona_choice: str = None
         self.llm_text_prompt: str = None
-        
+
     def __str__(self):
         return (
             f"ServiceContext:\n"
@@ -85,7 +85,11 @@ class ServiceContext:
         Parameters:
         - config (Dict): The configuration dictionary.
         """
-        self.system_config = config.get("SYSTEM_CONFIG") if config.get("SYSTEM_CONFIG") else self.system_config
+        self.system_config = (
+            config.get("SYSTEM_CONFIG")
+            if config.get("SYSTEM_CONFIG")
+            else self.system_config
+        )
         self.init_live2d(config.get("LIVE2D_MODEL"))
         self.init_asr(config.get("ASR_MODEL"), config.get(config.get("ASR_MODEL")))
         self.init_tts(config.get("TTS_MODEL"), config.get(config.get("TTS_MODEL")))
@@ -130,17 +134,25 @@ class ServiceContext:
         self, llm_provider: str, llm_config: dict, persona_choice: str, text_prompt: str
     ) -> None:
         # Use existing values if new parameters are None
-        new_llm_provider = llm_provider if llm_provider is not None else self.llm_provider
+        new_llm_provider = (
+            llm_provider if llm_provider is not None else self.llm_provider
+        )
         new_llm_config = llm_config if llm_config is not None else self.llm_config
-        new_persona_choice = persona_choice if persona_choice is not None else self.llm_persona_choice
-        new_text_prompt = text_prompt if text_prompt is not None else self.llm_text_prompt
+        new_persona_choice = (
+            persona_choice if persona_choice is not None else self.llm_persona_choice
+        )
+        new_text_prompt = (
+            text_prompt if text_prompt is not None else self.llm_text_prompt
+        )
 
         # Check if any parameters have changed
-        if (self.llm_engine is not None and
-            new_llm_provider == self.llm_provider and
-            new_llm_config == self.llm_config and
-            new_persona_choice == self.llm_persona_choice and
-            new_text_prompt == self.llm_text_prompt):
+        if (
+            self.llm_engine is not None
+            and new_llm_provider == self.llm_provider
+            and new_llm_config == self.llm_config
+            and new_persona_choice == self.llm_persona_choice
+            and new_text_prompt == self.llm_text_prompt
+        ):
             logger.debug("LLM already initialized with the same config.")
             return
 
@@ -198,10 +210,12 @@ class ServiceContext:
 
             if config_file_name == "conf.yaml":
                 new_config = load_config("conf.yaml")
-
-            config_alts_dir = self.system_config.get("CONFIG_ALTS_DIR", "config_alts")
-            file_path = os.path.join(config_alts_dir, config_file_name)
-            new_config = load_config(file_path)
+            else:
+                config_alts_dir = self.system_config.get(
+                    "CONFIG_ALTS_DIR", "config_alts"
+                )
+                file_path = os.path.join(config_alts_dir, config_file_name)
+                new_config = load_config(file_path)
 
             if new_config:
                 logger.error(self)
@@ -235,6 +249,10 @@ class ServiceContext:
                     )
                 )
                 logger.info(f"Configuration switched to {config_file_name}")
+            else:
+                raise ValueError(
+                    f"Failed to load configuration from {config_file_name}"
+                )
 
         except Exception as e:
             logger.error(f"Error switching configuration: {e}")
