@@ -141,7 +141,7 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "mic-audio-data":
                     received_data_buffer = np.append(
                         received_data_buffer,
-                        np.array(list(data.get("audio").values()), dtype=np.float32),
+                        np.array(data.get("audio"), dtype=np.float32),
                     )
 
                 elif data.get("type") in ["mic-audio-end", "text-input"]:
