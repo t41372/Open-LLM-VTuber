@@ -1,3 +1,7 @@
+SYSTEM_CONFIG:
+  CONF_NAME: "sherpaASRTTS_sense_voice_vits_zh"
+  CONF_UID: "sherpaASRTTS_sense_voice_vits_zh"
+
 #  ============== Voice Interaction Settings ==============
 
 # === Automatic Speech Recognition ===

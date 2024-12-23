@@ -31,16 +31,6 @@ def create_routes(default_context_cache: ServiceContext):
         )
 
         await websocket.send_text(
-            json.dumps(
-                {
-                    "type": "config-info",
-                    "conf_name": session_service_context.system_config.get("CONF_NAME"),
-                    "conf_uid": session_service_context.system_config.get("CONF_UID"),
-                }
-            )
-        )
-
-        await websocket.send_text(
             json.dumps({"type": "full-text", "text": "Connection established"})
         )
 
@@ -60,24 +50,6 @@ def create_routes(default_context_cache: ServiceContext):
         await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
 
         conf_uid = session_service_context.system_config.get("CONF_UID", "")
-        
-        current_history_uid = create_new_history(conf_uid)  # Create new history for this session
-        session_service_context.llm_engine.clear_memory()
-
-        histories = get_history_list(conf_uid)
-        await websocket.send_text(
-            json.dumps({
-                "type": "history-list",
-                "histories": histories
-            })
-        )
-
-        await websocket.send_text(
-            json.dumps({
-                "type": "new-history-created",
-                "history_uid": current_history_uid
-            })
-        )
 
         current_conversation_task: asyncio.Task | None = None
         ai_message_buffer: str = ""
@@ -86,6 +58,18 @@ def create_routes(default_context_cache: ServiceContext):
             while True:
                 message = await websocket.receive_text()
                 data = json.loads(message)
+                
+                if data.get("type") == "fetch-conf-info":
+                    await websocket.send_text(
+                        json.dumps(
+                            {
+                                "type": "config-info",
+                                "conf_name": session_service_context.system_config.get("CONF_NAME"),
+                                "conf_uid": session_service_context.system_config.get("CONF_UID"),
+                            }
+                        )
+                    )
+                    continue                    
 
                 if data.get("type") == "fetch-history-list":
                     histories = get_history_list(conf_uid)
@@ -110,6 +94,32 @@ def create_routes(default_context_cache: ServiceContext):
                             })
                         )
                     continue
+                
+                if data.get("type") == "create-new-history":
+                    current_history_uid = create_new_history(conf_uid)
+                    session_service_context.llm_engine.clear_memory()
+                    await websocket.send_text(
+                        json.dumps({
+                            "type": "new-history-created",
+                            "history_uid": current_history_uid
+                        })
+                    )
+                    continue
+                
+                if data.get("type") == "delete-history":
+                    history_uid = data.get("history_uid")
+                    if history_uid:
+                        success = delete_history(conf_uid, history_uid)
+                        await websocket.send_text(
+                            json.dumps({
+                                "type": "history-deleted",
+                                "success": success,
+                                "history_uid": history_uid
+                            })
+                        ) 
+                        if history_uid == current_history_uid:
+                            current_history_uid = None
+                        continue
 
                 if data.get("type") == "interrupt-signal":
                     if current_conversation_task is not None:
@@ -129,7 +139,7 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "mic-audio-data":
                     received_data_buffer = np.append(
                         received_data_buffer,
-                        np.array(list(data.get("audio").values()), dtype=np.float32),
+                        np.array(data.get("audio"), dtype=np.float32),
                     )
 
                 elif data.get("type") in ["mic-audio-end", "text-input"]:
@@ -206,7 +216,10 @@ def create_routes(default_context_cache: ServiceContext):
                         )
                     )
                     await websocket.send_text(
-                        json.dumps({"type": "config-files", "files": config_files})
+                        json.dumps({
+                            "type": "config-files", 
+                            "configs": config_files  
+                        })
                     )
                 elif data.get("type") == "switch-config":
                     config_file_name: str = data.get("file")
@@ -219,30 +232,6 @@ def create_routes(default_context_cache: ServiceContext):
                     await websocket.send_text(
                         json.dumps({"type": "background-files", "files": bg_files})
                     )
-                elif data.get("type") == "create-new-history":
-                    current_history_uid = create_new_history(conf_uid)
-                    session_service_context.llm_engine.clear_memory()
-                    await websocket.send_text(
-                        json.dumps({
-                            "type": "new-history-created",
-                            "history_uid": current_history_uid
-                        })
-                    )
-                    continue
-                elif data.get("type") == "delete-history":
-                    history_uid = data.get("history_uid")
-                    if history_uid:
-                        success = delete_history(conf_uid, history_uid)
-                        await websocket.send_text(
-                            json.dumps({
-                                "type": "history-deleted",
-                                "success": success,
-                                "history_uid": history_uid
-                            })
-                        ) 
-                        if history_uid == current_history_uid:
-                            current_history_uid = None
-                        continue
                 else:
                     logger.info("Unknown data type received.")
 
