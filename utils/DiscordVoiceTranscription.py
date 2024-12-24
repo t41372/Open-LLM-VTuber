@@ -20,10 +20,6 @@ from utils.DiscordInputList import DiscordInputList
 from utils.OutputQueue import OutputQueue
 
 
-# model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad', force_reload=False)
-# (get_speech_ts, save_audio, read_audio, VADIterator, collect_chunks) = utils
-
-
 class VoiceActivityBot(discord.Client):
     _instance = None
     _lock = threading.Lock()
@@ -99,15 +95,6 @@ class VoiceActivityBot(discord.Client):
         else:
             await text_channel.send("I'm not connected to any voice channel.")
 
-    # async def consumer(self, channel: discord.TextChannel):
-    #     """"Fetch chunks from the queue and send them as messages to a Discord channel."""
-    #     while True:
-    #         text_chunk = OutputQueue().get_output()
-    #         if text_chunk is None:
-    #             return
-    #         await channel.send(text_chunk)
-    #        # Send the text chunk to Discord
-
     async def start_capture(self, text_channel):
         if not self.voice_client or not self.voice_client.is_connected():
             await text_channel.send("I'm not connected to a voice channel.")
@@ -125,12 +112,12 @@ class VoiceActivityBot(discord.Client):
                 text_chunk = OutputQueue().get_output()
                 if text_chunk is None:
                     return
+                time.sleep(0.5)
                 await text_channel.send(text_chunk)
                 if not self.voice_client or not self.voice_client.is_connected():
                     self.voice_client = await self.voice_channel.connect(cls=voice_recv.VoiceRecvClient)
                     self.voice_client.listen(sink)
-                logger.success("Listening to new message")
-                # asyncio.create_task(self.consumer(text_channel))
+               # asyncio.create_task(self.consumer(text_channel))
             ## await asyncio.sleep(0.1)  # keep this loop alive
         except Exception as e:
             await text_channel.send(f"Error: {str(e)}")
@@ -220,33 +207,6 @@ class StreamedNumPySink(AudioSink):
         # Remove the stream
         del self.active_streams[speaker_name]
         del self.last_active_times[speaker_name]
-
-    # def apply_vad_to_finalized_audio(self):
-    #     """
-    #     Apply Silero VAD to all finalized speaker audio.
-    #     """
-    #     for session in self.finalized_sessions:
-    #         audio_array = session["data"]
-    #
-    #         # Resample to 16 kHz (required for Silero VAD)
-    #         if self.sample_rate != self.vad_sample_rate:
-    #             audio_array = self.resample_pcm_with_torchaudio(audio_array, self.sample_rate, self.vad_sample_rate)
-    #
-    #         # Convert NumPy array to PyTorch tensor
-    #         audio_tensor = self.convert_to_tensor(audio_array)
-    #
-    #         # Run VAD on the audio
-    #         speech_timestamps = get_speech_ts(audio_tensor, model, sampling_rate=self.vad_sample_rate)
-    #
-    #         # Extract speech chunks based on VAD results
-    #         if not speech_timestamps:
-    #             continue
-    #         speech_data_tensor = collect_chunks(speech_timestamps, audio_tensor)
-    #
-    #         # Convert the resulting PyTorch tensor back to NumPy array
-    #         speech_data = self.convert_to_array(speech_data_tensor)
-    #         # Replace session data with VAD-processed audio
-    #         session["data"] = speech_data
 
     def keep_time(self):
         """

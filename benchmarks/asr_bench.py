@@ -10,10 +10,7 @@ audio = np.array(audio[1], dtype=np.float32)
 audio = audio / np.max(np.abs(audio))
 
 
-
 exec_round = 3
-
-
 
 
 ### ==== Whisper CPP (abdeladim-s/pywhispercpp) ====
@@ -61,7 +58,7 @@ def init_fw():
     )
     print("\n\n ======= Warmup FW once ======= ")
     print(fw.transcribe_np(audio))
-    print("======= DoneW FW once =======")
+    print("======= DoneW FW once =======")  
     return fw
 
 fw = init_fw()

@@ -51,11 +51,12 @@ class LettaLLMClient(LLMInterface):
 
         :return: Response from the agent.
         """
+
         response = self.client.user_message(
             agent_id=self.agent.id,
             message=prompt
         )
-        combined_output=""
+        combined_output = ""
         temp_chunks = []
         for chunk in response:
             try:
@@ -72,10 +73,9 @@ class LettaLLMClient(LLMInterface):
                         temp_chunks = []  # Reset temporary list
             except Exception:
                 continue  # Skip invalid or incomplete chunks
-        if len(temp_chunks)>0:
+        if len(temp_chunks) > 0:
             combined_output = "".join(temp_chunks)
-            OutputQueue().add_output(combined_output) ## flush out any last remaining chunks
-
+            OutputQueue().add_output(combined_output)  ## flush out any last remaining chunks
 
     def reset_memory(self):
         """

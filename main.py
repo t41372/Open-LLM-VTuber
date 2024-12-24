@@ -1,6 +1,5 @@
 import atexit
 import threading
-import time
 
 import discord
 import dotenv
@@ -10,12 +9,10 @@ from loguru import logger
 from Behavior.TalkBehavior import TalkBehavior
 from Emotion.EmotionHandler import EmotionHandler
 from OpenLLMVtuber import OpenLLMVTuberMain
-from server import WebSocketServer
 from utils.ActionSelectionQueue import ActionSelectionQueue
 from utils.DiscordVoiceTranscription import VoiceActivityBot
 from utils.InferenceQueue import InferenceQueue
 from utils.InputQueue import InputQueue
-from utils.OutputQueue import OutputQueue
 from utils.StateInfo import StateInfo
 from utils.VoiceListener import VoiceListener
 

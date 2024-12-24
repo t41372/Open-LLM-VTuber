@@ -17,7 +17,7 @@ fastapi~=0.115.2
 uvicorn[standard]
 groq~=0.11.0
 edge-tts
-httpx~=0.27.2
+httpx~=0.28.1
 
 torch~=2.5.0
 faster-whisper~=1.0.3
@@ -34,3 +34,5 @@ discord.py~=2.4.0
 openai-whisper~=20240930
 speechbrain~=1.0.2
 huggingface-hub~=0.26.2
+faiss-cpu~=1.9.0
+sentence-transformers~=3.3.1
