@@ -174,11 +174,6 @@ async def conversation_chain(
         if tts_manager.task_list:
             await asyncio.gather(*tts_manager.task_list)
 
-        # store the full response in the case we are not interrupted
-        if full_response:
-            store_message(conf_uid, history_uid, "ai", full_response)
-            logger.info(f"💾 Stored AI message: '''{full_response}'''")
-
     except asyncio.CancelledError:
         logger.info(f"🤡👍 Conversation {session_emoji} cancelled because interrupted.")
         # We need to store the partial response outside this function (because it's
@@ -188,6 +183,10 @@ async def conversation_chain(
     finally:
         logger.debug(f"🧹 Clearing up conversation {session_emoji}.")
         tts_manager.clear()
+
+        if full_response:
+            store_message(conf_uid, history_uid, "ai", full_response)
+            logger.info(f"💾 Stored AI message: '''{full_response}'''")
 
         await websocket_send(
             json.dumps(

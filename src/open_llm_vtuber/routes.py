@@ -13,6 +13,7 @@ from .utils.config_loader import (
 from .chat_history_manager import (
     create_new_history,
     store_message,
+    modify_latest_message,
     get_history,
     delete_history,
     get_history_list,
@@ -148,14 +149,25 @@ def create_routes(default_context_cache: ServiceContext):
                     # is sent back from the frontend as an interruption signal
                     # We'll store this in chat history instead of the full response
                     heard_ai_response = data.get("text", "")
-                    store_message(
-                        conf_uid,
-                        current_history_uid,
-                        "ai",
-                        heard_ai_response,
+                    session_service_context.llm_engine.handle_interrupt(
+                        heard_ai_response
                     )
+                    if not modify_latest_message(
+                        conf_uid=conf_uid,
+                        history_uid=current_history_uid,
+                        role="ai",
+                        new_content=heard_ai_response,
+                    ):
+                        logger.warning("Failed to modify message.")
                     logger.info(
                         f"💾 Stored Paritial AI message: '''{heard_ai_response}'''"
+                    )
+
+                    store_message(
+                        conf_uid=conf_uid,
+                        history_uid=current_history_uid,
+                        role="system",
+                        content="[Interrupted by user]",
                     )
 
                 elif data.get("type") == "mic-audio-data":
