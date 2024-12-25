@@ -407,7 +407,7 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 - Use `tts_models/zh-CN/baker/tacotron2-DDC-GST` for Chinese model. (but the consistency is weird...)
 - If you found some good model to use, let me know! There are too many models I don't even know where to start...
 
-`GPT_Sovits` (local, medium fast) (added in `v0.4.0` in https://github.com/t41372/Open-LLM-VTuber/pull/40)
+`GPTSoVITS` (local, medium fast) (added in `v0.4.0` in https://github.com/t41372/Open-LLM-VTuber/pull/40)
 - Please checkout [this doc](https://docs.qq.com/doc/DTHR6WkZ3aU9JcXpy) for installation instructions. 
 
 `barkTTS` (local, slow)

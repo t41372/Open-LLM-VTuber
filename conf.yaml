@@ -265,7 +265,7 @@ xTTS:
   speaker_wav: "female"
   language: "en"
 
-GPT_Sovits:
+GPTSoVITS:
   # put ref audio to root path of GPT-Sovits, or set the path here
   api_url: "http://127.0.0.1:9880/tts"
   text_lang: "zh"
