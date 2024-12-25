@@ -383,7 +383,7 @@ WhisperCPP coreML 配置：
 - 使用 `tts_models/zh-CN/baker/tacotron2-DDC-GST` 作为中文模型。（但一致性很奇怪...）
 - 如果您找到了好用的模型，请告诉我！模型太多了，我甚至不知道从哪里开始...
 
-`GPT_Sovits` (本地，速度还行) (在 https://github.com/t41372/Open-LLM-VTuber/pull/40 的 `v0.4.0` 中添加)
+`GPTSoVITS` (本地，速度还行) (在 https://github.com/t41372/Open-LLM-VTuber/pull/40 的 `v0.4.0` 中添加)
 - 请查看 [此文档](https://docs.qq.com/doc/DTHR6WkZ3aU9JcXpy) 以获取安装说明。
 
 `barkTTS` (本地，慢)
