@@ -113,7 +113,6 @@ Currently supported Speech recognition backend
 - [Groq Whisper](https://groq.com/) (API Key required). This is a hosted Whisper endpoint. It's fast and has a generous free limit every day.
 - [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
 - [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Local, fast, supports various models including transducer, Paraformer, NeMo CTC, WeNet CTC, Whisper, TDNN CTC, and SenseVoice models.)
-- The microphone in the server terminal will be used by default. You can change the setting `MIC_IN_BROWSER` in the `conf.yaml` to move the microphone (and voice activation detection) to the browser (at the cost of latency, for now). You might want to use the microphone on your client (the browser) rather than the one on your server if you run the backend on a different machine or inside a VM or docker.
 
 Currently supported Text to Speech backend
 - [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
