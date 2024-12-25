@@ -10,7 +10,13 @@ from .utils.config_loader import (
     scan_config_alts_directory,
     scan_bg_directory,
 )
-from .chat_history_manager import create_new_history, store_message, get_history, delete_history, get_history_list
+from .chat_history_manager import (
+    create_new_history,
+    store_message,
+    get_history,
+    delete_history,
+    get_history_list,
+)
 
 
 def create_routes(default_context_cache: ServiceContext):
@@ -52,88 +58,104 @@ def create_routes(default_context_cache: ServiceContext):
         conf_uid = session_service_context.system_config.get("CONF_UID", "")
 
         current_conversation_task: asyncio.Task | None = None
-        ai_message_buffer: str = ""
 
         try:
             while True:
                 message = await websocket.receive_text()
                 data = json.loads(message)
-                
+
+                # ==== chat history related ====
+
                 if data.get("type") == "fetch-conf-info":
                     await websocket.send_text(
                         json.dumps(
                             {
                                 "type": "config-info",
-                                "conf_name": session_service_context.system_config.get("CONF_NAME"),
-                                "conf_uid": session_service_context.system_config.get("CONF_UID"),
+                                "conf_name": session_service_context.system_config.get(
+                                    "CONF_NAME"
+                                ),
+                                "conf_uid": session_service_context.system_config.get(
+                                    "CONF_UID"
+                                ),
                             }
                         )
                     )
-                    continue                    
 
-                if data.get("type") == "fetch-history-list":
+                elif data.get("type") == "fetch-history-list":
                     histories = get_history_list(conf_uid)
                     await websocket.send_text(
-                        json.dumps({
-                            "type": "history-list",
-                            "histories": histories
-                        })
+                        json.dumps({"type": "history-list", "histories": histories})
                     )
-                    continue
 
-                if data.get("type") == "fetch-and-set-history":
+                elif data.get("type") == "fetch-and-set-history":
                     history_uid = data.get("history_uid")
                     if history_uid:
                         messages = get_history(conf_uid, history_uid)
                         current_history_uid = history_uid
-                        session_service_context.llm_engine.set_memory_from_history(messages)
-                        await websocket.send_text(
-                            json.dumps({
-                                "type": "history-data",
-                                "messages": messages
-                            })
+                        session_service_context.llm_engine.set_memory_from_history(
+                            messages
                         )
-                    continue
-                
-                if data.get("type") == "create-new-history":
+                        await websocket.send_text(
+                            json.dumps({"type": "history-data", "messages": messages})
+                        )
+
+                elif data.get("type") == "create-new-history":
                     current_history_uid = create_new_history(conf_uid)
                     session_service_context.llm_engine.clear_memory()
                     await websocket.send_text(
-                        json.dumps({
-                            "type": "new-history-created",
-                            "history_uid": current_history_uid
-                        })
+                        json.dumps(
+                            {
+                                "type": "new-history-created",
+                                "history_uid": current_history_uid,
+                            }
+                        )
                     )
-                    continue
-                
-                if data.get("type") == "delete-history":
+
+                elif data.get("type") == "delete-history":
                     history_uid = data.get("history_uid")
                     if history_uid:
                         success = delete_history(conf_uid, history_uid)
                         await websocket.send_text(
-                            json.dumps({
-                                "type": "history-deleted",
-                                "success": success,
-                                "history_uid": history_uid
-                            })
-                        ) 
+                            json.dumps(
+                                {
+                                    "type": "history-deleted",
+                                    "success": success,
+                                    "history_uid": history_uid,
+                                }
+                            )
+                        )
                         if history_uid == current_history_uid:
                             current_history_uid = None
-                        continue
 
-                if data.get("type") == "interrupt-signal":
-                    if current_conversation_task is not None:
-                        # session_service_context.open_llm_vtuber.interrupt(data.get("text"))
+                # ==== conversation related ====
+
+                elif data.get("type") == "interrupt-signal":
+                    if current_conversation_task is None:
+                        logger.warning(
+                            "❌ Conversation task was NOT cancelled because there is no running conversation."
+                        )
+                    else:
+                        # Cancelling the task... and see if it was a success
                         if not current_conversation_task.cancel():
-                            logger.info(
-                                "Conversation task was NOT cancelled. Likely because there is no running task."
+                            logger.warning(
+                                "❌ Conversation task was NOT cancelled for some reason."
                             )
-                    interrupted_ai_msg = data.get("text") or ""
-                    if interrupted_ai_msg:
-                        ai_message_buffer = interrupted_ai_msg
+                        else:
+                            logger.info(
+                                "🛑 Conversation task was succesfully interrupted."
+                            )
+                    # The part of the AI response heard by the user before interruption
+                    # is sent back from the frontend as an interruption signal
+                    # We'll store this in chat history instead of the full response
+                    heard_ai_response = data.get("text", "")
+                    store_message(
+                        conf_uid,
+                        current_history_uid,
+                        "ai",
+                        heard_ai_response,
+                    )
                     logger.info(
-                        "Conversation was interrupted. Using partial AI msg: "
-                        + ai_message_buffer
+                        f"💾 Stored Paritial AI message: '''{heard_ai_response}'''"
                     )
 
                 elif data.get("type") == "mic-audio-data":
@@ -153,61 +175,21 @@ def create_routes(default_context_cache: ServiceContext):
 
                     received_data_buffer = np.array([])
 
-                    try:
-                        await websocket.send_text(
-                            json.dumps(
-                                {
-                                    "type": "control",
-                                    "text": "conversation-chain-start",
-                                }
-                            )
+                    # Initiate conversation chain task asynchronously
+                    # We'll store the task object so we can cancel it if needed
+                    # We'll NOT await the task here, so we can continue to receive messages
+                    current_conversation_task: asyncio.Task = asyncio.create_task(
+                        conversation_chain(
+                            user_input=user_input,
+                            asr_engine=session_service_context.asr_engine,
+                            tts_engine=session_service_context.tts_engine,
+                            llm_engine=session_service_context.llm_engine,
+                            live2d_model=session_service_context.live2d_model,
+                            websocket_send=websocket.send_text,
+                            conf_uid=conf_uid,
+                            history_uid=current_history_uid,
                         )
-                        # await asyncio.to_thread(
-                        #     service_context.open_llm_vtuber.conversation_chain,
-                        #     user_input=user_input,
-                        # )
-
-                        #! TODO
-                        current_conversation_task: asyncio.Task = asyncio.create_task(
-                            conversation_chain(
-                                user_input=user_input,
-                                asr_engine=session_service_context.asr_engine,
-                                tts_engine=session_service_context.tts_engine,
-                                llm_engine=session_service_context.llm_engine,
-                                live2d_model=session_service_context.live2d_model,
-                                websocket_send=websocket.send_text,
-                                conf_uid=conf_uid,
-                                history_uid=current_history_uid,
-                            )
-                        )
-
-                        ai_message_buffer = await current_conversation_task
-                        current_conversation_task = None
-                        if ai_message_buffer:
-                            store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
-                            logger.info(
-                                f"Stored AI message: {ai_message_buffer[:50]}..."
-                            )
-
-                        await websocket.send_text(
-                            json.dumps(
-                                {
-                                    "type": "control",
-                                    "text": "conversation-chain-end",
-                                }
-                            )
-                        )
-                        logger.info("One Conversation Loop Completed")
-                    except asyncio.CancelledError:
-                        #! TODO: Handle interruption memory and clean up
-                        logger.info("Conversation task was cancelled.")
-                        if ai_message_buffer:
-                            store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
-                            logger.info(
-                                f"Stored interrupted AI message: {ai_message_buffer[:50]}..."
-                            )
-                    except InterruptedError as e:
-                        logger.info(f"Conversation was interrupted: {e}")
+                    )
 
                 elif data.get("type") == "fetch-configs":
                     config_files = scan_config_alts_directory(
@@ -216,10 +198,7 @@ def create_routes(default_context_cache: ServiceContext):
                         )
                     )
                     await websocket.send_text(
-                        json.dumps({
-                            "type": "config-files", 
-                            "configs": config_files  
-                        })
+                        json.dumps({"type": "config-files", "configs": config_files})
                     )
                 elif data.get("type") == "switch-config":
                     config_file_name: str = data.get("file")
@@ -237,10 +216,5 @@ def create_routes(default_context_cache: ServiceContext):
 
         except WebSocketDisconnect:
             connected_clients.remove(websocket)
-
-        if ai_message_buffer:
-            store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
-
-    
 
     return router

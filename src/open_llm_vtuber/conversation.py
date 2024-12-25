@@ -57,7 +57,7 @@ class TTSTaskManager:
 
         try:
             while current_task_index != self.next_index_to_play:
-                await asyncio.sleep(2)
+                await asyncio.sleep(0.01)
 
             audio_file_path = await tts_task
 
@@ -113,31 +113,41 @@ async def conversation_chain(
     Returns:
     - str: The full response from the LLM
     """
-    random_emoji = np.random.choice(EMOJI_LIST)
-
-    # Apply the color to the console output
-    logger.info(f"New Conversation Chain {random_emoji} started!")
-
-    # if user_input is not string, make it string
-    if user_input is None:
-        logger.warning("❓User input is None. Aborting conversation.")
-        return ""
-    elif isinstance(user_input, np.ndarray):
-        print("transcribing...")
-        user_input: str = await asr_engine.async_transcribe_np(user_input)
-
-    store_message(conf_uid, history_uid, "human", user_input)
-    await websocket_send(
-        json.dumps({"type": "user-input-transcription", "text": user_input})
-    )
-
-    print(f"User input: {user_input}")
-
-    tts_manager = TTSTaskManager()
-
-    full_response: str = ""
-    sentence_buffer: str = ""
     try:
+        session_emoji = np.random.choice(EMOJI_LIST)
+
+        await websocket_send(
+            json.dumps(
+                {
+                    "type": "control",
+                    "text": "conversation-chain-start",
+                }
+            )
+        )
+
+        # Apply the color to the console output
+        logger.info(f"New Conversation Chain {session_emoji} started!")
+
+        # if user_input is not string, make it string
+        if user_input is None:
+            logger.warning("❓User input is None. Aborting conversation.")
+            return ""
+        elif isinstance(user_input, np.ndarray):
+            print("transcribing...")
+            user_input: str = await asr_engine.async_transcribe_np(user_input)
+
+        store_message(conf_uid, history_uid, "human", user_input)
+        await websocket_send(
+            json.dumps({"type": "user-input-transcription", "text": user_input})
+        )
+
+        print(f"User input: {user_input}")
+
+        tts_manager = TTSTaskManager()
+
+        full_response: str = ""
+        sentence_buffer: str = ""
+
         chat_completion: AsyncIterator[str] = llm_engine.async_chat_iter(user_input)
 
         async for token in chat_completion:
@@ -164,15 +174,30 @@ async def conversation_chain(
         if tts_manager.task_list:
             await asyncio.gather(*tts_manager.task_list)
 
-        logger.info(f"😎👍✅ Conversation Chain {random_emoji} completed!")
+        # store the full response in the case we are not interrupted
+        if full_response:
+            store_message(conf_uid, history_uid, "ai", full_response)
+            logger.info(f"💾 Stored AI message: '''{full_response}'''")
 
-    except asyncio.CancelledError as e:
-        logger.info(f"🤡👍 Conversation {random_emoji} cancelled because interrupted.")
-        raise e
+    except asyncio.CancelledError:
+        logger.info(f"🤡👍 Conversation {session_emoji} cancelled because interrupted.")
+        # We need to store the partial response outside this function (because it's
+        # a part of the interruption-signal from the frontend and we don't
+        # have access to it here)
 
     finally:
-        logger.debug("Clearing up conversation.")
+        logger.debug(f"🧹 Clearing up conversation {session_emoji}.")
         tts_manager.clear()
+
+        await websocket_send(
+            json.dumps(
+                {
+                    "type": "control",
+                    "text": "conversation-chain-end",
+                }
+            )
+        )
+        logger.info(f"😎👍✅ Conversation Chain {session_emoji} completed!")
         return full_response
 
 
