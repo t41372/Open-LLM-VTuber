@@ -19,11 +19,12 @@ from .utils.sentence_divider import is_complete_sentence
 from .utils.stream_audio import prepare_audio_payload
 from .chat_history_manager import store_message
 
+
 class TTSTaskManager:
     def __init__(self):
         self.task_list: List[asyncio.Task] = []
         self.next_index_to_play: int = 0
-    
+
     def clear(self):
         self.task_list.clear()
         self.next_index_to_play = 0
@@ -40,7 +41,7 @@ class TTSTaskManager:
                 f'TTS receives "{sentence_buffer}", which is empty. So nothing to be spoken.'
             )
             return
-        
+
         logger.debug(f"🏃Generating audio for '''{sentence_buffer}'''...")
         emotion = live2d_model.extract_emotion(str_to_check=sentence_buffer)
         logger.debug(f"emotion: {emotion}, content: {sentence_buffer}")
@@ -56,7 +57,7 @@ class TTSTaskManager:
 
         try:
             while current_task_index != self.next_index_to_play:
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(2)
 
             audio_file_path = await tts_task
 
@@ -66,13 +67,16 @@ class TTSTaskManager:
                     display_text=sentence_buffer,
                     expression_list=[emotion],
                 )
+            except asyncio.CancelledError as e:
+                logger.debug("TTS task cancelled.")
+                raise e
             except Exception as e:
                 logger.error(f"Error preparing audio payload: {e}")
                 return
 
             logger.debug("Sending Audio payload.")
             await websocket_send(json.dumps(audio_payload))
-            
+
             tts_engine.remove_file(audio_file_path)
             logger.debug("Payload sent. Audio cache file cleaned.")
 
@@ -84,6 +88,7 @@ class TTSTaskManager:
         except Exception as e:
             logger.error(f"Error in speak function: {e}")
             self.next_index_to_play += 1
+
 
 async def conversation_chain(
     user_input: str | np.ndarray,
@@ -108,81 +113,7 @@ async def conversation_chain(
     Returns:
     - str: The full response from the LLM
     """
-    random_emoji = np.random.choice(
-        [
-            "🐶",
-            "🐱",
-            "🐭",
-            "🐹",
-            "🐰",
-            "🦊",
-            "🐻",
-            "🐼",
-            "🐨",
-            "🐯",
-            "🦁",
-            "🐮",
-            "🐷",
-            "🐸",
-            "🐵",
-            "🐔",
-            "🐧",
-            "🐦",
-            "🐤",
-            "🐣",
-            "🐥",
-            "🦆",
-            "🦅",
-            "🦉",
-            "🦇",
-            "🐺",
-            "🐗",
-            "🐴",
-            "🦄",
-            "🐝",
-            "🌵",
-            "🎄",
-            "🌲",
-            "🌳",
-            "🌴",
-            "🌱",
-            "🌿",
-            "☘️",
-            "🍀",
-            "🍂",
-            "🍁",
-            "🍄",
-            "🌾",
-            "💐",
-            "🌹",
-            "🌸",
-            "🌛",
-            "🌍",
-            "⭐️",
-            "🔥",
-            "🌈",
-            "🌩",
-            "⛄️",
-            "🎃",
-            "🎄",
-            "🎉",
-            "🎏",
-            "🎗",
-            "🀄️",
-            "🎭",
-            "🎨",
-            "🧵",
-            "🪡",
-            "🧶",
-            "🥽",
-            "🥼",
-            "🦺",
-            "👔",
-            "👕",
-            "👜",
-            "👑",
-        ]
-    )
+    random_emoji = np.random.choice(EMOJI_LIST)
 
     # Apply the color to the console output
     logger.info(f"New Conversation Chain {random_emoji} started!")
@@ -204,37 +135,118 @@ async def conversation_chain(
     print(f"User input: {user_input}")
 
     tts_manager = TTSTaskManager()
-    
+
     full_response: str = ""
     sentence_buffer: str = ""
+    try:
+        chat_completion: AsyncIterator[str] = llm_engine.async_chat_iter(user_input)
 
-    chat_completion: AsyncIterator[str] = llm_engine.async_chat_iter(user_input)
+        async for token in chat_completion:
+            sentence_buffer += token
+            full_response += token
+            if is_complete_sentence(sentence_buffer) and sentence_buffer.strip():
+                await tts_manager.speak(
+                    sentence_buffer=sentence_buffer,
+                    live2d_model=live2d_model,
+                    tts_engine=tts_engine,
+                    websocket_send=websocket_send,
+                )
+                sentence_buffer = ""
 
-    async for token in chat_completion:
-        sentence_buffer += token
-        full_response += token
-        if is_complete_sentence(sentence_buffer) and sentence_buffer.strip():
+        if sentence_buffer:
             await tts_manager.speak(
                 sentence_buffer=sentence_buffer,
                 live2d_model=live2d_model,
                 tts_engine=tts_engine,
                 websocket_send=websocket_send,
             )
-            sentence_buffer = ""
 
-    if sentence_buffer:
-        await tts_manager.speak(
-            sentence_buffer=sentence_buffer,
-            live2d_model=live2d_model,
-            tts_engine=tts_engine,
-            websocket_send=websocket_send,
-        )
+        # Wait for all TTS tasks to complete
+        if tts_manager.task_list:
+            await asyncio.gather(*tts_manager.task_list)
 
-    # Wait for all TTS tasks to complete
-    if tts_manager.task_list:
-        await asyncio.gather(*tts_manager.task_list)
+        logger.info(f"😎👍✅ Conversation Chain {random_emoji} completed!")
+
+    except asyncio.CancelledError as e:
+        logger.info(f"🤡👍 Conversation {random_emoji} cancelled because interrupted.")
+        raise e
+
+    finally:
+        logger.debug("Clearing up conversation.")
         tts_manager.clear()
+        return full_response
 
-    logger.info(f"Conversation Chain {random_emoji} completed!")
 
-    return full_response
+EMOJI_LIST = [
+    "🐶",
+    "🐱",
+    "🐭",
+    "🐹",
+    "🐰",
+    "🦊",
+    "🐻",
+    "🐼",
+    "🐨",
+    "🐯",
+    "🦁",
+    "🐮",
+    "🐷",
+    "🐸",
+    "🐵",
+    "🐔",
+    "🐧",
+    "🐦",
+    "🐤",
+    "🐣",
+    "🐥",
+    "🦆",
+    "🦅",
+    "🦉",
+    "🦇",
+    "🐺",
+    "🐗",
+    "🐴",
+    "🦄",
+    "🐝",
+    "🌵",
+    "🎄",
+    "🌲",
+    "🌳",
+    "🌴",
+    "🌱",
+    "🌿",
+    "☘️",
+    "🍀",
+    "🍂",
+    "🍁",
+    "🍄",
+    "🌾",
+    "💐",
+    "🌹",
+    "🌸",
+    "🌛",
+    "🌍",
+    "⭐️",
+    "🔥",
+    "🌈",
+    "🌩",
+    "⛄️",
+    "🎃",
+    "🎄",
+    "🎉",
+    "🎏",
+    "🎗",
+    "🀄️",
+    "🎭",
+    "🎨",
+    "🧵",
+    "🪡",
+    "🧶",
+    "🥽",
+    "🥼",
+    "🦺",
+    "👔",
+    "👕",
+    "👜",
+    "👑",
+]
