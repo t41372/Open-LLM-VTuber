@@ -40,7 +40,10 @@ def create_new_history(conf_uid: str) -> str:
 def store_message(conf_uid: str, history_uid: str, role: Literal["human", "ai"], content: str):
     """Store a message in a specific history file"""
     if not conf_uid or not history_uid:
-        logger.warning("Missing conf_uid or history_uid")
+        if not conf_uid:
+            logger.warning("Missing conf_uid")
+        if not history_uid:
+            logger.warning("Missing history_uid")
         return
     
     conf_dir = _ensure_conf_dir(conf_uid)
@@ -53,6 +56,7 @@ def store_message(conf_uid: str, history_uid: str, role: Literal["human", "ai"],
             with open(filepath, "r", encoding="utf-8") as f:
                 history_data = json.load(f)
         except Exception:
+            logger.error(f"Failed to load history file: {filepath}")
             pass
     
     now_str = datetime.now().isoformat(timespec="seconds")
@@ -70,10 +74,16 @@ def store_message(conf_uid: str, history_uid: str, role: Literal["human", "ai"],
 def get_history(conf_uid: str, history_uid: str) -> List[HistoryMessage]:
     """Read chat history for the given conf_uid and history_uid"""
     if not conf_uid or not history_uid:
+        if not conf_uid:
+            logger.warning("Missing conf_uid")
+        if not history_uid:
+            logger.warning("Missing history_uid")
         return []
     
     filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    
     if not os.path.exists(filepath):
+        logger.warning(f"History file not found: {filepath}")
         return []
     
     try:

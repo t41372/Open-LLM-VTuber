@@ -73,6 +73,7 @@ def create_routes(default_context_cache: ServiceContext):
             if history_uid:
                 messages = get_history(conf_uid, history_uid)
                 current_history_uid = history_uid
+                connected_clients[websocket]["current_history_uid"] = current_history_uid
                 session_service_context.llm_engine.set_memory_from_history(messages)
                 await websocket.send_text(
                     json.dumps({"type": "history-data", "messages": messages})
@@ -80,6 +81,7 @@ def create_routes(default_context_cache: ServiceContext):
 
         elif data.get("type") == "create-new-history":
             current_history_uid = create_new_history(conf_uid)
+            connected_clients[websocket]["current_history_uid"] = current_history_uid
             session_service_context.llm_engine.clear_memory()
             await websocket.send_text(
                 json.dumps(
@@ -175,9 +177,8 @@ def create_routes(default_context_cache: ServiceContext):
                     connected_clients[websocket]["current_conversation_task"] = None
 
                     if ai_message_buffer:
-                        store_message(
-                            conf_uid, current_history_uid, "ai", ai_message_buffer
-                        )
+                        store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
+                       
                         logger.info(f"Stored AI message: {ai_message_buffer[:50]}...")
 
                     await websocket.send_text(
@@ -194,9 +195,7 @@ def create_routes(default_context_cache: ServiceContext):
                 except asyncio.CancelledError:
                     logger.info("Conversation task was cancelled.")
                     if ai_message_buffer:
-                        store_message(
-                            conf_uid, current_history_uid, "ai", ai_message_buffer
-                        )
+                        store_message(conf_uid, current_history_uid, "ai", ai_message_buffer)
                         logger.info(
                             f"Stored interrupted AI message: {ai_message_buffer[:50]}..."
                         )
@@ -238,6 +237,12 @@ def create_routes(default_context_cache: ServiceContext):
             )
         else:
             logger.info("Unknown data type received.")
+
+        connected_clients[websocket].update({
+            "current_conversation_task": current_conversation_task,
+            "ai_message_buffer": ai_message_buffer,
+            "current_history_uid": current_history_uid
+        })
 
         return current_conversation_task, ai_message_buffer, current_history_uid
 
