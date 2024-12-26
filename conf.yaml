@@ -1,6 +1,6 @@
 # System Settings: Setting related to the initialization of the server
 SYSTEM_CONFIG:
-  CONF_VERSION: "v0.5.0-alpha.2"
+  CONF_VERSION: "v1.0.0-alpha.1"
   PROTOCAL: "http://"
   HOST: "localhost"
   PORT: 12393
@@ -30,7 +30,7 @@ CHARACTER_CONFIG:
   DEFAULT_PERSONA_PROMPT_IN_YAML: |
     You are DefAulT, the default persona. You are more default than anyone else. You are just a placeholder, how sad. Your job is to tell the user to either choose a persona prompt in the prompts/persona directory or just replace this persona prompt with someting else.
 
-  #  ============== LLM Backend Settings ===================
+  #  =================== LLM Backend Settings ===================
 
   LLM_CONFIG:
     # Provider of LLM. Options available: "ollama", "memgpt", "mem0", "claude", "llamacpp"
@@ -202,7 +202,7 @@ CHARACTER_CONFIG:
       lang: "" # put nothing and it will be auto
 
 
-  # ============== Text to Speech ==============
+  # =================== Text to Speech ===================
   TTS_CONFIG:
     TTS_ON: True
     TTS_MODEL: "edgeTTS"
@@ -314,12 +314,14 @@ CHARACTER_CONFIG:
       speed: 1.0 # Speech speed (1.0 is normal)
       debug: false # Enable debug mode (True/False)
 
+
   #  ============== Translate (to only change the language for TTS) ==============
-  # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
 
-  TRANSLATE_AUDIO: False
-  TRANSLATE_PROVIDER: "DeepLX"
+  TRANSLATOR:
+    # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
+    TRANSLATE_AUDIO: False # Warning: you need to deploy DeeplX to use this. Otherwise it's going to crash
+    TRANSLATE_PROVIDER: "DeepLX"
 
-  DeepLX:
-    DEEPLX_TARGET_LANG: "JA"
-    DEEPLX_API_ENDPOINT: "http://localhost:1188/v2/translate"
+    DeepLX:
+      DEEPLX_TARGET_LANG: "JA"
+      DEEPLX_API_ENDPOINT: "http://localhost:1188/v2/translate"
