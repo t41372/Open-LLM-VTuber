@@ -60,10 +60,6 @@ TTS_MODEL: "edgeTTS"
 #   "cosyvoiceTTS", "meloTTS", "piperTTS", "coquiTTS",
 #   "fishAPITTS", "SherpaOnnxTTS"
 
-# if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
-# if turned on, the timing and order of the facial expression will be more accurate
-SAY_SENTENCE_SEPARATELY: True
-
 edgeTTS:
   # Check out doc at https://github.com/rany2/edge-tts
   # Use `edge-tts --list-voices` to list all available voices

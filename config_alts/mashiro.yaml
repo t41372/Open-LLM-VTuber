@@ -333,16 +333,5 @@ DeepLX:
   DEEPLX_TARGET_LANG: "JA"
   DEEPLX_API_ENDPOINT: "http://localhost:1188/v2/translate"
 
-#  ============== Other Settings ==============
-
-# Print debug info
-VERBOSE: False
-
-# Exit phrase
-EXIT_PHRASE: "exit."
-
-# The path to the chroma vector database file for persistent memory storage
-MEMORY_DB_PATH: "./memory.db"
-
-# Memory snapshot: Do you want to backup the memory database file before talking?
-MEMORY_SNAPSHOT: True
+# Other Settings
+# VERBOSE: False
