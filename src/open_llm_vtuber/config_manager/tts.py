@@ -255,49 +255,28 @@ class TTSConfig(I18nMixin):
     @model_validator(mode="after")
     def check_tts_config(cls, values: "TTSConfig", info: ValidationInfo):
         tts_model = values.tts_model
-        if tts_model == "AzureTTS" and values.azure_tts is None:
-            raise ValueError(
-                "AzureTTS configuration must be provided when tts_model is 'AzureTTS'"
-            )
-        if tts_model == "barkTTS" and values.bark_tts is None:
-            raise ValueError(
-                "barkTTS configuration must be provided when tts_model is 'barkTTS'"
-            )
-        if tts_model == "edgeTTS" and values.edge_tts is None:
-            raise ValueError(
-                "edgeTTS configuration must be provided when tts_model is 'edgeTTS'"
-            )
-        if tts_model == "cosyvoiceTTS" and values.cosyvoice_tts is None:
-            raise ValueError(
-                "cosyvoiceTTS configuration must be provided when tts_model is 'cosyvoiceTTS'"
-            )
-        if tts_model == "meloTTS" and values.melo_tts is None:
-            raise ValueError(
-                "meloTTS configuration must be provided when tts_model is 'meloTTS'"
-            )
-        if tts_model == "piperTTS" and values.piper_tts is None:
-            raise ValueError(
-                "piperTTS configuration must be provided when tts_model is 'piperTTS'"
-            )
-        if tts_model == "coquiTTS" and values.coqui_tts is None:
-            raise ValueError(
-                "coquiTTS configuration must be provided when tts_model is 'coquiTTS'"
-            )
-        if tts_model == "xTTS" and values.x_tts is None:
-            raise ValueError(
-                "xTTS configuration must be provided when tts_model is 'xTTS'"
-            )
-        if tts_model == "GPTSoVITS" and values.gpt_sovits is None:
-            raise ValueError(
-                "GPTSoVITS configuration must be provided when tts_model is 'GPTSoVITS'"
-            )
-        if tts_model == "fishAPITTS" and values.fish_api_tts is None:
-            raise ValueError(
-                "fishAPITTS configuration must be provided when tts_model is 'fishAPITTS'"
-            )
-        if tts_model == "SherpaOnnxTTS" and values.sherpa_onnx_tts is None:
-            raise ValueError(
-                "SherpaOnnxTTS configuration must be provided when tts_model is 'SherpaOnnxTTS'"
-            )
 
+        # Only validate the selected TTS model
+        if tts_model == "AzureTTS" and values.azure_tts is not None:
+            values.azure_tts.model_validate(values.azure_tts.model_dump())
+        elif tts_model == "barkTTS" and values.bark_tts is not None:
+            values.bark_tts.model_validate(values.bark_tts.model_dump())
+        elif tts_model == "edgeTTS" and values.edge_tts is not None:
+            values.edge_tts.model_validate(values.edge_tts.model_dump())
+        elif tts_model == "cosyvoiceTTS" and values.cosyvoice_tts is not None:
+            values.cosyvoice_tts.model_validate(values.cosyvoice_tts.model_dump())
+        elif tts_model == "meloTTS" and values.melo_tts is not None:
+            values.melo_tts.model_validate(values.melo_tts.model_dump())
+        elif tts_model == "piperTTS" and values.piper_tts is not None:
+            values.piper_tts.model_validate(values.piper_tts.model_dump())
+        elif tts_model == "coquiTTS" and values.coqui_tts is not None:
+            values.coqui_tts.model_validate(values.coqui_tts.model_dump())
+        elif tts_model == "xTTS" and values.x_tts is not None:
+            values.x_tts.model_validate(values.x_tts.model_dump())
+        elif tts_model == "GPTSoVITS" and values.gpt_sovits is not None:
+            values.gpt_sovits.model_validate(values.gpt_sovits.model_dump())
+        elif tts_model == "fishAPITTS" and values.fish_api_tts is not None:
+            values.fish_api_tts.model_validate(values.fish_api_tts.model_dump())
+        elif tts_model == "SherpaOnnxTTS" and values.sherpa_onnx_tts is not None:
+            values.sherpa_onnx_tts.model_validate(values.sherpa_onnx_tts.model_dump())
         return values

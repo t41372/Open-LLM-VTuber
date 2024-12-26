@@ -300,33 +300,20 @@ class ASRConfig(I18nMixin):
     @model_validator(mode="after")
     def check_asr_config(cls, values: "ASRConfig", info: ValidationInfo):
         asr_model = values.asr_model
-        if asr_model == "AzureASR" and values.azure_asr is None:
-            raise ValueError(
-                "AzureASR configuration must be provided when asr_model is 'AzureASR'"
-            )
-        if asr_model == "Faster-Whisper" and values.faster_whisper is None:
-            raise ValueError(
-                "Faster-Whisper configuration must be provided when asr_model is 'Faster-Whisper'"
-            )
-        if asr_model == "WhisperCPP" and values.whisper_cpp is None:
-            raise ValueError(
-                "WhisperCPP configuration must be provided when asr_model is 'WhisperCPP'"
-            )
-        if asr_model == "Whisper" and values.whisper is None:
-            raise ValueError(
-                "Whisper configuration must be provided when asr_model is 'Whisper'"
-            )
-        if asr_model == "FunASR" and values.fun_asr is None:
-            raise ValueError(
-                "FunASR configuration must be provided when asr_model is 'FunASR'"
-            )
-        if asr_model == "GroqWhisperASR" and values.groq_whisper_asr is None:
-            raise ValueError(
-                "GroqWhisperASR configuration must be provided when asr_model is 'GroqWhisperASR'"
-            )
-        if asr_model == "SherpaOnnxASR" and values.sherpa_onnx_asr is None:
-            raise ValueError(
-                "SherpaOnnxASR configuration must be provided when asr_model is 'SherpaOnnxASR'"
-            )
 
+        # Only validate the selected ASR model
+        if asr_model == "AzureASR" and values.azure_asr is not None:
+            values.azure_asr.model_validate(values.azure_asr.model_dump())
+        elif asr_model == "Faster-Whisper" and values.faster_whisper is not None:
+            values.faster_whisper.model_validate(values.faster_whisper.model_dump())
+        elif asr_model == "WhisperCPP" and values.whisper_cpp is not None:
+            values.whisper_cpp.model_validate(values.whisper_cpp.model_dump())
+        elif asr_model == "Whisper" and values.whisper is not None:
+            values.whisper.model_validate(values.whisper.model_dump())
+        elif asr_model == "FunASR" and values.fun_asr is not None:
+            values.fun_asr.model_validate(values.fun_asr.model_dump())
+        elif asr_model == "GroqWhisperASR" and values.groq_whisper_asr is not None:
+            values.groq_whisper_asr.model_validate(values.groq_whisper_asr.model_dump())
+        elif asr_model == "SherpaOnnxASR" and values.sherpa_onnx_asr is not None:
+            values.sherpa_onnx_asr.model_validate(values.sherpa_onnx_asr.model_dump())
         return values

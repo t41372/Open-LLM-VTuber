@@ -76,9 +76,9 @@ class Mem0Config(I18nMixin):
     project_id: Optional[str] = Field(None, alias="PROJECT_ID")
     model: str = Field("llama3.1:latest", alias="MODEL")
     verbose: bool = Field(False, alias="VERBOSE")
-    vector_store: VectorStoreConfig = Field(..., alias="vector_store")
-    llm: OllamaConfig = Field(..., alias="llm")
-    embedder: EmbedderConfig = Field(..., alias="embedder")
+    vector_store: Optional[VectorStoreConfig] = Field(None, alias="vector_store")
+    llm: Optional[OllamaConfig] = Field(None, alias="llm")
+    embedder: Optional[EmbedderConfig] = Field(None, alias="embedder")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "user_id": Description.from_str("User ID for Mem0"),
@@ -92,6 +92,26 @@ class Mem0Config(I18nMixin):
         "llm": Description.from_str("Configuration for the LLM"),
         "embedder": Description.from_str("Configuration for the embedder"),
     }
+
+    @model_validator(mode="after")
+    def check_mem0_fields(cls, values: "Mem0Config", info: ValidationInfo):
+        # Access the llm_provider from the parent LLMConfig
+        llm_provider = info.context.get("llm_provider") if info.context else None
+
+        if llm_provider == "mem0":
+            if values.vector_store is None:
+                raise ValueError(
+                    "vector_store must be provided when llm_provider is 'mem0'"
+                )
+            if values.llm is None:
+                raise ValueError(
+                    "llm configuration must be provided when llm_provider is 'mem0'"
+                )
+            if values.embedder is None:
+                raise ValueError(
+                    "embedder configuration must be provided when llm_provider is 'mem0'"
+                )
+        return values
 
 
 class MemGPTConfig(I18nMixin):
@@ -144,25 +164,17 @@ class LLMConfig(I18nMixin):
     @model_validator(mode="after")
     def check_provider_config(cls, values: "LLMConfig", info: ValidationInfo):
         provider = values.llm_provider
-        if provider == "ollama" and values.ollama is None:
-            raise ValueError(
-                "Ollama configuration must be provided when llm_provider is 'ollama'"
-            )
-        if provider == "claude" and values.claude is None:
-            raise ValueError(
-                "Claude configuration must be provided when llm_provider is 'claude'"
-            )
-        if provider == "llamacpp" and values.llamacpp is None:
-            raise ValueError(
-                "llamacpp configuration must be provided when llm_provider is 'llamacpp'"
-            )
-        if provider == "mem0" and values.mem0 is None:
-            raise ValueError(
-                "Mem0 configuration must be provided when llm_provider is 'mem0'"
-            )
-        if provider == "memgpt" and values.memgpt is None:
-            raise ValueError(
-                "MemGPT configuration must be provided when llm_provider is 'memgpt'"
-            )
+
+        # Only validate the selected provider
+        if provider == "ollama" and values.ollama is not None:
+            values.ollama.model_validate(values.ollama.model_dump())
+        elif provider == "claude" and values.claude is not None:
+            values.claude.model_validate(values.claude.model_dump())
+        elif provider == "llamacpp" and values.llamacpp is not None:
+            values.llamacpp.model_validate(values.llamacpp.model_dump())
+        elif provider == "mem0" and values.mem0 is not None:
+            values.mem0.model_validate(values.mem0.model_dump(), context={"llm_provider": provider})
+        elif provider == "memgpt" and values.memgpt is not None:
+            values.memgpt.model_validate(values.memgpt.model_dump())
 
         return values
