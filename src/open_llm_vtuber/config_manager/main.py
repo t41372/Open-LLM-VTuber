@@ -12,7 +12,7 @@ class Config(I18nMixin):
     Main configuration for the application.
     """
 
-    system_config: SystemConfig = Field(..., alias="SYSTEM_CONFIG")
+    system_config: SystemConfig | None = Field(None, alias="SYSTEM_CONFIG")
     character_config: CharacterConfig = Field(..., alias="CHARACTER_CONFIG")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {

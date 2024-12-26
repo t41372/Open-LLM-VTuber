@@ -6,7 +6,7 @@ from starlette.websockets import WebSocketDisconnect
 from loguru import logger
 from .conversation import conversation_chain
 from .service_context import ServiceContext
-from .utils.config_loader import (
+from .config_manager.utils import (
     scan_config_alts_directory,
     scan_bg_directory,
 )

@@ -17,7 +17,7 @@ from .tts.tts_factory import TTSFactory
 from .llm.llm_factory import LLMFactory
 from .translate.translate_factory import TranslateFactory
 
-from .utils.config_loader import load_config
+from .config_manager.utils import load_config
 
 
 class ServiceContext:
