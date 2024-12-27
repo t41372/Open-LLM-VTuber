@@ -2,14 +2,13 @@ from typing import List
 
 import numpy as np
 import torch
+from loguru import logger
 from numpy import random
 from torch import nn, optim
 
 from Behavior.BehaviorMeta import BehaviorMeta
 from Emotion.EmotionHandler import EmotionHandler
 from actions import ActionInterface
-from loguru import logger
-
 from utils.PromptLoader import PromptLoader
 
 

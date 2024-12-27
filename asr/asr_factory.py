@@ -1,4 +1,3 @@
-from typing import Type
 from .asr_interface import ASRInterface
 
 

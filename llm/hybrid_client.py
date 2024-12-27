@@ -1,9 +1,6 @@
 import time
 from typing import Callable, Dict, Generator, List, Optional, Union
 
-import time
-from typing import Callable, Dict, Generator, List, Optional, Union
-
 import requests
 from letta.client.client import AbstractClient
 from letta.constants import (
@@ -28,7 +25,6 @@ from letta.schemas.letta_response import LettaResponse, LettaStreamingResponse
 from letta.schemas.llm_config import LLMConfig
 from letta.schemas.memory import (
     ArchivalMemorySummary,
-    ChatMemory,
     CreateArchivalMemory,
     Memory,
     RecallMemorySummary, BasicBlockMemory,
@@ -48,9 +44,6 @@ from letta.schemas.tool import Tool, ToolCreate, ToolUpdate
 from letta.schemas.tool_rule import BaseToolRule
 from letta.server.rest_api.interface import QueuingInterface
 from letta.server.server import SyncServer
-from letta.utils import get_human_text, get_persona_text
-
-from memory.ActionMemory import ActionMemory
 
 
 class HybridClient(AbstractClient):
@@ -134,7 +127,7 @@ class HybridClient(AbstractClient):
             embedding_config: EmbeddingConfig = None,
             llm_config: LLMConfig = None,
             # memory
-            memory: Memory = BasicBlockMemory(blocks=get_agent_memory_block('persona')),
+            memory: Memory = BasicBlockMemory(blocks=[]),
             # system
             system: Optional[str] = None,
             # tools

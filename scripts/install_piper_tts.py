@@ -27,10 +27,11 @@ SOFTWARE.
 import os
 import platform
 import shutil
+import subprocess
 import tarfile
 import zipfile
+
 import requests
-import subprocess
 
 default_voice_model_url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/amy/medium/en_US-amy-medium.onnx"
 default_voice_model_json_url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/amy/medium/en_US-amy-medium.onnx.json"

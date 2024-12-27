@@ -1,5 +1,7 @@
-import requests
 import json as JSON
+
+import requests
+
 
 def send_message_to_broadcast(message):
     url = "http://127.0.0.1:8000/broadcast"

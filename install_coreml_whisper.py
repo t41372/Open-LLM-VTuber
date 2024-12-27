@@ -1,6 +1,5 @@
-import subprocess
 import os
-
+import subprocess
 
 print("Fetching py whisper cpp from git...")
 

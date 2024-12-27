@@ -4,8 +4,6 @@ import threading
 import numpy as np
 from loguru import logger
 
-from Emotion.EmotionHandler import EmotionHandler
-
 
 class OutputQueue:
     _instance = None

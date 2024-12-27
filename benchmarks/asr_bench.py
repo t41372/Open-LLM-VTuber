@@ -1,8 +1,9 @@
-from asr.asr_factory import ASRFactory
-
 import timeit
-from scipy.io.wavfile import read
+
 import numpy as np
+from scipy.io.wavfile import read
+
+from asr.asr_factory import ASRFactory
 
 audio = read("benchmarks/test-16b-caps.wav")
 audio = np.array(audio[1], dtype=np.float32)

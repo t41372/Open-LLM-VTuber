@@ -41,7 +41,6 @@ import numpy as np
 import sounddevice as sd
 import torch
 from loguru import logger
-from transformers import Wav2Vec2FeatureExtractor, pipeline
 
 from utils.StateInfo import StateInfo
 

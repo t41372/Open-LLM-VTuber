@@ -1,9 +1,11 @@
-import azure.cognitiveservices.speech as speechsdk
-from .asr_interface import ASRInterface
-from typing import Callable
 import os
-from rich import print
+from typing import Callable
+
+import azure.cognitiveservices.speech as speechsdk
 import numpy as np
+from rich import print
+
+from .asr_interface import ASRInterface
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 

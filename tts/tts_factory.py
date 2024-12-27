@@ -1,4 +1,5 @@
 from typing import Type
+
 from .tts_interface import TTSInterface
 
 

@@ -1,13 +1,15 @@
+import asyncio
+import json
 import os
 import shutil
-import json
-import asyncio
 import threading
 from typing import List, Dict
+
 import numpy as np
 from fastapi import FastAPI, WebSocket, APIRouter
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
+
 from OpenLLMVtuber import OpenLLMVTuberMain
 from live2d_model import Live2dModel
 from tts.stream_audio import AudioPayloadPreparer

@@ -1,6 +1,6 @@
+import numpy as np
 from pywhispercpp.model import Model
 
-import numpy as np
 from .asr_interface import ASRInterface
 
 

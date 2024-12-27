@@ -1,7 +1,8 @@
 import os
-import threading
-import subprocess
 import platform
+import subprocess
+import threading
+
 from .tts_interface import TTSInterface
 
 

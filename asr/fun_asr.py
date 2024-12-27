@@ -1,11 +1,13 @@
+import io
+import re
+
 import numpy as np
+import soundfile as sf
+import torch
 from funasr import AutoModel
+
 from .asr_interface import ASRInterface
 
-import re
-import soundfile as sf
-import io
-import torch
 
 # paraformer-zh is a multi-functional asr model
 # use vad, punc, spk or not as you need

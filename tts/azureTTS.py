@@ -1,7 +1,9 @@
-import sys
 import os
+import sys
 from pathlib import Path
+
 import azure.cognitiveservices.speech as speechsdk
+
 from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))

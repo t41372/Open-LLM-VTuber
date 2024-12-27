@@ -20,7 +20,7 @@ class LettaLLMClient(LLMInterface):
 
         """
         self.url = 'http://localhost:8283/'
-        self.client = HybridClient(self.url)
+        self.client = HybridClient(self.url,token='')
         self.agent = None
         self.memory = None
         self.agent_id = None

@@ -1,5 +1,7 @@
 import abc
+
 import numpy as np
+
 from .asr_with_vad import VoiceRecognitionVAD
 
 

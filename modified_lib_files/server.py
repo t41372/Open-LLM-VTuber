@@ -8,19 +8,17 @@ from asyncio import Lock
 from datetime import datetime
 from typing import Callable, List, Optional, Tuple, Union
 
-from composio.client import Composio
-from composio.client.collections import ActionModel, AppModel
-from fastapi import HTTPException
-
 import letta.constants as constants
 import letta.server.utils as server_utils
 import letta.system as system
+from composio.client import Composio
+from composio.client.collections import ActionModel, AppModel
+from fastapi import HTTPException
 from letta.agent import Agent, save_agent
 from letta.chat_only_agent import ChatOnlyAgent
 from letta.credentials import LettaCredentials
 from letta.data_sources.connectors import DataConnector, load_data
 from letta.errors import LettaAgentNotFoundError, LettaUserNotFoundError
-
 # TODO use custom interface
 from letta.interface import AgentInterface  # abstract
 from letta.interface import CLIInterface  # for printing to terminal
@@ -54,7 +52,6 @@ from letta.schemas.agent import (
 from letta.schemas.api_key import APIKey, APIKeyCreate
 from letta.schemas.block import Block, BlockUpdate
 from letta.schemas.embedding_config import EmbeddingConfig
-
 # openai schemas
 from letta.schemas.enums import JobStatus
 from letta.schemas.job import Job, JobUpdate

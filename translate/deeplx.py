@@ -1,5 +1,8 @@
-import httpx, json
+import httpx
+import json
+
 from .translate_interface import TranslateInterface
+
 
 class DeepLXTranslate(TranslateInterface):
 

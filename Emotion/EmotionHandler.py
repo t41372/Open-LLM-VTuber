@@ -7,8 +7,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from loguru import logger
-from torch.xpu import device
-
 from transformers import AutoModelForAudioClassification, pipeline, AutoFeatureExtractor
 
 emotions = ["anger", "calm", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
