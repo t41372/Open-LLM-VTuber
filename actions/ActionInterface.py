@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 
-class ActionInterface():
+class ActionInterface:
 
     @abstractmethod
     def start_action(self, prompt_file: str) -> str:
@@ -25,3 +25,10 @@ class ActionInterface():
         Blocks LLM generation to perform action.
         """
         pass
+
+    def load_action_memory(self):
+        """
+        Loads action memory blocks to the LLM client
+        """
+        pass
+

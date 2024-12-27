@@ -11,11 +11,15 @@ class TalkAction(ActionInterface):
         self.generating = False
         self.not_is_blocking_action = True
         self.requires_input = True
+        self.core_memory_block_labels = ['persona', self.__name__]
+        self.action_state_info = StateInfo()
+
 
     def start_action(self, prompt_file=None) -> str:
         """
         Starts the action by loading a prompt from the specified file.
         """
+
         if prompt_file is not None:
             self.prompt_file = prompt_file
         try:
@@ -39,3 +43,12 @@ class TalkAction(ActionInterface):
     def block_llm_generation(self):
         OpenLLMVTuberMain().not_is_blocking_event.clear()
         return None
+
+    def load_action_memory(self):
+        """
+        Loads action memory blocks to the LLM client
+        """
+        for speaker in self.action_state_info.get_active_speakers():
+            self.core_memory_block_labels.append(speaker)
+
+        pass

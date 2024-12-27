@@ -1,5 +1,5 @@
 import abc
-from typing import Iterator
+from typing import Iterator, List
 
 
 class LLMInterface(metaclass=abc.ABCMeta):
@@ -42,3 +42,14 @@ class LLMInterface(metaclass=abc.ABCMeta):
         - heard_response (str): The last response from the LLM before it was paused. The only content that the user can hear before the interruption.
         """
         raise NotImplementedError
+
+    def load_memory(self, list_of_block_labels: List[str]) -> None:
+
+        """
+        This function will load memory blocks for inference.
+        Parameters:
+        - list_of_block_labels (List[str]): The list of blocks to load into the LLM CORE Memory
+        """
+
+        raise NotImplementedError
+

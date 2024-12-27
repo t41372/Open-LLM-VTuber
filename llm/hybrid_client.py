@@ -31,7 +31,7 @@ from letta.schemas.memory import (
     ChatMemory,
     CreateArchivalMemory,
     Memory,
-    RecallMemorySummary,
+    RecallMemorySummary, BasicBlockMemory,
 )
 from letta.schemas.message import Message, MessageCreate, MessageUpdate
 from letta.schemas.openai.chat_completions import ToolCall
@@ -134,7 +134,7 @@ class HybridClient(AbstractClient):
             embedding_config: EmbeddingConfig = None,
             llm_config: LLMConfig = None,
             # memory
-            memory: Memory = ChatMemory(human=get_human_text(DEFAULT_HUMAN), persona=get_persona_text(DEFAULT_PERSONA)),
+            memory: Memory = BasicBlockMemory(blocks=get_agent_memory_block('persona')),
             # system
             system: Optional[str] = None,
             # tools
@@ -150,6 +150,7 @@ class HybridClient(AbstractClient):
         """Create an agent
 
         Args:
+            agent_type: the type of agent. ie. whether MemGPT or OPENAI
             initial_message_sequence:
             tool_rules: any rules for tools in the system.
             name (str): Name of the agent
@@ -249,25 +250,24 @@ class HybridClient(AbstractClient):
             name: Optional[str] = None,
             description: Optional[str] = None,
             system: Optional[str] = None,
-            tool_names: Optional[List[str]] = None,
-            memory: Optional[Memory] = None,
-
+            tools: Optional[List[str]] = None,
+            tags: Optional[List[str]] = None,
             metadata: Optional[Dict] = None,
             llm_config: Optional[LLMConfig] = None,
             embedding_config: Optional[EmbeddingConfig] = None,
             message_ids: Optional[List[str]] = None,
-            tags: Optional[List[str]] = None,
+            memory_blocks: Optional[Memory] = None,
     ):
         """
         Update an existing agent
 
         Args:
-            memory:
+            memory_blocks:
+            tools: list of tools for inference
             agent_id (str): ID of the agent
             name (str): Name of the agent
             description (str): Description of the agent
             system (str): System configuration
-            tool_names (List[str]): List of tools
             metadata (Dict): Metadata
             llm_config (LLMConfig): LLM configuration
             embedding_config (EmbeddingConfig): Embedding configuration
@@ -277,24 +277,24 @@ class HybridClient(AbstractClient):
         Returns:
             agent_state (AgentState): State of the updated agent
         """
-        request = UpdateAgentState(
-            id=agent_id,
-            name=name,
-            system=system,
-            tool_names=tool_names,
-            tags=tags,
-            description=description,
-            metadata_=metadata,
-            llm_config=llm_config,
-            embedding_config=embedding_config,
-            message_ids=message_ids,
-            memory_blocks=memory
+        self.interface.clear()
+        agent_state = self.server.update_agent(
+            UpdateAgentState(
+                id=agent_id,
+                name=name,
+                system=system,
+                tool_names=tools,
+                tags=tags,
+                description=description,
+                metadata_=metadata,
+                llm_config=llm_config,
+                embedding_config=embedding_config,
+                message_ids=message_ids,
+                memory_blocks=memory_blocks
+            ),
+            actor=self.user,
         )
-        response = requests.patch(f"{self.base_url}/{self.api_prefix}/agents/{agent_id}", json=request.model_dump(),
-                                  headers=self.headers)
-        if response.status_code != 200:
-            raise ValueError(f"Failed to update agent: {response.text}")
-        return AgentState(**response.json())
+        return agent_state
 
     def update_agent(
             self,
@@ -348,6 +348,9 @@ class HybridClient(AbstractClient):
         if response.status_code != 200:
             raise ValueError(f"Failed to update agent: {response.text}")
         return AgentState(**response.json())
+
+    def get_memory_block(self, label: str) -> Optional[Block]:
+        return self.server.create_or_fetch_block_by_label(self.user_id, label)
 
     def get_tools_from_agent(self, agent_id: str) -> List[Tool]:
         """

@@ -539,3 +539,6 @@ class OpenLLMVTuberMain:
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
             os.makedirs(cache_dir)
+
+    def load_memory(self, list_of_block_labels):
+        self.llm.load_memory(list_of_block_labels)

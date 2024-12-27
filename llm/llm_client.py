@@ -1,9 +1,9 @@
 from letta import LLMConfig, EmbeddingConfig
 from letta import create_client
-from letta.schemas.memory import ChatMemory, ArchivalMemorySummary, BasicBlockMemory
 
 from llm.hybrid_client import HybridClient
 from llm.llm_interface import LLMInterface
+from memory.ActionMemory import ActionMemory
 from utils.OutputQueue import OutputQueue
 
 client = create_client()
@@ -33,11 +33,10 @@ class LettaLLMClient(LLMInterface):
             self.client.delete_archival_memory()
             self.client.set_default_embedding_config(
                 EmbeddingConfig.default_config(model_name="text-embedding-ada-002"))
-            self.persona_block=self.client.cre
-            self.memory = BasicBlockMemory(blocks=[''])
+            self.memory = None
             self.agent_id = client.get_agent_id(agent_name=name)
             if self.agent_id is None:
-                self.agent = self.client.create_agent(name=name, memory=self.memory)
+                self.agent = self.client.create_agent(name=name)
                 logger.success(f"CREATED AGENT {self.agent.name}")
             else:
                 self.agent = self.client.get_agent(agent_id=self.agent_id)
@@ -78,6 +77,12 @@ class LettaLLMClient(LLMInterface):
         if len(temp_chunks) > 0:
             combined_output = "".join(temp_chunks)
             OutputQueue().add_output(combined_output)  ## flush out any last remaining chunks
+
+    def load_memory(self, list_of_block_labels):
+        memory_blocks = []
+        for label in list_of_block_labels:
+            memory_blocks.append(client.get_memory_block(label))
+        self.client.update_agent_memory(self.agent_id, memory_blocks=ActionMemory(blocks=memory_blocks))
 
     def reset_memory(self):
         """
