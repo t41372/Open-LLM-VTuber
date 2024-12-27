@@ -11,11 +11,5 @@ class TalkBehavior(GenericBehavior):
         }
         self.actions = ['talk']
 
-        super(TalkBehavior, self).__init__(self.actions, learning_rate, dominant_prob, self.actions_map,self.action_context_prompt_file)
-
-
-
-
-
-
-
+        super(TalkBehavior, self).__init__(self.actions, learning_rate, dominant_prob, self.actions_map,
+                                           self.action_context_prompt_file)

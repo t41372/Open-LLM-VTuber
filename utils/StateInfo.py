@@ -31,6 +31,7 @@ class StateInfo(threading.Thread):
         # Thread control
         self._stop_event = threading.Event()
         self._lock = threading.Lock()
+        self._active_speakers=[]
         logger.success(f"CREATING STATE INFO THREAD : {id(self)}, thread id {threading.get_ident()}")
 
     def run(self):
@@ -41,7 +42,8 @@ class StateInfo(threading.Thread):
                 logger.info(f"Action: {self._current_action}, "
                             f"Requires Input: {self._requires_input}, "
                             f"Interrupted: {self._is_interrupted}, "
-                            f"Running: {self._is_running}")
+                            f"Running: {self._is_running},"
+                            f"Speakers: {self._active_speakers}")
             time.sleep(1)  # Adjust the frequency of state checks as needed
 
     # Setters
@@ -69,6 +71,22 @@ class StateInfo(threading.Thread):
     def get_current_action(self):
         with self._lock:
             return self._current_action
+
+    def clear_current_action(self):
+        with self._lock:
+            self._current_action = None
+
+    def clear_active_speakers(self):
+        with self._lock:
+            self._active_speakers = []
+
+    def get_active_speakers(self):
+        with self._lock:
+            return self._active_speakers
+
+    def add_active_speaker(self, speaker):
+        with self._lock:
+            self._active_speakers.append(speaker)
 
     def get_requires_input(self):
         with self._lock:

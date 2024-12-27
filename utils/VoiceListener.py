@@ -4,6 +4,7 @@ import threading
 from loguru import logger
 from websocket import WebSocket
 
+from Behavior.TalkBehavior import TalkBehavior
 from asr.asr_factory import ASRFactory
 from asr.asr_interface import ASRInterface
 from translate.translate_interface import TranslateInterface
@@ -43,6 +44,7 @@ class VoiceListener:
             self.input_queue = InputQueue()
             self.discord_input_queue = DiscordInputList()
             self.initialized = True
+            self._target_behavior=TalkBehavior()
         # Init ASR if voice input is on.
         if self.config.get("VOICE_INPUT_ON", False):
             if custom_asr is None:
@@ -101,6 +103,7 @@ class VoiceListener:
                 for dialogue in discord_voice_input:
                     result.append(self.asr.transcribe_discord_message_with_local_vad(dialogue))
                 self.input_queue.add_input(result)
+                self._target_behavior.select_action()
             except Exception as e:
                 logger.error(f"Error in transcribing user input: {e}")
 

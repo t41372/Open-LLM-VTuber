@@ -265,7 +265,8 @@ class VoiceRecognitionVAD:
             detected_gender = self.gender_classifier.predict(voice_speech_data, device=self.device)
         detected_text = self.discord_asr(voice_speech_data)
         if detected_text:
-            return {'name': input_sample['name'], "content": detected_text, 'gender': detected_gender, 'type': 'audio','audio_data':voice_speech_data}
+            return {'name': input_sample['name'], "content": detected_text, 'gender': detected_gender, 'type': 'audio',
+                    'audio_data': voice_speech_data}
 
     def discord_asr(self, samples: np.ndarray) -> str:
         """

@@ -50,6 +50,7 @@ class InputQueue:
         result = []
 
         for dialogue in input:
+
             if dialogue['type'] == 'text':
                 classified_emotions = await EmotionHandler().classify_emotion(dialogue['content'])
             else:

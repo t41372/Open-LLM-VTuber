@@ -4,9 +4,9 @@ import threading
 from loguru import logger
 
 from Behavior.generic_behavior import GenericBehavior
-from Emotion.EmotionHandler import EmotionHandler
 from OpenLLMVtuber import OpenLLMVTuberMain
 from actions import ActionInterface
+from utils.ActionPriority import ActionPriority
 from utils.InferenceQueue import InferenceQueue
 from utils.InputQueue import InputQueue
 from utils.PromptFormatter import PromptFormatter
@@ -27,7 +27,7 @@ class ActionSelectionQueue:
     def __init__(self, default_behavior: GenericBehavior):
         if not self._initialized:
             self._initialized = True
-            self.queue = queue.Queue()
+            self.queue = queue.PriorityQueue()
             self.thread = threading.Thread(target=self.run)
             self.stop_event = threading.Event()
             self.pause_event = threading.Event()
@@ -45,13 +45,13 @@ class ActionSelectionQueue:
         self.thread.join()
         print("ActionHandlerQueue thread stopped.")
 
-    def add_action(self, action: ActionInterface):
+    def add_action(self, action: (ActionPriority, ActionInterface)):
         """Adds a new action to the queue."""
         self.queue.put(action)
         logger.info(f"Action {action.__class__.__name__} added to the queue.")
 
     def get_action(self):
-        action = self.queue.get()
+        action = self.queue.get()[1]
         logger.info(f"Action {action.__class__.__name__} fetched from the queue.")
         return action
 
@@ -69,11 +69,16 @@ class ActionSelectionQueue:
                 self.thread.join()
                 continue
 
+            ## disabling these because I moved to a model where the Listener decides the behavior not the queue
+
             # If the queue is empty, use the default action
-            if self.queue.empty():
-                logger.info("Queue is empty. Executing default action.")
-                selected_action = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
-                self.add_action(selected_action)
+            # if self.queue.empty():
+            #     logger.info("Queue is empty. Executing default action.")
+            #
+            #
+            #     ##selected_action = self.default_behavior.select_action(state=EmotionHandler().get_current_state())
+            #     ##self.add_action(selected_action)
+
             else:
                 # Fetch the next action from the queue
                 action = self.get_action()
@@ -94,5 +99,5 @@ class ActionSelectionQueue:
                                                           self.default_behavior.choose_behavior(),
                                                           current_input)
                 logger.info(f"Processing action: {action.__class__.__name__}")
-                inference_queue=InferenceQueue()
+                inference_queue = InferenceQueue()
                 inference_queue.add_prompt(result)

@@ -203,8 +203,7 @@ class StreamedNumPySink(AudioSink):
 
         # Append the finalized session
         self.finalized_sessions.append({"name": speaker_name, "data": audio_array})
-
-        # Remove the stream
+                # Remove the stream
         del self.active_streams[speaker_name]
         del self.last_active_times[speaker_name]
 

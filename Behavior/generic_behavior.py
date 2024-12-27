@@ -66,7 +66,7 @@ class GenericBehavior(metaclass=BehaviorMeta):
         action_probs = np.full(len(probs), remaining_prob / (len(probs) - 1))
         action_probs[dominant_action_idx] = self.dominant_prob
         # Sample action based on the new probabilities
-        action_idx = np.random.choice(3, p=action_probs)
+        np.random.choice(3, p=action_probs)
         action = self.actions[0]
 
         # Track the last action to introduce a penalty if repeated

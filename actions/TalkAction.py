@@ -1,5 +1,6 @@
 from actions.ActionInterface import ActionInterface
 from OpenLLMVtuber import OpenLLMVTuberMain
+from utils.StateInfo import StateInfo
 
 
 class TalkAction(ActionInterface):
@@ -30,6 +31,8 @@ class TalkAction(ActionInterface):
         """
         if self.not_is_blocking_action:
             OpenLLMVTuberMain().not_is_blocking_event.set()
+            StateInfo().clear_current_action()
+            StateInfo().clear_active_speakers()
         del self
         return None
 

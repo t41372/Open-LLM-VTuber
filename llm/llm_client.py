@@ -1,7 +1,8 @@
 from letta import LLMConfig, EmbeddingConfig
 from letta import create_client
-from letta.schemas.memory import ChatMemory
+from letta.schemas.memory import ChatMemory, ArchivalMemorySummary, BasicBlockMemory
 
+from llm.hybrid_client import HybridClient
 from llm.llm_interface import LLMInterface
 from utils.OutputQueue import OutputQueue
 
@@ -19,7 +20,7 @@ class LettaLLMClient(LLMInterface):
 
         """
         self.url = 'http://localhost:8283/'
-        self.client = create_client(base_url=self.url)
+        self.client = HybridClient(self.url)
         self.agent = None
         self.memory = None
         self.agent_id = None
@@ -29,17 +30,17 @@ class LettaLLMClient(LLMInterface):
     def initialize(self, name, persona, model="gpt-4o-mini"):
         try:
             self.client.set_default_llm_config(LLMConfig.default_config(model_name=model))
+            self.client.delete_archival_memory()
             self.client.set_default_embedding_config(
                 EmbeddingConfig.default_config(model_name="text-embedding-ada-002"))
-            self.memory = ChatMemory(human='GoldRoger', persona=persona)
+            self.persona_block=self.client.cre
+            self.memory = BasicBlockMemory(blocks=[''])
             self.agent_id = client.get_agent_id(agent_name=name)
             if self.agent_id is None:
                 self.agent = self.client.create_agent(name=name, memory=self.memory)
                 logger.success(f"CREATED AGENT {self.agent.name}")
             else:
                 self.agent = self.client.get_agent(agent_id=self.agent_id)
-                persona_id = self.client.get_persona_id(name=name)
-                ##self.client.update_persona(persona_id=persona_id)
                 logger.success(f"AGENT ALREADY EXISTS, UPDATING AGENT: {self.agent.name}")
         except ValueError as e:
             logger.error(e)
@@ -71,6 +72,7 @@ class LettaLLMClient(LLMInterface):
                         combined_output = "".join(temp_chunks)  # Combine the 10 chunks
                         OutputQueue().add_output(combined_output)
                         temp_chunks = []  # Reset temporary list
+
             except Exception:
                 continue  # Skip invalid or incomplete chunks
         if len(temp_chunks) > 0:
