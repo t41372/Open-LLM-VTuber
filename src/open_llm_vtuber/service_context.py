@@ -17,18 +17,27 @@ from .tts.tts_factory import TTSFactory
 from .llm.llm_factory import LLMFactory
 from .translate.translate_factory import TranslateFactory
 
-from .config_manager.utils import load_config
+from .config_manager import (
+    Config,
+    CharacterConfig,
+    SystemConfig,
+    ASRConfig,
+    TTSConfig,
+    LLMConfig,
+    load_config,
+)
 
 
 class ServiceContext:
     """Initializes, stores, and updates the asr, tts, llm instance for a connected client."""
 
     def __init__(self):
-        self.system_config: Dict = None
-        self.asr_config: Dict = None
-        self.tts_config: Dict = None
-        self.llm_config: Dict = None
-        # self.translate_config: Dict = None
+        self.system_config: SystemConfig = None
+        self.character_config: CharacterConfig = None
+        self.asr_config: ASRConfig = None
+        self.tts_config: TTSConfig = None
+        self.llm_config: LLMConfig = None
+        # self.translate_config: TranslatorConfig = None
 
         self.live2d_model: Live2dModel = None
         self.asr_engine: ASRInterface = None
@@ -36,7 +45,6 @@ class ServiceContext:
         self.llm_engine: LLMInterface = None
         # self.translate: TranslateInterface
 
-        self.llm_provider: str = None
         self.llm_persona_choice: str = None
         self.llm_text_prompt: str = None
 
@@ -52,7 +60,7 @@ class ServiceContext:
             f"    Config: {json.dumps(self.tts_config, indent=6) if self.tts_config else 'None'}\n"
             f"  LLM Engine: {type(self.llm_engine).__name__ if self.llm_engine else 'Not Loaded'}\n"
             f"    Config: {json.dumps(self.llm_config, indent=6) if self.llm_config else 'None'}\n"
-            f"  LLM Provider: {self.llm_provider or 'Not Set'}\n"
+            f"  LLM Provider: {self.llm_config.llm_provider or 'Not Set'}\n"
             f"  LLM Persona: {self.llm_persona_choice or 'Not Set'}"
         )
 
@@ -60,7 +68,7 @@ class ServiceContext:
 
     def load_cache(
         self,
-        system_config: Dict,
+        system_config: SystemConfig,
         live2d_model: Live2dModel,
         asr_engine: ASRInterface,
         tts_engine: TTSInterface,
@@ -77,7 +85,7 @@ class ServiceContext:
         self.tts_engine = tts_engine
         self.llm_engine = llm_engine
 
-    def load_from_config(self, config: Dict) -> None:
+    def load_from_config(self, config: Config) -> None:
         """
         Load the ServiceContext with the config.
         Reinitialize the instances if the config is different.
@@ -85,25 +93,26 @@ class ServiceContext:
         Parameters:
         - config (Dict): The configuration dictionary.
         """
-        self.system_config = (
-            config.get("SYSTEM_CONFIG")
-            if config.get("SYSTEM_CONFIG")
-            else self.system_config
-        )
-        self.init_live2d(config.get("LIVE2D_MODEL"))
-        self.init_asr(config.get("ASR_MODEL"), config.get(config.get("ASR_MODEL")))
-        self.init_tts(config.get("TTS_MODEL"), config.get(config.get("TTS_MODEL")))
+        # store typed config references
+        self.system_config = config.system_config or self.system_config
+        self.character_config = config.character_config or self.character_config
+        # update all sub-configs
+        new_character_config = self.character_config
 
-        logger.debug(config.get("LLM_PROVIDER"))
-        logger.debug(config.get(config.get("LLM_PROVIDER")))
-        logger.debug(config.get("PERSONA_CHOICE"))
-        logger.debug(config.get("DEFAULT_PERSONA_PROMPT_IN_YAML"))
+        # init live2d from character config
+        self.init_live2d(new_character_config.live2d_model)
 
+        # init asr from character config
+        self.init_asr(new_character_config.asr_config)
+
+        # init tts from character config
+        self.init_tts(new_character_config.tts_config)
+
+        # init llm from character config
         self.init_llm(
-            config.get("LLM_PROVIDER"),
-            config.get(config.get("LLM_PROVIDER")),
-            config.get("PERSONA_CHOICE"),
-            config.get("DEFAULT_PERSONA_PROMPT_IN_YAML"),
+            new_character_config.llm_config,
+            new_character_config.persona_choice,
+            new_character_config.default_persona_prompt_in_yaml,
         )
 
     def init_live2d(self, live2d_model_name: str) -> None:
@@ -113,17 +122,23 @@ class ServiceContext:
             print(f"Error initializing Live2D: {e}")
             print("Proceed without Live2D.")
 
-    def init_asr(self, asr_provider: str, asr_config: dict) -> None:
+    def init_asr(self, asr_config: ASRConfig) -> None:
         if not self.asr_engine or (self.asr_config != asr_config):
-            self.asr_engine = ASRFactory.get_asr_system(asr_provider, **asr_config)
+            logger.info(asr_config)
+            logger.info(vars(asr_config).get(asr_config.asr_model))
+            self.asr_engine = ASRFactory.get_asr_system(
+                asr_config.asr_model, **(vars(asr_config).get(asr_config.asr_model, {}))
+            )
             # saving config should be done after successful initialization
             self.asr_config = asr_config
         else:
             logger.debug("ASR already initialized with the same config.")
 
-    def init_tts(self, tts_provider: str, tts_config: dict) -> None:
+    def init_tts(self, tts_config: TTSConfig) -> None:
         if not self.tts_engine or (self.tts_config != tts_config):
-            self.tts_engine = TTSFactory.get_tts_engine(tts_provider, **tts_config)
+            self.tts_engine = TTSFactory.get_tts_engine(
+                tts_config.tts_model, **tts_config
+            )
             # saving config should be done after successful initialization
             self.tts_config = tts_config
         else:
@@ -131,24 +146,22 @@ class ServiceContext:
 
     # TODO - implement llm update logic after separating the memory and system prompt
     def init_llm(
-        self, llm_provider: str, llm_config: dict, persona_choice: str, text_prompt: str
+        self, llm_config: LLMConfig, persona_choice: str, text_prompt: str
     ) -> None:
         # Use existing values if new parameters are None
         new_llm_provider = (
-            llm_provider if llm_provider is not None else self.llm_provider
+            llm_config.llm_provider or self.llm_config.llm_provider
+            if self.llm_config
+            else None
         )
-        new_llm_config = llm_config if llm_config is not None else self.llm_config
-        new_persona_choice = (
-            persona_choice if persona_choice is not None else self.llm_persona_choice
-        )
-        new_text_prompt = (
-            text_prompt if text_prompt is not None else self.llm_text_prompt
-        )
+        new_llm_config = llm_config or self.llm_config
+        new_persona_choice = persona_choice or self.llm_persona_choice
+        new_text_prompt = text_prompt or self.llm_text_prompt
 
         # Check if any parameters have changed
         if (
             self.llm_engine is not None
-            and new_llm_provider == self.llm_provider
+            and new_llm_provider == self.character_config.llm_config.llm_provider
             and new_llm_config == self.llm_config
             and new_persona_choice == self.llm_persona_choice
             and new_text_prompt == self.llm_text_prompt
@@ -184,7 +197,7 @@ class ServiceContext:
         )
 
         system_prompt += prompt_loader.load_util(
-            self.system_config.get("LIVE2D_Expression_Prompt")
+            self.system_config.live2d_expression_prompt
         ).replace("[<insert_emomap_keys>]", self.live2d_model.emo_str)
 
         logger.debug("\n === System Prompt ===")
@@ -211,9 +224,7 @@ class ServiceContext:
             if config_file_name == "conf.yaml":
                 new_config = load_config("conf.yaml")
             else:
-                config_alts_dir = self.system_config.get(
-                    "CONFIG_ALTS_DIR", "config_alts"
-                )
+                config_alts_dir = self.system_config.config_alts_dir
                 file_path = os.path.join(config_alts_dir, config_file_name)
                 new_config = load_config(file_path)
 
@@ -234,8 +245,8 @@ class ServiceContext:
                     json.dumps(
                         {
                             "type": "config-info",
-                            "conf_name": self.system_config.get("CONF_NAME"),
-                            "conf_uid": self.system_config.get("CONF_UID"),
+                            "conf_name": self.character_config.conf_name,
+                            "conf_uid": self.character_config.conf_uid,
                         }
                     )
                 )

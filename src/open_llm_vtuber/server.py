@@ -1,18 +1,17 @@
 import os
 import shutil
+
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from loguru import logger
-
-from .service_context import ServiceContext
 
 from .routes import create_routes
+from .service_context import ServiceContext
+from .config_manager.utils import Config
 
 
 class WebSocketServer:
-    def __init__(self, config: dict):
-
+    def __init__(self, config: Config):
         self.app = FastAPI()
 
         # Add CORS
