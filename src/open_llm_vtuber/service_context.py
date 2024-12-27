@@ -52,15 +52,15 @@ class ServiceContext:
         return (
             f"ServiceContext:\n"
             f"  System Config: {'Loaded' if self.system_config else 'Not Loaded'}\n"
-            f"    Details: {json.dumps(self.system_config, indent=6) if self.system_config else 'None'}\n"
+            f"    Details: {json.dumps(self.system_config.model_dump(), indent=6) if self.system_config else 'None'}\n"
             f"  Live2D Model: {self.live2d_model.model_info if self.live2d_model else 'Not Loaded'}\n"
             f"  ASR Engine: {type(self.asr_engine).__name__ if self.asr_engine else 'Not Loaded'}\n"
-            f"    Config: {json.dumps(self.asr_config, indent=6) if self.asr_config else 'None'}\n"
+            f"    Config: {json.dumps(self.asr_config.model_dump(), indent=6) if self.asr_config else 'None'}\n"
             f"  TTS Engine: {type(self.tts_engine).__name__ if self.tts_engine else 'Not Loaded'}\n"
-            f"    Config: {json.dumps(self.tts_config, indent=6) if self.tts_config else 'None'}\n"
+            f"    Config: {json.dumps(self.tts_config.model_dump(), indent=6) if self.tts_config else 'None'}\n"
             f"  LLM Engine: {type(self.llm_engine).__name__ if self.llm_engine else 'Not Loaded'}\n"
-            f"    Config: {json.dumps(self.llm_config, indent=6) if self.llm_config else 'None'}\n"
-            f"  LLM Provider: {self.llm_config.llm_provider or 'Not Set'}\n"
+            f"    Config: {json.dumps(self.llm_config.model_dump(), indent=6) if self.llm_config else 'None'}\n"
+            f"  LLM Provider: {self.llm_config.llm_provider if self.llm_config else 'Not Set'}\n"
             f"  LLM Persona: {self.llm_persona_choice or 'Not Set'}"
         )
 
@@ -127,7 +127,8 @@ class ServiceContext:
             logger.info(asr_config)
             logger.info(vars(asr_config).get(asr_config.asr_model))
             self.asr_engine = ASRFactory.get_asr_system(
-                asr_config.asr_model, **(vars(asr_config).get(asr_config.asr_model, {}))
+                asr_config.asr_model,
+                **getattr(asr_config, asr_config.asr_model.lower()).model_dump(),
             )
             # saving config should be done after successful initialization
             self.asr_config = asr_config
@@ -137,7 +138,8 @@ class ServiceContext:
     def init_tts(self, tts_config: TTSConfig) -> None:
         if not self.tts_engine or (self.tts_config != tts_config):
             self.tts_engine = TTSFactory.get_tts_engine(
-                tts_config.tts_model, **tts_config
+                tts_config.tts_model,
+                **getattr(tts_config, tts_config.tts_model.lower()).model_dump(),
             )
             # saving config should be done after successful initialization
             self.tts_config = tts_config
@@ -149,12 +151,10 @@ class ServiceContext:
         self, llm_config: LLMConfig, persona_choice: str, text_prompt: str
     ) -> None:
         # Use existing values if new parameters are None
+        new_llm_config = llm_config or self.llm_config
         new_llm_provider = (
             llm_config.llm_provider or self.llm_config.llm_provider
-            if self.llm_config
-            else None
         )
-        new_llm_config = llm_config or self.llm_config
         new_persona_choice = persona_choice or self.llm_persona_choice
         new_text_prompt = text_prompt or self.llm_text_prompt
 
@@ -172,7 +172,9 @@ class ServiceContext:
         system_prompt = self.get_system_prompt(new_persona_choice, new_text_prompt)
 
         self.llm_engine = LLMFactory.create_llm(
-            llm_provider=new_llm_provider, SYSTEM_PROMPT=system_prompt, **new_llm_config
+            llm_provider=new_llm_provider,
+            SYSTEM_PROMPT=system_prompt,
+            **getattr(new_llm_config, new_llm_provider).model_dump(),
         )
 
         # Save the current configuration

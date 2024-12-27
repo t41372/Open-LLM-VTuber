@@ -24,12 +24,11 @@ class MultiLingualString(BaseModel):
         return getattr(self, lang_code, self.en)
 
 
-class Description(BaseModel):
+class Description(MultiLingualString):
     """
-    Represents a description with a main text and optional notes, both supporting multilingual translations.
+    Represents a description with translations in multiple languages.
     """
 
-    text: MultiLingualString = Field(..., description="Main description text")
     notes: MultiLingualString | None = Field(None, description="Additional notes")
 
     def get_text(self, lang_code: str) -> str:
@@ -42,7 +41,7 @@ class Description(BaseModel):
         Returns:
             The main description text in the specified language.
         """
-        return self.text.get(lang_code)
+        return self.get(lang_code)
 
     def get_notes(self, lang_code: str) -> str | None:
         """
@@ -69,7 +68,8 @@ class Description(BaseModel):
             A Description instance with the provided text and notes in English.
         """
         return cls(
-            text=MultiLingualString(en=text, zh=text),
+            en=text,
+            zh=text,
             notes=MultiLingualString(en=notes, zh=notes) if notes else None,
         )
 

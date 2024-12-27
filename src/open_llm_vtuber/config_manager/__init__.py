@@ -13,11 +13,11 @@ from .llm import (
     LLMConfig,
     OllamaConfig,
     ClaudeConfig,
-    LlamaCPPConfig,
+    LlamaCppConfig,
     Mem0Config,
     MemGPTConfig,
-    VectorStoreConfig,
-    EmbedderConfig,
+    Mem0VectorStoreConfig,
+    Mem0EmbedderConfig,
 )
 from .asr import (
     ASRConfig,
@@ -38,7 +38,7 @@ from .tts import (
     MeloTTSConfig,
     PiperTTSConfig,
     CoquiTTSConfig,
-    xTTSConfig,
+    XTTSConfig,
     GPTSoVITSConfig,
     FishAPITTSConfig,
     SherpaOnnxTTSConfig,
@@ -60,27 +60,24 @@ __all__ = [
     "Config",
     "SystemConfig",
     "CharacterConfig",
-    
     # LLM related classes
     "LLMConfig",
     "OllamaConfig",
-    "ClaudeConfig", 
-    "LlamaCPPConfig",
+    "ClaudeConfig",
+    "LlamaCppConfig",
     "Mem0Config",
     "MemGPTConfig",
-    "VectorStoreConfig",
-    "EmbedderConfig",
-    
+    "Mem0VectorStoreConfig",
+    "Mem0EmbedderConfig",
     # ASR related classes
     "ASRConfig",
     "AzureASRConfig",
     "FasterWhisperConfig",
-    "WhisperCPPConfig", 
+    "WhisperCPPConfig",
     "WhisperConfig",
     "FunASRConfig",
     "SherpaOnnxASRConfig",
     "GroqWhisperASRConfig",
-    
     # TTS related classes
     "TTSConfig",
     "AzureTTSConfig",
@@ -90,20 +87,17 @@ __all__ = [
     "MeloTTSConfig",
     "PiperTTSConfig",
     "CoquiTTSConfig",
-    "xTTSConfig",
+    "XTTSConfig",
     "GPTSoVITSConfig",
     "FishAPITTSConfig",
     "SherpaOnnxTTSConfig",
-    
     # Translation related classes
     "TranslatorConfig",
     "DeepLXConfig",
-    
     # i18n related classes
     "I18nMixin",
     "Description",
     "MultiLingualString",
-    
     # Utility functions
     "load_config",
     "save_config",

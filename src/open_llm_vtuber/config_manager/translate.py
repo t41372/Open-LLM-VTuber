@@ -1,20 +1,26 @@
 # config_manager/translate.py
 from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
-from typing import Literal, Optional, Dict, ClassVar, Union, Any
+from typing import Literal, Optional, Dict, ClassVar
 from .i18n import I18nMixin, Description, MultiLingualString
 
 # --- Sub-models for specific Translator providers ---
 
 
 class DeepLXConfig(I18nMixin):
-    deeplx_target_lang: str = Field(..., alias="DEEPLX_TARGET_LANG")
-    deeplx_api_endpoint: str = Field(..., alias="DEEPLX_API_ENDPOINT")
+    """Configuration for DeepLX translation service."""
+    
+    deeplx_target_lang: str = Field(..., alias="deeplx_target_lang")
+    deeplx_api_endpoint: str = Field(..., alias="deeplx_api_endpoint")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "deeplx_target_lang": Description.from_str(
-            "Target language for DeepLX translation"
+        "deeplx_target_lang": Description(
+            en="Target language code for DeepLX translation",
+            zh="DeepLX 翻译的目标语言代码"
         ),
-        "deeplx_api_endpoint": Description.from_str("API endpoint for DeepLX"),
+        "deeplx_api_endpoint": Description(
+            en="API endpoint URL for DeepLX service",
+            zh="DeepLX 服务的 API 端点 URL"
+        ),
     }
 
 
@@ -22,23 +28,28 @@ class DeepLXConfig(I18nMixin):
 
 
 class TranslatorConfig(I18nMixin):
-    """
-    Configuration for translation.
-    """
-
-    translate_audio: bool = Field(..., alias="TRANSLATE_AUDIO")
-    translate_provider: Literal["DeepLX"] = Field(..., alias="TRANSLATE_PROVIDER")
-    deeplx: Optional[DeepLXConfig] = Field(None, alias="DeepLX")
+    """Configuration for translation services."""
+    
+    translate_audio: bool = Field(..., alias="translate_audio")
+    translate_provider: Literal["DeepLX"] = Field(..., alias="translate_provider")
+    deeplx: Optional[DeepLXConfig] = Field(None, alias="deeplx")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "translate_audio": Description.from_str(
-            "Enable audio translation (requires DeepLX deployment)"
+        "translate_audio": Description(
+            en="Enable audio translation (requires DeepLX deployment)",
+            zh="启用音频翻译（需要部署 DeepLX）"
         ),
-        "translate_provider": Description.from_str("Translation provider to use"),
-        "deeplx": Description.from_str("Configuration for DeepLX translation"),
+        "translate_provider": Description(
+            en="Translation service provider to use",
+            zh="要使用的翻译服务提供者"
+        ),
+        "deeplx": Description(
+            en="Configuration for DeepLX translation service",
+            zh="DeepLX 翻译服务配置"
+        ),
     }
 
-    @model_validator(mode="after")
+    @model_validator(mode='after')
     def check_translator_config(cls, values: "TranslatorConfig", info: ValidationInfo):
         translate_audio = values.translate_audio
         translate_provider = values.translate_provider

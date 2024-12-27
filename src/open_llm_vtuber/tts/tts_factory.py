@@ -5,8 +5,8 @@ from .tts_interface import TTSInterface
 class TTSFactory:
     @staticmethod
     def get_tts_engine(engine_type, **kwargs) -> Type[TTSInterface]:
-        if engine_type == "AzureTTS":
-            from .azureTTS import TTSEngine as AzureTTSEngine
+        if engine_type == "azure_tts":
+            from .azure_tts import TTSEngine as AzureTTSEngine
 
             return AzureTTSEngine(
                 kwargs.get("api_key"),
@@ -15,20 +15,20 @@ class TTSFactory:
                 kwargs.get("pitch"),
                 kwargs.get("rate"),
             )
-        elif engine_type == "barkTTS":
-            from .barkTTS import TTSEngine as BarkTTSEngine
+        elif engine_type == "bark_tts":
+            from .bark_tts import TTSEngine as BarkTTSEngine
 
             return BarkTTSEngine(kwargs.get("voice"))
-        elif engine_type == "edgeTTS":
-            from .edgeTTS import TTSEngine as EdgeTTSEngine
+        elif engine_type == "edge_tts":
+            from .edge_tts import TTSEngine as EdgeTTSEngine
 
             return EdgeTTSEngine(kwargs.get("voice"))
-        elif engine_type == "pyttsx3TTS":
-            from .pyttsx3TTS import TTSEngine as Pyttsx3TTSEngine
+        elif engine_type == "pyttsx3_tts":
+            from .pyttsx3_tts import TTSEngine as Pyttsx3TTSEngine
 
             return Pyttsx3TTSEngine()
-        elif engine_type == "cosyvoiceTTS":
-            from .cosyvoiceTTS import TTSEngine as CosyvoiceTTSEngine
+        elif engine_type == "cosyvoice_tts":
+            from .cosyvoice_tts import TTSEngine as CosyvoiceTTSEngine
 
             return CosyvoiceTTSEngine(
                 client_url=kwargs.get("client_url"),
@@ -41,8 +41,8 @@ class TTSFactory:
                 seed=kwargs.get("seed"),
                 api_name=kwargs.get("api_name"),
             )
-        elif engine_type == "meloTTS":
-            from .meloTTS import TTSEngine as MeloTTSEngine
+        elif engine_type == "melo_tts":
+            from .melo_tts import TTSEngine as MeloTTSEngine
 
             return MeloTTSEngine(
                 speaker=kwargs.get("speaker"),
@@ -50,22 +50,22 @@ class TTSFactory:
                 device=kwargs.get("device"),
                 speed=kwargs.get("speed"),
             )
-        elif engine_type == "piperTTS":
-            from .piperTTS import TTSEngine as PiperTTSEngine
+        elif engine_type == "piper_tts":
+            from .piper_tts import TTSEngine as PiperTTSEngine
 
             return PiperTTSEngine(
                 voice_path=kwargs.get("voice_model_path"), verbose=kwargs.get("verbose")
             )
-        elif engine_type == "xTTS":
-            from .xTTS import TTSEngine as XTTSEngine
+        elif engine_type == "x_tts":
+            from .x_tts import TTSEngine as XTTSEngine
 
             return XTTSEngine(
                 api_url=kwargs.get("api_url"),
                 speaker_wav=kwargs.get("speaker_wav"),
                 language=kwargs.get("language"),
             )
-        elif engine_type == "GPTSoVITS":
-            from .GPTSoVITS import TTSEngine as GSVEngine
+        elif engine_type == "gpt_sovits_tts":
+            from .gpt_sovits_tts import TTSEngine as GSVEngine
 
             return GSVEngine(
                 api_url=kwargs.get("api_url"),
@@ -79,8 +79,8 @@ class TTSFactory:
                 streaming_mode=kwargs.get("streaming_mode"),
             )
 
-        elif engine_type == "coquiTTS":
-            from .coquiTTS import TTSEngine as CoquiTTSEngine
+        elif engine_type == "coqui_tts":
+            from .coqui_tts import TTSEngine as CoquiTTSEngine
             
             return CoquiTTSEngine(
                 model_name=kwargs.get("model_name"),
@@ -89,8 +89,8 @@ class TTSFactory:
                 device=kwargs.get("device"),
             )
             
-        elif engine_type == "fishAPITTS":
-            from .fishAPITTS import TTSEngine as FishAPITTSEngine
+        elif engine_type == "fish_api_tts":
+            from .fish_api_tts import TTSEngine as FishAPITTSEngine
 
             return FishAPITTSEngine(
                 api_key=kwargs.get("api_key"),
@@ -98,8 +98,8 @@ class TTSFactory:
                 latency=kwargs.get("latency"),
                 base_url=kwargs.get("base_url"),
             )
-        elif engine_type == "SherpaOnnxTTS":
-            from .sherpaOnnxTTS import TTSEngine as SherpaOnnxTTSEngine
+        elif engine_type == "sherpa_onnx_tts":
+            from .sherpa_onnx_tts import TTSEngine as SherpaOnnxTTSEngine
 
             return SherpaOnnxTTSEngine(**kwargs)
             

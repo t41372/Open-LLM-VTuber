@@ -1,12 +1,12 @@
 # config_manager/tts.py
 from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
-from typing import Literal, Optional, Dict, ClassVar, Union, Any
+from typing import Literal, Optional, Dict, ClassVar
 from .i18n import I18nMixin, Description, MultiLingualString
-
-# --- Sub-models for specific TTS providers ---
 
 
 class AzureTTSConfig(I18nMixin):
+    """Configuration for Azure TTS service."""
+
     api_key: str = Field(..., alias="api_key")
     region: str = Field(..., alias="region")
     voice: str = Field(..., alias="voice")
@@ -14,34 +14,48 @@ class AzureTTSConfig(I18nMixin):
     rate: str = Field(..., alias="rate")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "api_key": Description.from_str("API key for Azure TTS"),
-        "region": Description.from_str("Region for Azure TTS (e.g., eastus)"),
-        "voice": Description.from_str("Voice name to use for Azure TTS"),
-        "pitch": Description.from_str("Pitch adjustment for Azure TTS (percentage)"),
-        "rate": Description.from_str("Speaking rate for Azure TTS"),
+        "api_key": Description(
+            en="API key for Azure TTS service", zh="Azure TTS 服务的 API 密钥"
+        ),
+        "region": Description(
+            en="Azure region (e.g., eastus)", zh="Azure 区域（如 eastus）"
+        ),
+        "voice": Description(
+            en="Voice name to use for Azure TTS", zh="Azure TTS 使用的语音名称"
+        ),
+        "pitch": Description(en="Pitch adjustment percentage", zh="音高调整百分比"),
+        "rate": Description(en="Speaking rate adjustment", zh="语速调整"),
     }
 
 
 class BarkTTSConfig(I18nMixin):
+    """Configuration for Bark TTS."""
+
     voice: str = Field(..., alias="voice")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "voice": Description.from_str("Voice name to use for Bark TTS"),
+        "voice": Description(
+            en="Voice name to use for Bark TTS", zh="Bark TTS 使用的语音名称"
+        ),
     }
 
 
 class EdgeTTSConfig(I18nMixin):
+    """Configuration for Edge TTS."""
+
     voice: str = Field(..., alias="voice")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "voice": Description.from_str(
-            "Voice name to use for Edge TTS",
-            "Use `edge-tts --list-voices` to list available voices",
+        "voice": Description(
+            en="Voice name to use for Edge TTS (use 'edge-tts --list-voices' to list available voices)",
+            zh="Edge TTS 使用的语音名称（使用 'edge-tts --list-voices' 列出可用语音）",
         ),
     }
 
 
 class CosyvoiceTTSConfig(I18nMixin):
+    """Configuration for Cosyvoice TTS."""
+
     client_url: str = Field(..., alias="client_url")
     mode_checkbox_group: str = Field(..., alias="mode_checkbox_group")
     sft_dropdown: str = Field(..., alias="sft_dropdown")
@@ -53,57 +67,87 @@ class CosyvoiceTTSConfig(I18nMixin):
     api_name: str = Field(..., alias="api_name")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "client_url": Description.from_str("URL of the CosyVoice Gradio web UI"),
-        "mode_checkbox_group": Description.from_str("Mode checkbox group value"),
-        "sft_dropdown": Description.from_str("SFT dropdown value"),
-        "prompt_text": Description.from_str("Prompt text"),
-        "prompt_wav_upload_url": Description.from_str(
-            "URL for uploading prompt WAV file"
+        "client_url": Description(
+            en="URL of the CosyVoice Gradio web UI", zh="CosyVoice Gradio Web UI 的 URL"
         ),
-        "prompt_wav_record_url": Description.from_str("URL for recording prompt WAV"),
-        "instruct_text": Description.from_str("Instruction text"),
-        "seed": Description.from_str("Seed value"),
-        "api_name": Description.from_str("API endpoint name"),
+        "mode_checkbox_group": Description(
+            en="Mode checkbox group value", zh="模式复选框组值"
+        ),
+        "sft_dropdown": Description(en="SFT dropdown value", zh="SFT 下拉框值"),
+        "prompt_text": Description(en="Prompt text", zh="提示文本"),
+        "prompt_wav_upload_url": Description(
+            en="URL for prompt WAV file upload", zh="提示音频文件上传 URL"
+        ),
+        "prompt_wav_record_url": Description(
+            en="URL for prompt WAV file recording", zh="提示音频文件录制 URL"
+        ),
+        "instruct_text": Description(en="Instruction text", zh="指令文本"),
+        "seed": Description(en="Random seed", zh="随机种子"),
+        "api_name": Description(en="API endpoint name", zh="API 端点名称"),
     }
 
 
 class MeloTTSConfig(I18nMixin):
+    """Configuration for Melo TTS."""
+
     speaker: str = Field(..., alias="speaker")
     language: str = Field(..., alias="language")
-    device: str = Field(..., alias="device")
-    speed: float = Field(..., alias="speed")
+    device: str = Field("auto", alias="device")
+    speed: float = Field(1.0, alias="speed")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "speaker": Description.from_str("Speaker name for Melo TTS"),
-        "language": Description.from_str("Language code for Melo TTS"),
-        "device": Description.from_str("Device to use for inference (e.g., cpu, cuda)"),
-        "speed": Description.from_str("Speed of speech"),
+        "speaker": Description(
+            en="Speaker name (e.g., EN-Default, ZH)",
+            zh="说话人名称（如 EN-Default、ZH）",
+        ),
+        "language": Description(
+            en="Language code (e.g., EN, ZH)", zh="语言代码（如 EN、ZH）"
+        ),
+        "device": Description(
+            en="Device to use (auto, cpu, cuda, cuda:0, mps)",
+            zh="使用的设备（auto、cpu、cuda、cuda:0、mps）",
+        ),
+        "speed": Description(en="Speech speed multiplier", zh="语速倍数"),
     }
 
 
 class PiperTTSConfig(I18nMixin):
+    """Configuration for Piper TTS."""
+
     voice_model_path: str = Field(..., alias="voice_model_path")
     verbose: bool = Field(False, alias="verbose")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "voice_model_path": Description.from_str("Path to the Piper TTS voice model"),
-        "verbose": Description.from_str("Enable verbose output"),
+        "voice_model_path": Description(
+            en="Path to the voice model file", zh="语音模型文件路径"
+        ),
+        "verbose": Description(en="Enable verbose output", zh="启用详细输出"),
     }
 
 
-class xTTSConfig(I18nMixin):
+class XTTSConfig(I18nMixin):
+    """Configuration for XTTS."""
+
     api_url: str = Field(..., alias="api_url")
     speaker_wav: str = Field(..., alias="speaker_wav")
     language: str = Field(..., alias="language")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "api_url": Description.from_str("API URL for xTTS"),
-        "speaker_wav": Description.from_str("Speaker WAV file or identifier for xTTS"),
-        "language": Description.from_str("Language code for xTTS"),
+        "api_url": Description(
+            en="URL of the XTTS API endpoint", zh="XTTS API 端点的 URL"
+        ),
+        "speaker_wav": Description(
+            en="Speaker reference WAV file", zh="说话人参考音频文件"
+        ),
+        "language": Description(
+            en="Language code (e.g., en, zh)", zh="语言代码（如 en、zh）"
+        ),
     }
 
 
 class GPTSoVITSConfig(I18nMixin):
+    """Configuration for GPT-SoVITS."""
+
     api_url: str = Field(..., alias="api_url")
     text_lang: str = Field(..., alias="text_lang")
     ref_audio_path: str = Field(..., alias="ref_audio_path")
@@ -115,56 +159,78 @@ class GPTSoVITSConfig(I18nMixin):
     streaming_mode: str = Field(..., alias="streaming_mode")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "api_url": Description.from_str("API URL for GPT-SoVITS"),
-        "text_lang": Description.from_str("Language code for input text"),
-        "ref_audio_path": Description.from_str("Path to reference audio file"),
-        "prompt_lang": Description.from_str("Language code for prompt text"),
-        "prompt_text": Description.from_str("Prompt text"),
-        "text_split_method": Description.from_str("Method for splitting text"),
-        "batch_size": Description.from_str("Batch size"),
-        "media_type": Description.from_str("Media type (e.g., wav)"),
-        "streaming_mode": Description.from_str("Streaming mode (true or false)"),
+        "api_url": Description(
+            en="URL of the GPT-SoVITS API endpoint", zh="GPT-SoVITS API 端点的 URL"
+        ),
+        "text_lang": Description(en="Language of the input text", zh="输入文本的语言"),
+        "ref_audio_path": Description(
+            en="Path to reference audio file", zh="参考音频文件路径"
+        ),
+        "prompt_lang": Description(en="Language of the prompt", zh="提示词语言"),
+        "prompt_text": Description(en="Prompt text", zh="提示文本"),
+        "text_split_method": Description(
+            en="Method for splitting text", zh="文本分割方法"
+        ),
+        "batch_size": Description(en="Batch size for processing", zh="处理批次大小"),
+        "media_type": Description(en="Output media type", zh="输出媒体类型"),
+        "streaming_mode": Description(en="Enable streaming mode", zh="启用流式模式"),
     }
 
 
 class FishAPITTSConfig(I18nMixin):
+    """Configuration for Fish API TTS."""
+
     api_key: str = Field(..., alias="api_key")
     reference_id: str = Field(..., alias="reference_id")
-    latency: Literal["normal", "balanced"] = Field("balanced", alias="latency")
-    base_url: str = Field("https://api.fish.audio", alias="base_url")
+    latency: Literal["normal", "balanced"] = Field(..., alias="latency")
+    base_url: str = Field(..., alias="base_url")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "api_key": Description.from_str("API key for Fish TTS"),
-        "reference_id": Description.from_str("Reference ID for the voice"),
-        "latency": Description.from_str("Latency mode (normal or balanced)"),
-        "base_url": Description.from_str("Base URL for the Fish TTS API"),
+        "api_key": Description(
+            en="API key for Fish TTS service", zh="Fish TTS 服务的 API 密钥"
+        ),
+        "reference_id": Description(
+            en="Voice reference ID from Fish Audio website",
+            zh="来自 Fish Audio 网站的语音参考 ID",
+        ),
+        "latency": Description(
+            en="Latency mode (normal or balanced)", zh="延迟模式（normal 或 balanced）"
+        ),
+        "base_url": Description(
+            en="Base URL for Fish TTS API", zh="Fish TTS API 的基础 URL"
+        ),
     }
 
 
 class CoquiTTSConfig(I18nMixin):
+    """Configuration for Coqui TTS."""
+
     model_name: str = Field(..., alias="model_name")
-    speaker_wav: Optional[str] = Field(None, alias="speaker_wav")
-    language: Optional[str] = Field(None, alias="language")
-    device: Optional[str] = Field(None, alias="device")
+    speaker_wav: str = Field("", alias="speaker_wav")
+    language: str = Field(..., alias="language")
+    device: str = Field("", alias="device")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "model_name": Description.from_str(
-            "Name of the Coqui TTS model to use",
-            "Use `tts --list_models` to list supported models",
+        "model_name": Description(
+            en="Name of the TTS model to use", zh="要使用的 TTS 模型名称"
         ),
-        "speaker_wav": Description.from_str(
-            "Path to speaker WAV file for voice cloning (multi-speaker only)"
+        "speaker_wav": Description(
+            en="Path to speaker WAV file for voice cloning",
+            zh="用于声音克隆的说话人音频文件路径",
         ),
-        "language": Description.from_str(
-            "Language code for multi-lingual models (e.g., en, zh, ja)"
+        "language": Description(
+            en="Language code (e.g., en, zh)", zh="语言代码（如 en、zh）"
         ),
-        "device": Description.from_str(
-            "Device to run model on (cuda, cpu, or leave empty for auto-detect)"
+        "device": Description(
+            en="Device to use (cuda, cpu, or empty for auto)",
+            zh="使用的设备（cuda、cpu 或留空以自动选择）",
         ),
     }
 
 
 class SherpaOnnxTTSConfig(I18nMixin):
+    """Configuration for Sherpa Onnx TTS."""
+
     vits_model: str = Field(..., alias="vits_model")
     vits_lexicon: Optional[str] = Field(None, alias="vits_lexicon")
     vits_tokens: str = Field(..., alias="vits_tokens")
@@ -179,104 +245,125 @@ class SherpaOnnxTTSConfig(I18nMixin):
     debug: bool = Field(False, alias="debug")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "vits_model": Description.from_str("Path to VITS model file"),
-        "vits_lexicon": Description.from_str("Path to lexicon file (optional)"),
-        "vits_tokens": Description.from_str("Path to tokens file"),
-        "vits_data_dir": Description.from_str("Path to espeak-ng data (optional)"),
-        "vits_dict_dir": Description.from_str(
-            "Path to Jieba dict (optional, for Chinese)"
+        "vits_model": Description(en="Path to VITS model file", zh="VITS 模型文件路径"),
+        "vits_lexicon": Description(
+            en="Path to lexicon file (optional)", zh="词典文件路径（可选）"
         ),
-        "tts_rule_fsts": Description.from_str("Path to rule FSTs file (optional)"),
-        "max_num_sentences": Description.from_str(
-            "Max sentences per batch (or -1 for all)"
+        "vits_tokens": Description(en="Path to tokens file", zh="词元文件路径"),
+        "vits_data_dir": Description(
+            en="Path to espeak-ng data directory (optional)",
+            zh="espeak-ng 数据目录路径（可选）",
         ),
-        "sid": Description.from_str("Speaker ID (for multi-speaker models)"),
-        "provider": Description.from_str("Use cpu, cuda (GPU), or coreml (Apple)"),
-        "num_threads": Description.from_str("Number of computation threads"),
-        "speed": Description.from_str("Speech speed (1.0 is normal)"),
-        "debug": Description.from_str("Enable debug mode (True/False)"),
+        "vits_dict_dir": Description(
+            en="Path to Jieba dictionary directory (optional)",
+            zh="结巴词典目录路径（可选）",
+        ),
+        "tts_rule_fsts": Description(
+            en="Path to rule FSTs file (optional)", zh="规则 FST 文件路径（可选）"
+        ),
+        "max_num_sentences": Description(
+            en="Maximum number of sentences per batch", zh="每批次最大句子数"
+        ),
+        "sid": Description(
+            en="Speaker ID for multi-speaker models", zh="多说话人模型的说话人 ID"
+        ),
+        "provider": Description(
+            en="Computation provider (cpu, cuda, or coreml)",
+            zh="计算提供者（cpu、cuda 或 coreml）",
+        ),
+        "num_threads": Description(en="Number of computation threads", zh="计算线程数"),
+        "speed": Description(en="Speech speed multiplier", zh="语速倍数"),
+        "debug": Description(en="Enable debug mode", zh="启用调试模式"),
     }
 
 
-# --- Main TTSConfig model ---
-
-
 class TTSConfig(I18nMixin):
-    """
-    Configuration for Text-to-Speech.
-    """
+    """Configuration for Text-to-Speech."""
 
-    tts_on: bool = Field(..., alias="TTS_ON")
+    tts_on: bool = Field(..., alias="tts_on")
     tts_model: Literal[
-        "AzureTTS",
-        "pyttsx3TTS",
-        "edgeTTS",
-        "barkTTS",
-        "cosyvoiceTTS",
-        "meloTTS",
-        "piperTTS",
-        "coquiTTS",
-        "xTTS",
-        "GPTSoVITS",
-        "fishAPITTS",
-        "SherpaOnnxTTS",
-    ] = Field(..., alias="TTS_MODEL")
-    azure_tts: Optional[AzureTTSConfig] = Field(None, alias="AzureTTS")
-    bark_tts: Optional[BarkTTSConfig] = Field(None, alias="barkTTS")
-    edge_tts: Optional[EdgeTTSConfig] = Field(None, alias="edgeTTS")
-    cosyvoice_tts: Optional[CosyvoiceTTSConfig] = Field(None, alias="cosyvoiceTTS")
-    melo_tts: Optional[MeloTTSConfig] = Field(None, alias="meloTTS")
-    piper_tts: Optional[PiperTTSConfig] = Field(None, alias="piperTTS")
-    coqui_tts: Optional[CoquiTTSConfig] = Field(None, alias="coquiTTS")
-    x_tts: Optional[xTTSConfig] = Field(None, alias="xTTS")
-    gpt_sovits: Optional[GPTSoVITSConfig] = Field(None, alias="GPTSoVITS")
-    fish_api_tts: Optional[FishAPITTSConfig] = Field(None, alias="fishAPITTS")
-    sherpa_onnx_tts: Optional[SherpaOnnxTTSConfig] = Field(None, alias="SherpaOnnxTTS")
+        "azure_tts",
+        "bark_tts",
+        "edge_tts",
+        "cosyvoice_tts",
+        "melo_tts",
+        "piper_tts",
+        "coqui_tts",
+        "x_tts",
+        "gpt_sovits",
+        "fish_api_tts",
+        "sherpa_onnx_tts",
+    ] = Field(..., alias="tts_model")
+
+    azure_tts: Optional[AzureTTSConfig] = Field(None, alias="azure_tts")
+    bark_tts: Optional[BarkTTSConfig] = Field(None, alias="bark_tts")
+    edge_tts: Optional[EdgeTTSConfig] = Field(None, alias="edge_tts")
+    cosyvoice_tts: Optional[CosyvoiceTTSConfig] = Field(None, alias="cosyvoice_tts")
+    melo_tts: Optional[MeloTTSConfig] = Field(None, alias="melo_tts")
+    piper_tts: Optional[PiperTTSConfig] = Field(None, alias="piper_tts")
+    coqui_tts: Optional[CoquiTTSConfig] = Field(None, alias="coqui_tts")
+    x_tts: Optional[XTTSConfig] = Field(None, alias="x_tts")
+    gpt_sovits: Optional[GPTSoVITSConfig] = Field(None, alias="gpt_sovits")
+    fish_api_tts: Optional[FishAPITTSConfig] = Field(None, alias="fish_api_tts")
+    sherpa_onnx_tts: Optional[SherpaOnnxTTSConfig] = Field(
+        None, alias="sherpa_onnx_tts"
+    )
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "tts_on": Description.from_str("Enable Text-to-Speech"),
-        "tts_model": Description.from_str(
-            "Text-to-speech model to use",
-            "Options: AzureTTS, pyttsx3TTS, edgeTTS, barkTTS, cosyvoiceTTS, meloTTS, piperTTS, coquiTTS, xTTS, GPTSoVITS, fishAPITTS, SherpaOnnxTTS",
+        "tts_on": Description(en="Enable Text-to-Speech", zh="启用文本转语音"),
+        "tts_model": Description(
+            en="Text-to-speech model to use", zh="要使用的文本转语音模型"
         ),
-        "azure_tts": Description.from_str("Configuration for Azure TTS"),
-        "bark_tts": Description.from_str("Configuration for Bark TTS"),
-        "edge_tts": Description.from_str("Configuration for Edge TTS"),
-        "cosyvoice_tts": Description.from_str("Configuration for Cosyvoice TTS"),
-        "melo_tts": Description.from_str("Configuration for Melo TTS"),
-        "piper_tts": Description.from_str("Configuration for Piper TTS"),
-        "coqui_tts": Description.from_str("Configuration for Coqui TTS"),
-        "x_tts": Description.from_str("Configuration for xTTS"),
-        "gpt_sovits": Description.from_str("Configuration for GPT-SoVITS"),
-        "fish_api_tts": Description.from_str("Configuration for Fish API TTS"),
-        "sherpa_onnx_tts": Description.from_str("Configuration for Sherpa Onnx TTS"),
+        "azure_tts": Description(en="Configuration for Azure TTS", zh="Azure TTS 配置"),
+        "bark_tts": Description(en="Configuration for Bark TTS", zh="Bark TTS 配置"),
+        "edge_tts": Description(en="Configuration for Edge TTS", zh="Edge TTS 配置"),
+        "cosyvoice_tts": Description(
+            en="Configuration for Cosyvoice TTS", zh="Cosyvoice TTS 配置"
+        ),
+        "melo_tts": Description(en="Configuration for Melo TTS", zh="Melo TTS 配置"),
+        "piper_tts": Description(en="Configuration for Piper TTS", zh="Piper TTS 配置"),
+        "coqui_tts": Description(en="Configuration for Coqui TTS", zh="Coqui TTS 配置"),
+        "x_tts": Description(en="Configuration for XTTS", zh="XTTS 配置"),
+        "gpt_sovits": Description(
+            en="Configuration for GPT-SoVITS", zh="GPT-SoVITS 配置"
+        ),
+        "fish_api_tts": Description(
+            en="Configuration for Fish API TTS", zh="Fish API TTS 配置"
+        ),
+        "sherpa_onnx_tts": Description(
+            en="Configuration for Sherpa Onnx TTS", zh="Sherpa Onnx TTS 配置"
+        ),
     }
 
     @model_validator(mode="after")
     def check_tts_config(cls, values: "TTSConfig", info: ValidationInfo):
+        if not values.tts_on:
+            return values
+
         tts_model = values.tts_model
 
         # Only validate the selected TTS model
-        if tts_model == "AzureTTS" and values.azure_tts is not None:
+        if tts_model == "azure_tts" and values.azure_tts is not None:
             values.azure_tts.model_validate(values.azure_tts.model_dump())
-        elif tts_model == "barkTTS" and values.bark_tts is not None:
+        elif tts_model == "bark_tts" and values.bark_tts is not None:
             values.bark_tts.model_validate(values.bark_tts.model_dump())
-        elif tts_model == "edgeTTS" and values.edge_tts is not None:
+        elif tts_model == "edge_tts" and values.edge_tts is not None:
             values.edge_tts.model_validate(values.edge_tts.model_dump())
-        elif tts_model == "cosyvoiceTTS" and values.cosyvoice_tts is not None:
+        elif tts_model == "cosyvoice_tts" and values.cosyvoice_tts is not None:
             values.cosyvoice_tts.model_validate(values.cosyvoice_tts.model_dump())
-        elif tts_model == "meloTTS" and values.melo_tts is not None:
+        elif tts_model == "melo_tts" and values.melo_tts is not None:
             values.melo_tts.model_validate(values.melo_tts.model_dump())
-        elif tts_model == "piperTTS" and values.piper_tts is not None:
+        elif tts_model == "piper_tts" and values.piper_tts is not None:
             values.piper_tts.model_validate(values.piper_tts.model_dump())
-        elif tts_model == "coquiTTS" and values.coqui_tts is not None:
+        elif tts_model == "coqui_tts" and values.coqui_tts is not None:
             values.coqui_tts.model_validate(values.coqui_tts.model_dump())
-        elif tts_model == "xTTS" and values.x_tts is not None:
+        elif tts_model == "x_tts" and values.x_tts is not None:
             values.x_tts.model_validate(values.x_tts.model_dump())
-        elif tts_model == "GPTSoVITS" and values.gpt_sovits is not None:
+        elif tts_model == "gpt_sovits_tts" and values.gpt_sovits is not None:
             values.gpt_sovits.model_validate(values.gpt_sovits.model_dump())
-        elif tts_model == "fishAPITTS" and values.fish_api_tts is not None:
+        elif tts_model == "fish_api_tts" and values.fish_api_tts is not None:
             values.fish_api_tts.model_validate(values.fish_api_tts.model_dump())
-        elif tts_model == "SherpaOnnxTTS" and values.sherpa_onnx_tts is not None:
+        elif tts_model == "sherpa_onnx_tts" and values.sherpa_onnx_tts is not None:
             values.sherpa_onnx_tts.model_validate(values.sherpa_onnx_tts.model_dump())
+
         return values

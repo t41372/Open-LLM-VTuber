@@ -1,16 +1,16 @@
 from typing import Type
 from .llm_interface import LLMInterface
-from .ollama import LLM as OllamaLLM
-from .memGPT import LLM as MemGPTLLM
+from .ollama_llm import LLM as OllamaLLM
+from .memgpt import LLM as MemGPTLLM
 from .fake_llm import LLM as FakeLLM
-from .claude import LLM as ClaudeLLM
+from .claude_llm import LLM as ClaudeLLM
 
 
 class LLMFactory:
     @staticmethod
     def create_llm(llm_provider, **kwargs) -> Type[LLMInterface]:
 
-        if llm_provider == "ollama":
+        if llm_provider == "ollama_llm":
             return OllamaLLM(
                 system=kwargs.get("SYSTEM_PROMPT"),
                 base_url=kwargs.get("BASE_URL"),
@@ -20,15 +20,15 @@ class LLMFactory:
                 organization_id=kwargs.get("ORGANIZATION_ID"),
                 verbose=kwargs.get("VERBOSE", False),
             )
-        elif llm_provider == "llamacpp":
-            from .llamacpp_llm import LLM as LlamaLLM
+        elif llm_provider == "llama_cpp_llm":
+            from .llama_cpp_llm import LLM as LlamaLLM
             return LlamaLLM(
                 model_path=kwargs.get("MODEL_PATH"),
                 system=kwargs.get("SYSTEM_PROMPT"),
                 verbose=kwargs.get("VERBOSE", False),
             )
         elif llm_provider == "mem0":
-            from llm.mem0_llm import LLM as Mem0LLM
+            from open_llm_vtuber.llm.mem0 import LLM as Mem0LLM
             return Mem0LLM(
                 user_id=kwargs.get("USER_ID"),
                 system=kwargs.get("SYSTEM_PROMPT"),
@@ -47,7 +47,7 @@ class LLMFactory:
                 agent_id=kwargs.get("AGENT_ID"),
                 verbose=kwargs.get("VERBOSE", False),
             )
-        elif llm_provider == "claude":
+        elif llm_provider == "claude_llm":
             return ClaudeLLM(
                 system=kwargs.get("SYSTEM_PROMPT"),
                 base_url=kwargs.get("BASE_URL"),
@@ -55,7 +55,7 @@ class LLMFactory:
                 llm_api_key=kwargs.get("LLM_API_KEY"),
                 verbose=kwargs.get("VERBOSE", False),
             )
-        elif llm_provider == "fakellm":
+        elif llm_provider == "fake_llm":
             return FakeLLM()
         else:
             raise ValueError(f"Unsupported LLM provider: {llm_provider}")

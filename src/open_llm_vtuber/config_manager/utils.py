@@ -1,7 +1,7 @@
 # config_manager/utils.py
 import yaml
 from pathlib import Path
-from typing import Type, Optional, Union, Dict, Any
+from typing import Type, Optional, Union, Dict, Any, TypeVar
 from pydantic import BaseModel, ValidationError
 import os
 import re
@@ -11,52 +11,43 @@ from loguru import logger
 from .main import Config
 from .i18n import Description, MultiLingualString
 
+T = TypeVar("T", bound=BaseModel)
 
-def load_config(
-    config_path: Union[str, Path], model: Type[BaseModel] = Config
-) -> BaseModel:
+def load_config(config_path: str, model: Type[T] = None) -> T:
     """
-    Loads the YAML configuration file and parses it into a Pydantic model.
-    Supports environment variable injection and encoding guessing.
+    Load configuration from a YAML file and validate it against a Pydantic model.
 
     Args:
         config_path: Path to the YAML configuration file.
-        model: The Pydantic model to parse the configuration into (default: Config).
+        model: Pydantic model class to validate against (optional).
 
     Returns:
-        An instance of the specified Pydantic model.
+        Validated configuration object.
 
     Raises:
         FileNotFoundError: If the configuration file does not exist.
-        ValidationError: If the configuration file is invalid.
-        yaml.YAMLError: If there is an error parsing the YAML file.
+        yaml.YAMLError: If the YAML file is invalid.
+        ValidationError: If the configuration fails validation.
     """
-    config_file = Path(config_path)
-    if not config_file.is_file():
+    if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
-    content = load_text_file_with_guess_encoding(config_path)
-    if not content:
-        raise ValueError(f"Error reading config file {config_path}")
-
-    # Match ${VAR_NAME}
-    pattern = re.compile(r"\$\{(\w+)\}")
-
-    def replacer(match):
-        env_var = match.group(1)
-        return os.getenv(env_var, match.group(0))
-
-    content = pattern.sub(replacer, content)
-
     try:
-        config_data = yaml.safe_load(content)
+        with open(config_path, "r", encoding="utf-8") as f:
+            config_data = yaml.safe_load(f)
     except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Error parsing YAML file: {e}")
+        logger.error(f"Error parsing YAML file: {e}")
+        raise
+
+    if model is None:
+        from .main import Config
+        model = Config
 
     try:
         return model.model_validate(config_data)
-    except ValidationError as e:
-        raise ValidationError(f"Error validating configuration: {e}")
+    except Exception as e:
+        logger.error(f"Error validating configuration: {e}")
+        raise
 
 
 def load_text_file_with_guess_encoding(file_path: str) -> str | None:

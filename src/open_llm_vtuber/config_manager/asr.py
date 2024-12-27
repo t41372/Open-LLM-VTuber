@@ -1,49 +1,55 @@
 # config_manager/asr.py
 from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
-from typing import Literal, Optional, Dict, ClassVar, Union, Any
+from typing import Literal, Optional, Dict, ClassVar, Union
 from .i18n import I18nMixin, Description, MultiLingualString
 
-# --- Sub-models for specific ASR providers ---
-
-
 class AzureASRConfig(I18nMixin):
+    """Configuration for Azure ASR service."""
+    
     api_key: str = Field(..., alias="api_key")
     region: str = Field(..., alias="region")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "api_key": Description.from_str("API key for Azure ASR"),
-        "region": Description.from_str("Region for Azure ASR (e.g., eastus)"),
+        "api_key": Description(
+            en="API key for Azure ASR service",
+            zh="Azure ASR 服务的 API 密钥"
+        ),
+        "region": Description(
+            en="Azure region (e.g., eastus)",
+            zh="Azure 区域（如 eastus）"
+        ),
     }
 
-
 class FasterWhisperConfig(I18nMixin):
+    """Configuration for Faster Whisper ASR."""
+    
     model_path: str = Field(..., alias="model_path")
     download_root: str = Field(..., alias="download_root")
     language: Optional[str] = Field(None, alias="language")
     device: Literal["auto", "cpu", "cuda"] = Field("auto", alias="device")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "model_path": Description.from_str(
-            "Path to the Faster Whisper model",
-            "distil-medium.en is an English-only model. Use distil-large-v3 for better performance if you have a good GPU.",
+        "model_path": Description(
+            en="Path to the Faster Whisper model",
+            zh="Faster Whisper 模型路径"
         ),
-        "download_root": Description.from_str("Root directory for downloading models"),
-        "language": Description.from_str(
-            "Language code (e.g., en, zh) or None for auto-detect"
+        "download_root": Description(
+            en="Root directory for downloading models",
+            zh="模型下载根目录"
         ),
-        "device": Description.from_str(
-            "Device to use for inference (cpu, cuda, or auto)"
+        "language": Description(
+            en="Language code (e.g., en, zh) or None for auto-detect",
+            zh="语言代码（如 en, zh）或留空以自动检测"
+        ),
+        "device": Description(
+            en="Device to use for inference (cpu, cuda, or auto)",
+            zh="推理设备（cpu、cuda 或 auto）"
         ),
     }
 
-    @field_validator("language")
-    def check_language(cls, v):
-        if v is not None and not isinstance(v, str):
-            raise ValueError("language must be a string or None")
-        return v
-
-
 class WhisperCPPConfig(I18nMixin):
+    """Configuration for WhisperCPP ASR."""
+    
     model_name: str = Field(..., alias="model_name")
     model_dir: str = Field(..., alias="model_dir")
     print_realtime: bool = Field(False, alias="print_realtime")
@@ -51,27 +57,53 @@ class WhisperCPPConfig(I18nMixin):
     language: Literal["auto", "en", "zh"] = Field("auto", alias="language")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "model_name": Description.from_str("Name of the Whisper model"),
-        "model_dir": Description.from_str("Directory for Whisper models"),
-        "print_realtime": Description.from_str("Print output in real-time"),
-        "print_progress": Description.from_str("Print progress information"),
-        "language": Description.from_str("Language code (en, zh, or auto)"),
+        "model_name": Description(
+            en="Name of the Whisper model",
+            zh="Whisper 模型名称"
+        ),
+        "model_dir": Description(
+            en="Directory containing Whisper models",
+            zh="Whisper 模型目录"
+        ),
+        "print_realtime": Description(
+            en="Print output in real-time",
+            zh="实时打印输出"
+        ),
+        "print_progress": Description(
+            en="Print progress information",
+            zh="打印进度信息"
+        ),
+        "language": Description(
+            en="Language code (en, zh, or auto)",
+            zh="语言代码（en、zh 或 auto）"
+        ),
     }
 
-
 class WhisperConfig(I18nMixin):
+    """Configuration for OpenAI Whisper ASR."""
+    
     name: str = Field(..., alias="name")
     download_root: str = Field(..., alias="download_root")
     device: Literal["cpu", "cuda"] = Field("cpu", alias="device")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "name": Description.from_str("Name of the Whisper model"),
-        "download_root": Description.from_str("Root directory for downloading models"),
-        "device": Description.from_str("Device to use for inference (cpu or cuda)"),
+        "name": Description(
+            en="Name of the Whisper model",
+            zh="Whisper 模型名称"
+        ),
+        "download_root": Description(
+            en="Root directory for downloading models",
+            zh="模型下载根目录"
+        ),
+        "device": Description(
+            en="Device to use for inference (cpu or cuda)",
+            zh="推理设备（cpu 或 cuda）"
+        ),
     }
 
-
 class FunASRConfig(I18nMixin):
+    """Configuration for FunASR."""
+    
     model_name: str = Field("iic/SenseVoiceSmall", alias="model_name")
     vad_model: str = Field("fsmn-vad", alias="vad_model")
     punc_model: str = Field("ct-punc", alias="punc_model")
@@ -83,23 +115,71 @@ class FunASRConfig(I18nMixin):
     language: Literal["auto", "zh", "en"] = Field("auto", alias="language")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "model_name": Description.from_str("Name of the FunASR model"),
-        "vad_model": Description.from_str("VAD model (used for audio longer than 30s)"),
-        "punc_model": Description.from_str("Punctuation model"),
-        "device": Description.from_str("Device to use for inference (cpu or cuda)"),
-        "disable_update": Description.from_str(
-            "Disable checking for FunASR updates on launch"
+        "model_name": Description(
+            en="Name of the FunASR model",
+            zh="FunASR 模型名称"
         ),
-        "ncpu": Description.from_str("Number of threads for CPU internal operations"),
-        "hub": Description.from_str(
-            "Model hub to use (ms for ModelScope, hf for Hugging Face)"
+        "vad_model": Description(
+            en="Voice Activity Detection model",
+            zh="语音活动检测模型"
         ),
-        "use_itn": Description.from_str("Enable inverse text normalization"),
-        "language": Description.from_str("Language code (zh, en, or auto)"),
+        "punc_model": Description(
+            en="Punctuation model",
+            zh="标点符号模型"
+        ),
+        "device": Description(
+            en="Device to use for inference (cpu or cuda)",
+            zh="推理设备（cpu 或 cuda）"
+        ),
+        "disable_update": Description(
+            en="Disable checking for FunASR updates on launch",
+            zh="启动时禁用 FunASR 更新检查"
+        ),
+        "ncpu": Description(
+            en="Number of CPU threads for internal operations",
+            zh="内部操作的 CPU 线程数"
+        ),
+        "hub": Description(
+            en="Model hub to use (ms for ModelScope, hf for Hugging Face)",
+            zh="使用的模型仓库（ms 为 ModelScope，hf 为 Hugging Face）"
+        ),
+        "use_itn": Description(
+            en="Enable inverse text normalization",
+            zh="启用反向文本归一化"
+        ),
+        "language": Description(
+            en="Language code (zh, en, or auto)",
+            zh="语言代码（zh、en 或 auto）"
+        ),
     }
 
+class GroqWhisperASRConfig(I18nMixin):
+    """Configuration for Groq Whisper ASR."""
+    
+    api_key: str = Field(..., alias="api_key")
+    model: Literal["whisper-large-v3-turbo", "whisper-large-v3"] = Field(
+        "whisper-large-v3-turbo", alias="model"
+    )
+    lang: Optional[str] = Field(None, alias="lang")
+
+    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+        "api_key": Description(
+            en="API key for Groq Whisper ASR",
+            zh="Groq Whisper ASR 的 API 密钥"
+        ),
+        "model": Description(
+            en="Name of the Groq Whisper model to use",
+            zh="要使用的 Groq Whisper 模型名称"
+        ),
+        "lang": Description(
+            en="Language code (leave empty for auto-detect)",
+            zh="语言代码（留空以自动检测）"
+        ),
+    }
 
 class SherpaOnnxASRConfig(I18nMixin):
+    """Configuration for Sherpa Onnx ASR."""
+
     model_type: Literal[
         "transducer",
         "paraformer",
@@ -119,90 +199,73 @@ class SherpaOnnxASRConfig(I18nMixin):
     whisper_encoder: Optional[str] = Field(None, alias="whisper_encoder")
     whisper_decoder: Optional[str] = Field(None, alias="whisper_decoder")
     sense_voice: Optional[str] = Field(None, alias="sense_voice")
-    tokens: Optional[str] = Field(None, alias="tokens")
-    hotwords_file: Optional[str] = Field(None, alias="hotwords_file")
-    hotwords_score: Optional[float] = Field(None, alias="hotwords_score")
-    modeling_unit: Optional[str] = Field(None, alias="modeling_unit")
-    bpe_vocab: Optional[str] = Field(None, alias="bpe_vocab")
+    tokens: str = Field(..., alias="tokens")
     num_threads: int = Field(4, alias="num_threads")
-    whisper_language: Optional[str] = Field(None, alias="whisper_language")
-    whisper_task: Literal["transcribe", "translate"] = Field(
-        "transcribe", alias="whisper_task"
-    )
-    whisper_tail_paddings: int = Field(-1, alias="whisper_tail_paddings")
-    blank_penalty: float = Field(0.0, alias="blank_penalty")
-    decoding_method: Literal["greedy_search", "modified_beam_search"] = Field(
-        "greedy_search", alias="decoding_method"
-    )
-    debug: bool = Field(False, alias="debug")
-    sample_rate: int = Field(16000, alias="sample_rate")
-    feature_dim: int = Field(80, alias="feature_dim")
     use_itn: bool = Field(True, alias="use_itn")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "model_type": Description.from_str("Type of Sherpa Onnx ASR model"),
-        "encoder": Description.from_str("Path to the encoder model (for transducer)"),
-        "decoder": Description.from_str("Path to the decoder model (for transducer)"),
-        "joiner": Description.from_str("Path to the joiner model (for transducer)"),
-        "paraformer": Description.from_str(
-            "Path to the paraformer model (for paraformer)"
+        "model_type": Description(
+            en="Type of ASR model to use",
+            zh="要使用的 ASR 模型类型"
         ),
-        "nemo_ctc": Description.from_str("Path to the NeMo CTC model (for nemo_ctc)"),
-        "wenet_ctc": Description.from_str(
-            "Path to the WeNet CTC model (for wenet_ctc)"
+        "encoder": Description(
+            en="Path to encoder model (for transducer)",
+            zh="编码器模型路径（用于 transducer）"
         ),
-        "tdnn_model": Description.from_str("Path to the TDNN CTC model (for tdnn_ctc)"),
-        "whisper_encoder": Description.from_str(
-            "Path to the Whisper encoder model (for whisper)"
+        "decoder": Description(
+            en="Path to decoder model (for transducer)",
+            zh="解码器模型路径（用于 transducer）"
         ),
-        "whisper_decoder": Description.from_str(
-            "Path to the Whisper decoder model (for whisper)"
+        "joiner": Description(
+            en="Path to joiner model (for transducer)",
+            zh="连接器模型路径（用于 transducer）"
         ),
-        "sense_voice": Description.from_str(
-            "Path to the SenseVoice model (for sense_voice)"
+        "paraformer": Description(
+            en="Path to paraformer model",
+            zh="Paraformer 模型路径"
         ),
-        "tokens": Description.from_str(
-            "Path to tokens.txt (required for all model types)"
+        "nemo_ctc": Description(
+            en="Path to NeMo CTC model",
+            zh="NeMo CTC 模型路径"
         ),
-        "hotwords_file": Description.from_str(
-            "Path to hotwords file (if using hotwords)"
+        "wenet_ctc": Description(
+            en="Path to WeNet CTC model",
+            zh="WeNet CTC 模型路径"
         ),
-        "hotwords_score": Description.from_str("Score for hotwords"),
-        "modeling_unit": Description.from_str(
-            "Modeling unit for hotwords (if applicable)"
+        "tdnn_model": Description(
+            en="Path to TDNN model",
+            zh="TDNN 模型路径"
         ),
-        "bpe_vocab": Description.from_str("Path to BPE vocabulary (if applicable)"),
-        "num_threads": Description.from_str("Number of threads"),
-        "whisper_language": Description.from_str(
-            "Language for Whisper models (e.g., en, zh, etc. - if using Whisper)"
+        "whisper_encoder": Description(
+            en="Path to Whisper encoder model",
+            zh="Whisper 编码器模型路径"
         ),
-        "whisper_task": Description.from_str(
-            "Task for Whisper models (transcribe or translate - if using Whisper)"
+        "whisper_decoder": Description(
+            en="Path to Whisper decoder model",
+            zh="Whisper 解码器模型路径"
         ),
-        "whisper_tail_paddings": Description.from_str(
-            "Tail padding for Whisper models (if using Whisper)"
+        "sense_voice": Description(
+            en="Path to SenseVoice model",
+            zh="SenseVoice 模型路径"
         ),
-        "blank_penalty": Description.from_str("Penalty for blank symbol"),
-        "decoding_method": Description.from_str(
-            "Decoding method (greedy_search or modified_beam_search)"
+        "tokens": Description(
+            en="Path to tokens file",
+            zh="词元文件路径"
         ),
-        "debug": Description.from_str("Enable debug mode"),
-        "sample_rate": Description.from_str(
-            "Sample rate (should match the model's expected sample rate)"
+        "num_threads": Description(
+            en="Number of threads to use",
+            zh="使用的线程数"
         ),
-        "feature_dim": Description.from_str(
-            "Feature dimension (should match the model's expected feature dimension)"
-        ),
-        "use_itn": Description.from_str(
-            "Enable ITN for SenseVoice models (should set to False if not using SenseVoice models)"
+        "use_itn": Description(
+            en="Enable inverse text normalization",
+            zh="启用反向文本归一化"
         ),
     }
 
-    @model_validator(mode="after")
-    def check_model_type_fields(
-        cls, values: "SherpaOnnxASRConfig", info: ValidationInfo
-    ):
+    @model_validator(mode='after')
+    def check_model_paths(cls, values: "SherpaOnnxASRConfig", info: ValidationInfo):
         model_type = values.model_type
+
         if model_type == "transducer":
             if not all([values.encoder, values.decoder, values.joiner, values.tokens]):
                 raise ValueError(
@@ -241,63 +304,62 @@ class SherpaOnnxASRConfig(I18nMixin):
 
         return values
 
-
-class GroqWhisperASRConfig(I18nMixin):
-    api_key: str = Field(..., alias="api_key")
-    model: Literal["whisper-large-v3-turbo", "whisper-large-v3"] = Field(
-        "whisper-large-v3-turbo", alias="model"
-    )
-    lang: Optional[str] = Field(None, alias="lang")
-
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "api_key": Description.from_str("API key for Groq Whisper ASR"),
-        "model": Description.from_str("Name of the Groq Whisper model to use"),
-        "lang": Description.from_str("Language code (leave empty for auto-detect)"),
-    }
-
-
-# --- Main ASRConfig model ---
-
-
 class ASRConfig(I18nMixin):
-    """
-    Configuration for Automatic Speech Recognition.
-    """
-
+    """Configuration for Automatic Speech Recognition."""
+    
     asr_model: Literal[
-        "Faster-Whisper",
-        "WhisperCPP",
-        "Whisper",
-        "AzureASR",
-        "FunASR",
-        "GroqWhisperASR",
-        "SherpaOnnxASR",
-    ] = Field(..., alias="ASR_MODEL")
-    azure_asr: Optional[AzureASRConfig] = Field(None, alias="AzureASR")
-    faster_whisper: Optional[FasterWhisperConfig] = Field(None, alias="Faster-Whisper")
-    whisper_cpp: Optional[WhisperCPPConfig] = Field(None, alias="WhisperCPP")
-    whisper: Optional[WhisperConfig] = Field(None, alias="Whisper")
-    fun_asr: Optional[FunASRConfig] = Field(None, alias="FunASR")
-    groq_whisper_asr: Optional[GroqWhisperASRConfig] = Field(
-        None, alias="GroqWhisperASR"
-    )
-    sherpa_onnx_asr: Optional[SherpaOnnxASRConfig] = Field(None, alias="SherpaOnnxASR")
+        "faster_whisper",
+        "whisper_cpp",
+        "whisper",
+        "azure_asr",
+        "fun_asr",
+        "groq_whisper_asr",
+        "sherpa_onnx_asr",
+    ] = Field(..., alias="asr_model")
+    azure_asr: Optional[AzureASRConfig] = Field(None, alias="azure_asr")
+    faster_whisper: Optional[FasterWhisperConfig] = Field(None, alias="faster_whisper")
+    whisper_cpp: Optional[WhisperCPPConfig] = Field(None, alias="whisper_cpp")
+    whisper: Optional[WhisperConfig] = Field(None, alias="whisper")
+    fun_asr: Optional[FunASRConfig] = Field(None, alias="fun_asr")
+    groq_whisper_asr: Optional[GroqWhisperASRConfig] = Field(None, alias="groq_whisper_asr")
+    sherpa_onnx_asr: Optional[SherpaOnnxASRConfig] = Field(None, alias="sherpa_onnx_asr")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "asr_model": Description.from_str(
-            "Speech-to-text model to use",
-            "Options: Faster-Whisper, WhisperCPP, Whisper, AzureASR, FunASR, GroqWhisperASR, SherpaOnnxASR",
+        "asr_model": Description(
+            en="Speech-to-text model to use",
+            zh="要使用的语音识别模型"
         ),
-        "azure_asr": Description.from_str("Configuration for Azure ASR"),
-        "faster_whisper": Description.from_str("Configuration for Faster Whisper"),
-        "whisper_cpp": Description.from_str("Configuration for WhisperCPP"),
-        "whisper": Description.from_str("Configuration for Whisper"),
-        "fun_asr": Description.from_str("Configuration for FunASR"),
-        "groq_whisper_asr": Description.from_str("Configuration for Groq Whisper ASR"),
-        "sherpa_onnx_asr": Description.from_str("Configuration for Sherpa Onnx ASR"),
+        "azure_asr": Description(
+            en="Configuration for Azure ASR",
+            zh="Azure ASR 配置"
+        ),
+        "faster_whisper": Description(
+            en="Configuration for Faster Whisper",
+            zh="Faster Whisper 配置"
+        ),
+        "whisper_cpp": Description(
+            en="Configuration for WhisperCPP",
+            zh="WhisperCPP 配置"
+        ),
+        "whisper": Description(
+            en="Configuration for Whisper",
+            zh="Whisper 配置"
+        ),
+        "fun_asr": Description(
+            en="Configuration for FunASR",
+            zh="FunASR 配置"
+        ),
+        "groq_whisper_asr": Description(
+            en="Configuration for Groq Whisper ASR",
+            zh="Groq Whisper ASR 配置"
+        ),
+        "sherpa_onnx_asr": Description(
+            en="Configuration for Sherpa Onnx ASR",
+            zh="Sherpa Onnx ASR 配置"
+        ),
     }
 
-    @model_validator(mode="after")
+    @model_validator(mode='after')
     def check_asr_config(cls, values: "ASRConfig", info: ValidationInfo):
         asr_model = values.asr_model
 
@@ -316,4 +378,5 @@ class ASRConfig(I18nMixin):
             values.groq_whisper_asr.model_validate(values.groq_whisper_asr.model_dump())
         elif asr_model == "SherpaOnnxASR" and values.sherpa_onnx_asr is not None:
             values.sherpa_onnx_asr.model_validate(values.sherpa_onnx_asr.model_dump())
+
         return values
