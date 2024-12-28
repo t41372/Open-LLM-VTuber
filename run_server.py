@@ -3,7 +3,7 @@ import tomli
 import uvicorn
 from loguru import logger
 from src.open_llm_vtuber.server import WebSocketServer
-from src.open_llm_vtuber.config_manager import Config, load_config
+from src.open_llm_vtuber.config_manager import Config, read_yaml, validate_config
 
 
 @logger.catch
@@ -13,7 +13,7 @@ def run():
     atexit.register(WebSocketServer.clean_cache)
 
     # Load configurations from yaml file
-    config: Config = load_config("conf.yaml")
+    config: Config = validate_config(read_yaml("conf.yaml"))
     server_config = config.system_config
     # config["LIVE2D"] = True  # make sure the live2d is enabled
 

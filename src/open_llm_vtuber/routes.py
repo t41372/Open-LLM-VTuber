@@ -30,6 +30,7 @@ def create_routes(default_context_cache: ServiceContext):
 
         session_service_context: ServiceContext = ServiceContext()
         session_service_context.load_cache(
+            config=default_context_cache.config,
             system_config=default_context_cache.system_config,
             character_config=default_context_cache.character_config,
             live2d_model=default_context_cache.live2d_model,

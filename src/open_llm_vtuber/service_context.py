@@ -24,7 +24,8 @@ from .config_manager import (
     ASRConfig,
     TTSConfig,
     LLMConfig,
-    load_config,
+    read_yaml,
+    validate_config,
 )
 
 
@@ -32,6 +33,7 @@ class ServiceContext:
     """Initializes, stores, and updates the asr, tts, llm instance for a connected client."""
 
     def __init__(self):
+        self.config: Config = None
         self.system_config: SystemConfig = None
         self.character_config: CharacterConfig = None
         self.asr_config: ASRConfig = None
@@ -68,6 +70,7 @@ class ServiceContext:
 
     def load_cache(
         self,
+        config: Config,
         system_config: SystemConfig,
         character_config: CharacterConfig,
         live2d_model: Live2dModel,
@@ -84,6 +87,7 @@ class ServiceContext:
         if not system_config:
             raise ValueError("system_config cannot be None")
         
+        self.config = config
         self.system_config = system_config
         self.character_config = character_config
         self.live2d_model = live2d_model
@@ -102,6 +106,7 @@ class ServiceContext:
         - config (Dict): The configuration dictionary.
         """
         # store typed config references
+        self.config = config
         self.system_config = config.system_config or self.system_config
         self.character_config = config.character_config or self.character_config
         # update all sub-configs
@@ -228,19 +233,29 @@ class ServiceContext:
         - config_file_name (str): The name of the configuration file.
         """
         try:
-            new_config = None
+            new_config_data = None
 
             if config_file_name == "conf.yaml":
-                new_config = load_config("conf.yaml")
+                # Load base config
+                new_config_data = read_yaml("conf.yaml")
             else:
+                # Load alternative config and merge with base config
                 config_alts_dir = self.system_config.config_alts_dir
                 file_path = os.path.join(config_alts_dir, config_file_name)
-                new_config = load_config(file_path)
+                alt_config_data = read_yaml(file_path)
+                
+                # Start with original config data and update with new values
+                new_config_data = self.config.model_dump()
+                new_config_data.update(alt_config_data)
+                logger.warning(f"New config data: {new_config_data}")
 
-            if new_config:
-                logger.error(self)
+            if new_config_data:
+                new_config = validate_config(new_config_data)
+                logger.debug(f"Current config: {self}")
                 self.load_from_config(new_config)
-                logger.error(self)
+                logger.debug(f"New config: {self}")
+
+                # Send responses to client
                 await websocket.send_text(
                     json.dumps(
                         {
@@ -276,7 +291,7 @@ class ServiceContext:
 
         except Exception as e:
             logger.error(f"Error switching configuration: {e}")
-            logger.info(self)
+            logger.debug(self)
             await websocket.send_text(
                 json.dumps(
                     {

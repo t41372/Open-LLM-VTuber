@@ -14,22 +14,22 @@ from .i18n import Description, MultiLingualString
 T = TypeVar("T", bound=BaseModel)
 
 
-def load_config(config_path: str) -> Config:
+def read_yaml(config_path: str) -> Dict[str, Any]:
     """
-    Load configuration from a YAML file and validate it against the Config model.
-    Supports environment variables (${VAR_NAME}) and automatically detects file encoding.
+    Read the specified YAML configuration file with environment variable substitution
+    and guess encoding. Return the configuration data as a dictionary.
 
     Args:
         config_path: Path to the YAML configuration file.
 
     Returns:
-        Validated Config object.
+        Configuration data as a dictionary.
 
     Raises:
-        FileNotFoundError: If the configuration file does not exist.
-        yaml.YAMLError: If the YAML file is invalid.
-        ValidationError: If the configuration fails validation.
+        FileNotFoundError: If the configuration file is not found.
+        IOError: If the configuration file cannot be read.
     """
+
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
@@ -39,22 +39,36 @@ def load_config(config_path: str) -> Config:
 
     # Replace environment variables
     pattern = re.compile(r"\$\{(\w+)\}")
+
     def replacer(match):
         env_var = match.group(1)
         return os.getenv(env_var, match.group(0))
-    
+
     content = pattern.sub(replacer, content)
 
     try:
-        config_data = yaml.safe_load(content)
+        return yaml.safe_load(content)
     except yaml.YAMLError as e:
         logger.error(f"Error parsing YAML file: {e}")
         raise
 
+
+def validate_config(config_data: dict) -> Config:
+    """
+    Validate configuration data against the Config model.
+
+    Args:
+        config_data: Configuration data to validate.
+
+    Returns:
+        Validated Config object.
+
+    Raises:
+        ValidationError: If the configuration fails validation.
+    """
     try:
-        logger.debug(f"Config data: {config_data}")
-        return Config.model_validate(config_data)
-    except Exception as e:
+        return Config(**config_data)
+    except ValidationError as e:
         logger.error(f"Error validating configuration: {e}")
         raise
 
@@ -198,7 +212,7 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
     config_files = []
 
     # Add default config first
-    default_config = load_config("conf.yaml")
+    default_config = validate_config(read_yaml("conf.yaml"))
     config_files.append(
         {
             "filename": "conf.yaml",
@@ -212,11 +226,15 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
     for root, _, files in os.walk(config_alts_dir):
         for file in files:
             if file.endswith(".yaml"):
-                config = load_config(os.path.join(root, file))
+                config: dict = read_yaml(os.path.join(root, file))
                 config_files.append(
                     {
                         "filename": file,
-                        "name": config.character_config.conf_name if config else file,
+                        "name": config.get("character_config", {}).get(
+                            "conf_name", file
+                        )
+                        if config
+                        else file,
                     }
                 )
 

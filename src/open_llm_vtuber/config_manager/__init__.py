@@ -48,7 +48,8 @@ from .i18n import I18nMixin, Description, MultiLingualString
 
 # Import utility functions
 from .utils import (
-    load_config,
+    read_yaml,
+    validate_config,
     save_config,
     create_config_template,
     scan_config_alts_directory,
@@ -99,7 +100,8 @@ __all__ = [
     "Description",
     "MultiLingualString",
     # Utility functions
-    "load_config",
+    "read_yaml",
+    "validate_config",
     "save_config",
     "create_config_template",
     "scan_config_alts_directory",
