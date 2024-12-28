@@ -29,7 +29,7 @@
 
 
 ### !!!! Warning for potential contributors !!!!
-This project is currently under a **major refactoring**, which involves breaking changes in configurations, architectual changes in the backend, a complete rewritten frontend, and many more. You can check out the progress and roadmap [here]([breaking changes in configurations](https://github.com/users/t41372/projects/1))
+This project is currently under a **major refactoring**, which involves breaking changes in configurations, architectual changes in the backend, a complete rewritten frontend, and many more. You can check out the progress and roadmap [here](https://github.com/users/t41372/projects/1)
 The refactored version, which is planned to release in version `v1.0.0`, is being worked on the `superb-refactoring` branch. The new frontend is in the [Open-LLM-VTuber-Web](https://github.com/t41372/open-llm-vtuber-web) repository (on the dev branch). 
 
 If you want to contribute to this project, please do the modifications based on the newest `superb-refactoring` branch. You can talk to me via discord or qq or email something else and make sure we are on the same page.
