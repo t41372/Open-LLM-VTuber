@@ -7,12 +7,12 @@ from .character import CharacterConfig
 from .i18n import I18nMixin, Description
 
 
-class Config(I18nMixin):
+class Config(I18nMixin, BaseModel):
     """
     Main configuration for the application.
     """
 
-    system_config: SystemConfig | None = Field(None, alias="system_config")
+    system_config: SystemConfig = Field(default=None, alias="system_config")
     character_config: CharacterConfig = Field(..., alias="character_config")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {

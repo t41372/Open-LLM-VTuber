@@ -69,6 +69,7 @@ class ServiceContext:
     def load_cache(
         self,
         system_config: SystemConfig,
+        character_config: CharacterConfig,
         live2d_model: Live2dModel,
         asr_engine: ASRInterface,
         tts_engine: TTSInterface,
@@ -77,13 +78,20 @@ class ServiceContext:
         """
         Load the ServiceContext with the reference of the provided instances.
         Pass by reference so no reinitialization will be done.
-        No same instance check.
         """
+        if not character_config:
+            raise ValueError("character_config cannot be None")
+        if not system_config:
+            raise ValueError("system_config cannot be None")
+        
         self.system_config = system_config
+        self.character_config = character_config
         self.live2d_model = live2d_model
         self.asr_engine = asr_engine
         self.tts_engine = tts_engine
         self.llm_engine = llm_engine
+        
+        logger.debug(f"Loaded service context with character config: {character_config}")
 
     def load_from_config(self, config: Config) -> None:
         """
@@ -97,22 +105,21 @@ class ServiceContext:
         self.system_config = config.system_config or self.system_config
         self.character_config = config.character_config or self.character_config
         # update all sub-configs
-        new_character_config = self.character_config
 
         # init live2d from character config
-        self.init_live2d(new_character_config.live2d_model)
+        self.init_live2d(self.character_config.live2d_model)
 
         # init asr from character config
-        self.init_asr(new_character_config.asr_config)
+        self.init_asr(self.character_config.asr_config)
 
         # init tts from character config
-        self.init_tts(new_character_config.tts_config)
+        self.init_tts(self.character_config.tts_config)
 
         # init llm from character config
         self.init_llm(
-            new_character_config.llm_config,
-            new_character_config.persona_choice,
-            new_character_config.default_persona_prompt_in_yaml,
+            self.character_config.llm_config,
+            self.character_config.persona_choice,
+            self.character_config.default_persona_prompt_in_yaml,
         )
 
     def init_live2d(self, live2d_model_name: str) -> None:

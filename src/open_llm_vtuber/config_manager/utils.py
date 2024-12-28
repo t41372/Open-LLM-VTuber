@@ -13,16 +13,17 @@ from .i18n import Description, MultiLingualString
 
 T = TypeVar("T", bound=BaseModel)
 
-def load_config(config_path: str, model: Type[T] = None) -> T:
+
+def load_config(config_path: str) -> Config:
     """
-    Load configuration from a YAML file and validate it against a Pydantic model.
+    Load configuration from a YAML file and validate it against the Config model.
+    Supports environment variables (${VAR_NAME}) and automatically detects file encoding.
 
     Args:
         config_path: Path to the YAML configuration file.
-        model: Pydantic model class to validate against (optional).
 
     Returns:
-        Validated configuration object.
+        Validated Config object.
 
     Raises:
         FileNotFoundError: If the configuration file does not exist.
@@ -32,19 +33,27 @@ def load_config(config_path: str, model: Type[T] = None) -> T:
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
+    content = load_text_file_with_guess_encoding(config_path)
+    if not content:
+        raise IOError(f"Failed to read configuration file: {config_path}")
+
+    # Replace environment variables
+    pattern = re.compile(r"\$\{(\w+)\}")
+    def replacer(match):
+        env_var = match.group(1)
+        return os.getenv(env_var, match.group(0))
+    
+    content = pattern.sub(replacer, content)
+
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            config_data = yaml.safe_load(f)
+        config_data = yaml.safe_load(content)
     except yaml.YAMLError as e:
         logger.error(f"Error parsing YAML file: {e}")
         raise
 
-    if model is None:
-        from .main import Config
-        model = Config
-
     try:
-        return model.model_validate(config_data)
+        logger.debug(f"Config data: {config_data}")
+        return Config.model_validate(config_data)
     except Exception as e:
         logger.error(f"Error validating configuration: {e}")
         raise
@@ -193,7 +202,7 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
     config_files.append(
         {
             "filename": "conf.yaml",
-            "name": default_config.get("CONF_NAME", "conf.yaml")
+            "name": default_config.character_config.conf_name
             if default_config
             else "conf.yaml",
         }
@@ -207,7 +216,7 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
                 config_files.append(
                     {
                         "filename": file,
-                        "name": config.get("CONF_NAME", file) if config else file,
+                        "name": config.character_config.conf_name if config else file,
                     }
                 )
 

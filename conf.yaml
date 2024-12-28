@@ -7,7 +7,7 @@ system_config:
   # If true, ASR and TTS will be initialized when server starts and kept in memory
   preload_models: True
   # New setting for alternative configurations
-  config_alts_dir: "config_alts"
+  config_alts_dir: "characters"
   # This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
   # Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
   live2d_expression_prompt: "live2d_expression_prompt"

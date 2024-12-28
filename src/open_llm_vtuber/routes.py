@@ -31,11 +31,14 @@ def create_routes(default_context_cache: ServiceContext):
         session_service_context: ServiceContext = ServiceContext()
         session_service_context.load_cache(
             system_config=default_context_cache.system_config,
+            character_config=default_context_cache.character_config,
             live2d_model=default_context_cache.live2d_model,
             asr_engine=default_context_cache.asr_engine,
             tts_engine=default_context_cache.tts_engine,
             llm_engine=default_context_cache.llm_engine,
         )
+
+        logger.debug(f"Character config: {session_service_context.character_config}")
 
         await websocket.send_text(
             json.dumps({"type": "full-text", "text": "Connection established"})
@@ -56,7 +59,7 @@ def create_routes(default_context_cache: ServiceContext):
         # start mic
         await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
 
-        conf_uid = session_service_context.system_config.get("CONF_UID", "")
+        conf_uid = session_service_context.character_config.conf_uid
 
         current_conversation_task: asyncio.Task | None = None
 
@@ -72,12 +75,8 @@ def create_routes(default_context_cache: ServiceContext):
                         json.dumps(
                             {
                                 "type": "config-info",
-                                "conf_name": session_service_context.system_config.get(
-                                    "CONF_NAME"
-                                ),
-                                "conf_uid": session_service_context.system_config.get(
-                                    "CONF_UID"
-                                ),
+                                "conf_name": session_service_context.character_config.conf_name,
+                                "conf_uid": session_service_context.character_config.conf_uid,
                             }
                         )
                     )
@@ -205,9 +204,7 @@ def create_routes(default_context_cache: ServiceContext):
 
                 elif data.get("type") == "fetch-configs":
                     config_files = scan_config_alts_directory(
-                        session_service_context.system_config.get(
-                            "CONFIG_ALTS_DIR", "config_alts"
-                        )
+                        session_service_context.system_config.config_alts_dir
                     )
                     await websocket.send_text(
                         json.dumps({"type": "config-files", "configs": config_files})
