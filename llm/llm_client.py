@@ -20,7 +20,7 @@ class LettaLLMClient(LLMInterface):
 
         """
         self.url = 'http://localhost:8283/'
-        self.client = HybridClient(self.url,token='')
+        self.client = HybridClient(base_url=self.url,token=None)
         self.agent = None
         self.memory = None
         self.agent_id = None
@@ -30,13 +30,13 @@ class LettaLLMClient(LLMInterface):
     def initialize(self, name, persona, model="gpt-4o-mini"):
         try:
             self.client.set_default_llm_config(LLMConfig.default_config(model_name=model))
-            self.client.delete_archival_memory()
             self.client.set_default_embedding_config(
                 EmbeddingConfig.default_config(model_name="text-embedding-ada-002"))
             self.memory = None
             self.agent_id = client.get_agent_id(agent_name=name)
             if self.agent_id is None:
                 self.agent = self.client.create_agent(name=name)
+                self.client.create_persona('Stella', )
                 logger.success(f"CREATED AGENT {self.agent.name}")
             else:
                 self.agent = self.client.get_agent(agent_id=self.agent_id)
@@ -78,10 +78,11 @@ class LettaLLMClient(LLMInterface):
             combined_output = "".join(temp_chunks)
             OutputQueue().add_output(combined_output)  ## flush out any last remaining chunks
 
-    def load_memory(self, list_of_block_labels):
+    def load_memory(self, list_of_block_ids):
         memory_blocks = []
-        for label in list_of_block_labels:
-            memory_blocks.append(client.get_memory_block(label))
+        for id in list_of_block_ids:
+
+            memory_blocks.append(self.client.get_memory_block(id))
         self.client.update_agent_memory(self.agent_id, memory_blocks=ActionMemory(blocks=memory_blocks))
 
     def reset_memory(self):
@@ -89,3 +90,10 @@ class LettaLLMClient(LLMInterface):
         Clears the memory for the agent.
         """
         self.memory.clear()
+
+    def create_persona(self,persona_name,persona_file):
+        """
+        Creates a persona block
+        """
+
+

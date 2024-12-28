@@ -63,7 +63,7 @@ class PromptFormatter:
             content = message["content"]
             emotions = message["emotions"]
             gender = message['gender']
-            current_message = f"{name}({gender}): {content}\nEmotions: {emotions}\n"
+            current_message = f"{name} ({gender}): {content}\nEmotions: {emotions}\n"
             formatted_messages += current_message
         return formatted_messages
 

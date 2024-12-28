@@ -53,25 +53,12 @@ import vad
 # Using pathlib for OS-independent paths
 VAD_MODEL_PATH = Path(current_dir + "/models/silero_vad.onnx")
 SAMPLE_RATE = 16000  # Sample rate for input stream
-VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
+VAD_SIZE = 100  # Milliseconds of sample for Voice Activity Detection (VAD)
 VAD_THRESHOLD = 0.5  # Threshold for VAD detection
 BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
-PAUSE_LIMIT = 800  # Milliseconds of pause allowed before processing
+PAUSE_LIMIT = 100  # Milliseconds of pause allowed before processing
 WAKE_WORD = "stella"  # Wake word for activation
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
-
-
-class IdentifySpeaker:
-    _instance = None  # Class variable to hold the singleton instance
-
-    def __new__(cls, *args, **kwargs):
-        # Ensure only one instance of EmotionHandler is created
-        if cls._instance is None:
-            cls._instance = super(IdentifySpeaker, cls).__new__(cls)
-        return cls._instance
-
-    def identify_speaker(self, audio_clip):
-        return "GoldRoger"
 
 
 class VoiceRecognitionVAD:
@@ -240,12 +227,11 @@ class VoiceRecognitionVAD:
         """
         logger.info("Detected pause after speech. Processing...")
         logger.info("Stopping listening...")
-        detected_speaker = IdentifySpeaker().identify_speaker(self.samples)
         self.input_stream.stop()
         detected_text = self.asr(self.samples)
 
         if detected_text:
-            return {"name": detected_speaker, "content": detected_text, 'type': 'text'}
+            return {"content": detected_text, 'type': 'text'}
 
         # these two lines will never be reached because I made the function return the detected text
         # so the reset function will be called in the _listen_and_respond function instead

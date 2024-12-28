@@ -58,7 +58,7 @@ class HybridClient(AbstractClient):
     def __init__(
             self,
             base_url: str,
-            token: str,
+            token: str = None,
             api_prefix: str = "v1",
             debug: bool = False,
             default_llm_config: Optional[LLMConfig] = None,
@@ -342,8 +342,8 @@ class HybridClient(AbstractClient):
             raise ValueError(f"Failed to update agent: {response.text}")
         return AgentState(**response.json())
 
-    def get_memory_block(self, label: str) -> Optional[Block]:
-        return self.server.create_or_fetch_block_by_label(self.user_id, label)
+    def get_memory_block(self, id: str) -> Optional[Block]:
+        return self.server.create_or_fetch_block_by_id(self.user_id, id)
 
     def get_tools_from_agent(self, agent_id: str) -> List[Tool]:
         """

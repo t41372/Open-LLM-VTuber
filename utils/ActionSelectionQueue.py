@@ -3,6 +3,7 @@ import threading
 
 from loguru import logger
 
+from Behavior.TalkBehavior import TalkBehavior
 from Behavior.generic_behavior import GenericBehavior
 from OpenLLMVtuber import OpenLLMVTuberMain
 from actions import ActionInterface
@@ -24,7 +25,7 @@ class ActionSelectionQueue:
                     cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self, default_behavior: GenericBehavior):
+    def __init__(self, default_behavior: GenericBehavior = TalkBehavior()):
         if not self._initialized:
             self._initialized = True
             self.queue = queue.PriorityQueue()
@@ -51,7 +52,7 @@ class ActionSelectionQueue:
         logger.info(f"Action {action.__class__.__name__} added to the queue.")
 
     def get_action(self):
-        action = self.queue.get()[1]
+        action = self.queue.get()
         logger.info(f"Action {action.__class__.__name__} fetched from the queue.")
         return action
 
