@@ -237,7 +237,7 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
                         else file,
                     }
                 )
-
+    logger.warning(f"Found config files: {config_files}")
     return config_files
 
 

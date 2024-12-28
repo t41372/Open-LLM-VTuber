@@ -86,7 +86,7 @@ class ServiceContext:
             raise ValueError("character_config cannot be None")
         if not system_config:
             raise ValueError("system_config cannot be None")
-        
+
         self.config = config
         self.system_config = system_config
         self.character_config = character_config
@@ -94,8 +94,10 @@ class ServiceContext:
         self.asr_engine = asr_engine
         self.tts_engine = tts_engine
         self.llm_engine = llm_engine
-        
-        logger.debug(f"Loaded service context with character config: {character_config}")
+
+        logger.debug(
+            f"Loaded service context with character config: {character_config}"
+        )
 
     def load_from_config(self, config: Config) -> None:
         """
@@ -164,9 +166,7 @@ class ServiceContext:
     ) -> None:
         # Use existing values if new parameters are None
         new_llm_config = llm_config or self.llm_config
-        new_llm_provider = (
-            llm_config.llm_provider or self.llm_config.llm_provider
-        )
+        new_llm_provider = llm_config.llm_provider or self.llm_config.llm_provider
         new_persona_choice = persona_choice or self.llm_persona_choice
         new_text_prompt = text_prompt or self.llm_text_prompt
 
@@ -233,24 +233,27 @@ class ServiceContext:
         - config_file_name (str): The name of the configuration file.
         """
         try:
-            new_config_data = None
+            new_character_config_data = None
 
             if config_file_name == "conf.yaml":
                 # Load base config
-                new_config_data = read_yaml("conf.yaml")
+                new_character_config_data = read_yaml("conf.yaml").get(
+                    "character_config"
+                )
             else:
                 # Load alternative config and merge with base config
                 config_alts_dir = self.system_config.config_alts_dir
                 file_path = os.path.join(config_alts_dir, config_file_name)
-                alt_config_data = read_yaml(file_path)
-                
-                # Start with original config data and update with new values
-                new_config_data = self.config.model_dump()
-                new_config_data.update(alt_config_data)
-                logger.warning(f"New config data: {new_config_data}")
 
-            if new_config_data:
-                new_config = validate_config(new_config_data)
+                alt_config_data = read_yaml(file_path).get("character_config")
+
+                # Start with original config data and update with new values
+                new_character_config_data = self.config.character_config.model_dump()
+                new_character_config_data.update(alt_config_data)
+                logger.warning(f"New config data: {new_character_config_data}")
+
+            if new_character_config_data:
+                new_config = validate_config(new_character_config_data)
                 logger.debug(f"Current config: {self}")
                 self.load_from_config(new_config)
                 logger.debug(f"New config: {self}")

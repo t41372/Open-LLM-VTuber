@@ -213,6 +213,11 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "switch-config":
                     config_file_name: str = data.get("file")
                     if config_file_name:
+                        if not config_file_name.endswith(".yaml"):
+                            logger.warning(
+                                f"Invalid config file name received: {config_file_name}. Appending .yaml"
+                            )
+                        config_file_name = f"{config_file_name}.yaml"
                         await session_service_context.handle_config_switch(
                             websocket, config_file_name
                         )
