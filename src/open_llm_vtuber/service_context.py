@@ -247,13 +247,17 @@ class ServiceContext:
 
                 alt_config_data = read_yaml(file_path).get("character_config")
 
-                # Start with original config data and update with new values
+                # Start with original config data and perform a deep merge
                 new_character_config_data = self.config.character_config.model_dump()
-                new_character_config_data.update(alt_config_data)
+                new_character_config_data = deep_merge(new_character_config_data, alt_config_data)
                 logger.warning(f"New config data: {new_character_config_data}")
 
             if new_character_config_data:
-                new_config = validate_config(new_character_config_data)
+                new_config = {
+                    "system_config": self.system_config.model_dump(),
+                    "character_config": new_character_config_data,
+                }
+                new_config = validate_config(new_config)
                 logger.debug(f"Current config: {self}")
                 self.load_from_config(new_config)
                 logger.debug(f"New config: {self}")
@@ -304,3 +308,15 @@ class ServiceContext:
                 )
             )
             raise e
+
+def deep_merge(dict1, dict2):
+    """
+    Recursively merges dict2 into dict1, prioritizing values from dict2.
+    """
+    result = dict1.copy()
+    for key, value in dict2.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = deep_merge(result[key], value)
+        else:
+            result[key] = value
+    return result
