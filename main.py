@@ -429,8 +429,20 @@ class OpenLLMVTuberMain:
                     if not self._continue_exec_flag.is_set():
                         raise InterruptedError("Producer interrupted")
                     print("\n")
+                    tts_target_sentence = sentence_buffer
+                    tts_target_sentence = audio_filter(
+                                tts_target_sentence,
+                                translator=(
+                                    self.translator
+                                    if self.config.get("TRANSLATE_AUDIO", False)
+                                    else None
+                                ),
+                                remove_special_char=self.config.get(
+                                    "REMOVE_SPECIAL_CHAR", True
+                                ),
+                            )
                     audio_filepath = self._generate_audio_file(
-                        sentence_buffer, file_name_no_ext=uuid.uuid4()
+                        tts_target_sentence, file_name_no_ext=uuid.uuid4()
                     )
                     audio_info = {
                         "sentence": sentence_buffer,
