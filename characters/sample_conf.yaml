@@ -2,4 +2,4 @@
 character_config:
   conf_name: "player_unit_00003"
   conf_uid: "player_unit_00003"
-  live2d_model: "player_unit_00003"
+  live2d_model_name: "player_unit_00003"

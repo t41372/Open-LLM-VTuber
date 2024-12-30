@@ -39,8 +39,6 @@ def create_routes(default_context_cache: ServiceContext):
             llm_engine=default_context_cache.llm_engine,
         )
 
-        logger.debug(f"Character config: {session_service_context.character_config}")
-
         await websocket.send_text(
             json.dumps({"type": "full-text", "text": "Connection established"})
         )
@@ -177,6 +175,9 @@ def create_routes(default_context_cache: ServiceContext):
                     )
 
                 elif data.get("type") in ["mic-audio-end", "text-input"]:
+                    logger.error("Received mic-audio-end or text-input")
+                    logger.debug(session_service_context.llm_engine)
+                    logger.debug(session_service_context.character_config.llm_config)
                     await websocket.send_text(
                         json.dumps({"type": "full-text", "text": "Thinking..."})
                     )
@@ -207,8 +208,8 @@ def create_routes(default_context_cache: ServiceContext):
                     config_files = scan_config_alts_directory(
                         session_service_context.system_config.config_alts_dir
                     )
-                    logger.info("Sending config files +++++")
-                    logger.info({"type": "config-files", "configs": config_files})
+                    # logger.info("Sending config files +++++")
+                    # logger.debug({"type": "config-files", "configs": config_files})
                     await websocket.send_text(
                         json.dumps({"type": "config-files", "configs": config_files})
                     )

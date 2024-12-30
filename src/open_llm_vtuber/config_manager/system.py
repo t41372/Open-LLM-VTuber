@@ -7,7 +7,6 @@ class SystemConfig(I18nMixin):
     """System configuration settings."""
     
     conf_version: str = Field(..., alias="conf_version")
-    protocol: str = Field(..., alias="protocol")
     host: str = Field(..., alias="host") 
     port: int = Field(..., alias="port")
     preload_models: bool = Field(..., alias="preload_models")
@@ -19,10 +18,6 @@ class SystemConfig(I18nMixin):
         "conf_version": Description(
             en="Configuration version",
             zh="配置文件版本"
-        ),
-        "protocol": Description(
-            en="Server protocol (http/https)",
-            zh="服务器协议 (http/https)"
         ),
         "host": Description(
             en="Server host address",
@@ -49,12 +44,6 @@ class SystemConfig(I18nMixin):
             zh="是否从音频生成中移除特殊字符"
         ),
     }
-
-    @field_validator('protocol')
-    def check_protocol(cls, v):
-        if not v.endswith("://"):
-            raise ValueError('Protocol must end with ://')
-        return v
     
     @model_validator(mode='after')
     def check_port(cls, values):

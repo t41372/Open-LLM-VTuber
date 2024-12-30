@@ -12,48 +12,48 @@ class LLMFactory:
 
         if llm_provider == "ollama_llm":
             return OllamaLLM(
-                system=kwargs.get("SYSTEM_PROMPT"),
-                base_url=kwargs.get("BASE_URL"),
-                model=kwargs.get("MODEL"),
-                llm_api_key=kwargs.get("LLM_API_KEY"),
-                project_id=kwargs.get("PROJECT_ID"),
-                organization_id=kwargs.get("ORGANIZATION_ID"),
-                verbose=kwargs.get("VERBOSE", False),
+                system=kwargs.get("system_prompt"),
+                base_url=kwargs.get("base_url"),
+                model=kwargs.get("model"),
+                llm_api_key=kwargs.get("llm_api_key"),
+                project_id=kwargs.get("project_id"),
+                organization_id=kwargs.get("organization_id"),
+                verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "llama_cpp_llm":
             from .llama_cpp_llm import LLM as LlamaLLM
             return LlamaLLM(
-                model_path=kwargs.get("MODEL_PATH"),
-                system=kwargs.get("SYSTEM_PROMPT"),
-                verbose=kwargs.get("VERBOSE", False),
+                model_path=kwargs.get("model_path"),
+                system=kwargs.get("system_prompt"),
+                verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "mem0":
             from open_llm_vtuber.llm.mem0 import LLM as Mem0LLM
             return Mem0LLM(
-                user_id=kwargs.get("USER_ID"),
-                system=kwargs.get("SYSTEM_PROMPT"),
-                base_url=kwargs.get("BASE_URL"),
-                model=kwargs.get("MODEL"),
-                llm_api_key=kwargs.get("LLM_API_KEY"),
-                project_id=kwargs.get("PROJECT_ID"),
-                organization_id=kwargs.get("ORGANIZATION_ID"),
-                mem0_config=kwargs.get("MEM0_CONFIG"),
-                verbose=kwargs.get("VERBOSE", False)
+                user_id=kwargs.get("user_id"),
+                system=kwargs.get("system_prompt"),
+                base_url=kwargs.get("base_url"),
+                model=kwargs.get("model"),
+                llm_api_key=kwargs.get("llm_api_key"),
+                project_id=kwargs.get("project_id"),
+                organization_id=kwargs.get("organization_id"),
+                mem0_config=kwargs.get("mem0_config"),
+                verbose=kwargs.get("verbose", False)
             )
         elif llm_provider == "memgpt":
             return MemGPTLLM(
-                base_url=kwargs.get("BASE_URL"),
-                server_admin_token=kwargs.get("ADMIN_TOKEN"),
-                agent_id=kwargs.get("AGENT_ID"),
-                verbose=kwargs.get("VERBOSE", False),
+                base_url=kwargs.get("base_url"),
+                server_admin_token=kwargs.get("admin_token"),
+                agent_id=kwargs.get("agent_id"),
+                verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "claude_llm":
             return ClaudeLLM(
-                system=kwargs.get("SYSTEM_PROMPT"),
-                base_url=kwargs.get("BASE_URL"),
-                model=kwargs.get("MODEL"),
-                llm_api_key=kwargs.get("LLM_API_KEY"),
-                verbose=kwargs.get("VERBOSE", False),
+                system=kwargs.get("system_prompt"),
+                base_url=kwargs.get("base_url"),
+                model=kwargs.get("model"),
+                llm_api_key=kwargs.get("llm_api_key"),
+                verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "fake_llm":
             return FakeLLM()

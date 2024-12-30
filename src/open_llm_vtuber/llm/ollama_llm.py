@@ -1,19 +1,19 @@
-""" Description: This file contains the implementation of the `ollama` class.
-This class is responsible for handling the interaction with the OpenAI API for 
+"""Description: This file contains the implementation of the `ollama` class.
+This class is responsible for handling the interaction with the OpenAI API for
 language generation.
-And it is compatible with all of the OpenAI Compatible endpoints, including Ollama, 
+And it is compatible with all of the OpenAI Compatible endpoints, including Ollama,
 OpenAI, and more.
 """
 
 from typing import Iterator
 import json
 from openai import OpenAI
+from loguru import logger
 
 from .llm_interface import LLMInterface
 
 
 class LLM(LLMInterface):
-
     def __init__(
         self,
         base_url: str,
@@ -52,6 +52,10 @@ class LLM(LLMInterface):
             api_key=llm_api_key,
         )
 
+        logger.info(
+            f"Initialized Ollama with the parameters: {self.base_url}, {self.model}, {self.system}"
+        )
+
         self.__set_system(system)
 
         if self.verbose:
@@ -86,7 +90,7 @@ class LLM(LLMInterface):
         print(" -- System: " + self.system)
 
     def chat_iter(self, prompt: str) -> Iterator[str]:
-
+        logger.critical("Prompt: " + prompt)
         self.memory.append(
             {
                 "role": "user",
@@ -102,6 +106,7 @@ class LLM(LLMInterface):
             print(" -- Prompt: " + prompt + "\n\n")
 
         chat_completion = []
+        logger.debug("Memory: " + str(self.memory))
         try:
             chat_completion = self.client.chat.completions.create(
                 messages=self.memory,
@@ -159,23 +164,29 @@ class LLM(LLMInterface):
 
     def clear_memory(self):
         """Clear the memory, only keep the system prompt"""
-        system_message = next((msg for msg in self.memory if msg["role"] == "system"), None)
+        system_message = next(
+            (msg for msg in self.memory if msg["role"] == "system"), None
+        )
         self.memory = []
         if system_message:
             self.memory.append(system_message)
 
     def set_memory_from_history(self, messages: list):
         """Set the memory from history"""
-        system_message = next((msg for msg in self.memory if msg["role"] == "system"), None)
+        system_message = next(
+            (msg for msg in self.memory if msg["role"] == "system"), None
+        )
         self.memory = []
         if system_message:
             self.memory.append(system_message)
-        
+
         for msg in messages:
-            self.memory.append({
-                "role": "user" if msg["role"] == "human" else "assistant",
-                "content": msg["content"]
-            })
+            self.memory.append(
+                {
+                    "role": "user" if msg["role"] == "human" else "assistant",
+                    "content": msg["content"],
+                }
+            )
 
 
 def test():

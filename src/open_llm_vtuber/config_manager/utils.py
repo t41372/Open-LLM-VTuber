@@ -124,13 +124,13 @@ def save_config(config: BaseModel, config_path: Union[str, Path]):
 
 
 def create_config_template(
-    model: Type[BaseModel] = Config,
+    model: Type[T] = Config,
     lang_code: str = "en",
     include_defaults: bool = False,
     skip_comments: bool = False,
-) -> str:
+) -> T:
     """
-    Creates a YAML configuration template with descriptions and options for the given model.
+    Creates a configuration template with descriptions and options for the given model.
 
     Args:
         model: The Pydantic model to create a template for.
@@ -139,13 +139,13 @@ def create_config_template(
         skip_comments: Whether to skip comments in the template.
 
     Returns:
-        A YAML string representing the configuration template.
+        An instance of the provided model type with template values.
     """
     config_data: Dict[str, Any] = {}
 
     def process_model(m: Type[BaseModel], data: Dict[str, Any]):
         for field_name, field_info in m.model_fields.items():
-            # Use alias if available
+            # Use alias if available 
             config_key = field_info.alias or field_name
 
             field_description = m.get_field_description(field_name, lang_code)
@@ -155,12 +155,13 @@ def create_config_template(
             if not skip_comments:
                 if field_description:
                     if field_notes:
-                        data[config_key] = f"# {field_description} ({field_notes})"
+                        data[f"#{config_key}_desc"] = f"{field_description} ({field_notes})"
                     else:
-                        data[config_key] = f"# {field_description}"
+                        data[f"#{config_key}_desc"] = field_description
                 if options:
-                    data[config_key] = f"# options: {options}"
+                    data[f"#{config_key}_options"] = f"options: {options}"
 
+            # Generate valid default values for fields
             if hasattr(field_info.annotation, "__args__"):
                 # Handle Union types (Optional, etc.)
                 type_args = field_info.annotation.__args__
@@ -170,17 +171,15 @@ def create_config_template(
                         data[config_key] = field_info.default
                     else:
                         data[config_key] = None
-                elif any(
-                    issubclass(t, BaseModel) for t in type_args if isinstance(t, type)
-                ):
+                elif any(issubclass(t, BaseModel) for t in type_args if isinstance(t, type)):
                     # Union of BaseModel types
                     for t in type_args:
                         if isinstance(t, type) and issubclass(t, BaseModel):
                             sub_data: Dict[str, Any] = {}
                             process_model(t, sub_data)
                             data[config_key] = sub_data
-                            break  # Assume only one BaseModel type in the Union
-            elif issubclass(field_info.annotation, BaseModel):
+                            break
+            elif isinstance(field_info.annotation, type) and issubclass(field_info.annotation, BaseModel):
                 # Nested model
                 sub_data: Dict[str, Any] = {}
                 process_model(field_info.annotation, sub_data)
@@ -190,10 +189,28 @@ def create_config_template(
                 if include_defaults and field_info.default is not None:
                     data[config_key] = field_info.default
                 elif field_info.is_required():
-                    data[config_key] = "..."
+                    # Generate appropriate default values based on field type
+                    if field_info.annotation is str:
+                        data[config_key] = "default"
+                    elif field_info.annotation is int:
+                        data[config_key] = 0
+                    elif field_info.annotation is bool:
+                        data[config_key] = False
+                    elif field_info.annotation is float:
+                        data[config_key] = 0.0
+                    elif field_info.annotation is list:
+                        data[config_key] = []
+                    elif field_info.annotation is dict:
+                        data[config_key] = {}
+                    else:
+                        # For other types like Literal, use the first valid value if available
+                        try:
+                            data[config_key] = next(iter(field_info.annotation.__args__))
+                        except (AttributeError, StopIteration):
+                            data[config_key] = "default"
 
     process_model(model, config_data)
-    return yaml.dump(config_data, allow_unicode=True, sort_keys=False, indent=2)
+    return model(**config_data)
 
 
 def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:

@@ -1,7 +1,6 @@
 # System Settings: Setting related to the initialization of the server
 system_config:
   conf_version: "v1.0.0-alpha.1"
-  protocol: "http://"
   host: "localhost"
   port: 12393
   # If true, ASR and TTS will be initialized when server starts and kept in memory
@@ -16,7 +15,7 @@ system_config:
 character_config:
   conf_name: "shizuku-local"
   conf_uid: "shizuku-local-001"
-  live2d_model: "shizuku-local"
+  live2d_model_name: "shizuku-local"
 
   # ============== Prompts ==============
 

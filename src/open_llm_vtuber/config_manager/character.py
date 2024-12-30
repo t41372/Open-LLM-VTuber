@@ -12,7 +12,7 @@ class CharacterConfig(I18nMixin):
 
     conf_name: str = Field(..., alias="conf_name")
     conf_uid: str = Field(..., alias="conf_uid")
-    live2d_model: str = Field(..., alias="live2d_model")
+    live2d_model_name: str = Field(..., alias="live2d_model")
     persona_choice: str = Field(..., alias="persona_choice")
     default_persona_prompt_in_yaml: str = Field(..., alias="default_persona_prompt_in_yaml")
     llm_config: LLMConfig = Field(..., alias="llm_config")
