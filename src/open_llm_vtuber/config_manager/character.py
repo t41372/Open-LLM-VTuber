@@ -13,8 +13,7 @@ class CharacterConfig(I18nMixin):
     conf_name: str = Field(..., alias="conf_name")
     conf_uid: str = Field(..., alias="conf_uid")
     live2d_model_name: str = Field(..., alias="live2d_model")
-    persona_choice: str = Field(..., alias="persona_choice")
-    default_persona_prompt_in_yaml: str = Field(..., alias="default_persona_prompt_in_yaml")
+    persona_prompt: str = Field(..., alias="persona_prompt")
     llm_config: LLMConfig = Field(..., alias="llm_config")
     asr_config: ASRConfig = Field(..., alias="asr_config")
     tts_config: TTSConfig = Field(..., alias="tts_config")
@@ -33,13 +32,9 @@ class CharacterConfig(I18nMixin):
             en="Name of the Live2D model to use",
             zh="使用的Live2D模型名称"
         ),
-        "persona_choice": Description(
-            en="Name of the persona to use (from 'prompts/persona' directory)",
-            zh="使用的角色人设名称 (来自 'prompts/persona' 目录)"
-        ),
-        "default_persona_prompt_in_yaml": Description(
-            en="Default persona prompt (used if persona_choice is empty)",
-            zh="默认角色人设提示词 (当 persona_choice 为空时使用)"
+        "persona_prompt": Description(
+            en="Persona prompt. The persona of your character.",
+            zh="角色人设提示词"
         ),
         "llm_config": Description(
             en="Configuration for the Language Learning Model",
@@ -59,10 +54,10 @@ class CharacterConfig(I18nMixin):
         ),
     }
 
-    @field_validator("default_persona_prompt_in_yaml")
+    @field_validator("persona_prompt")
     def check_default_persona_prompt(cls, v):
         if not v:
             raise ValueError(
-                "default_persona_prompt_in_yaml cannot be empty if persona_choice is not set"
+                "Persona_prompt cannot be empty. Please provide a persona prompt."
             )
         return v

@@ -175,9 +175,6 @@ def create_routes(default_context_cache: ServiceContext):
                     )
 
                 elif data.get("type") in ["mic-audio-end", "text-input"]:
-                    logger.error("Received mic-audio-end or text-input")
-                    logger.debug(session_service_context.llm_engine)
-                    logger.debug(session_service_context.character_config.llm_config)
                     await websocket.send_text(
                         json.dumps({"type": "full-text", "text": "Thinking..."})
                     )

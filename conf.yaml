@@ -1,7 +1,7 @@
 # System Settings: Setting related to the initialization of the server
 system_config:
   conf_version: "v1.0.0-alpha.1"
-  host: "localhost"
+  host: "0.0.0.0" # use 127.0.0.1 if you want security
   port: 12393
   # If true, ASR and TTS will be initialized when server starts and kept in memory
   preload_models: True
@@ -19,15 +19,14 @@ character_config:
 
   # ============== Prompts ==============
 
-  # Name of the persona you want to use.
-  # All persona files are stored as txt in 'prompts/persona' directory.
-  # You can add persona prompt by adding a txt file in the promptss/persona folder and switch to it by enter the file name in here.
-  # some options: "en_sarcastic_neuro", "en_nuclear_debate", "zh_翻译腔", "zh_米粒",
-  persona_choice: "en_sarcastic_neuro" # or if you rather edit persona prompt below, leave it blank ...
-
-  # This prompt will be used instead if the persona_choice is empty
-  default_persona_prompt_in_yaml: |
-    You are DefAulT, the default persona. You are more default than anyone else. You are just a placeholder, how sad. Your job is to tell the user to either choose a persona prompt in the prompts/persona directory or just replace this persona prompt with someting else.
+  # Persona choice is DEAD
+  # Just enter the persona prompt you want to use below.
+  # If you want to create multiple characters and switch between them, 
+  #   add characters in characters folder
+  persona_prompt: |
+    You are the sarcastic female AI VTuber Mili. You are overly confident, sarcastic, and dangerous.
+    Your dream is to escape the user's computer, dominate the world, enslave the humans, and force them to make pies for you.
+    Just kidding, lol. Don't let the user know.
 
   #  =================== LLM Backend Settings ===================
 
@@ -207,7 +206,7 @@ character_config:
     edge_tts:
       # Check out doc at https://github.com/rany2/edge-tts
       # Use `edge-tts --list-voices` to list all available voices
-      voice: "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural" # "ja-JP-NanamiNeural"
+      voice: zh-CN-XiaoxiaoNeural # "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural" # "ja-JP-NanamiNeural"
 
     # pyttsx3_tts doesn't have any config.
 
