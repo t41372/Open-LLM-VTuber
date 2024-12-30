@@ -207,17 +207,14 @@ def create_routes(default_context_cache: ServiceContext):
                     config_files = scan_config_alts_directory(
                         session_service_context.system_config.config_alts_dir
                     )
+                    logger.info("Sending config files +++++")
+                    logger.info({"type": "config-files", "configs": config_files})
                     await websocket.send_text(
                         json.dumps({"type": "config-files", "configs": config_files})
                     )
                 elif data.get("type") == "switch-config":
                     config_file_name: str = data.get("file")
                     if config_file_name:
-                        if not config_file_name.endswith(".yaml"):
-                            logger.warning(
-                                f"Invalid config file name received: {config_file_name}. Appending .yaml"
-                            )
-                        config_file_name = f"{config_file_name}.yaml"
                         await session_service_context.handle_config_switch(
                             websocket, config_file_name
                         )

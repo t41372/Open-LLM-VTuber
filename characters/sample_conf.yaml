@@ -1,34 +1,5 @@
 # Alternative Configuration Example
-
-# Live2D Settings
-LIVE2D_MODEL: "player_unit_00003"
-
-SYSTEM_CONFIG:
-  CONF_NAME: "player_unit_00003"
-  CONF_UID: "player_unit_00003"
-
-# TTS Settings
-# TTS_ON: True
-# TTS_MODEL: "edgeTTS"
-# edgeTTS:
-#   voice: "en-US-JennyNeural"
-
-# # ASR Settings
-# VOICE_INPUT_ON: True
-# ASR_MODEL: "Faster-Whisper"
-# Faster-Whisper:
-#   model_path: "tiny"
-#   language: "en"
-#   device: "auto"
-
-# # LLM Settings
-# LLM_PROVIDER: "ollama"
-# ollama:
-#   MODEL: "mistral:latest"
-#   VERBOSE: False
-
-# Persona Settings
-# PERSONA_CHOICE: "en_casual_friend"
-
-# Other Settings
-# VERBOSE: False
+character_config:
+  conf_name: "player_unit_00003"
+  conf_uid: "player_unit_00003"
+  live2d_model: "player_unit_00003"
