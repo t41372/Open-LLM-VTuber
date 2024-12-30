@@ -51,7 +51,6 @@ from .utils import (
     read_yaml,
     validate_config,
     save_config,
-    create_config_template,
     scan_config_alts_directory,
     scan_bg_directory,
 )
@@ -103,7 +102,6 @@ __all__ = [
     "read_yaml",
     "validate_config",
     "save_config",
-    "create_config_template",
     "scan_config_alts_directory",
     "scan_bg_directory",
 ]
