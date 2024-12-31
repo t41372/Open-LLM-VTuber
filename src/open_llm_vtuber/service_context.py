@@ -92,11 +92,7 @@ class ServiceContext:
         self.llm_engine = llm_engine
 
         logger.debug(
-            f"Loaded service context with character config: {character_config}"
-        )
-
-        logger.debug(
-            f"asr_config: {self.character_config.asr_config}, tts_config: {self.character_config.tts_config}, llm_config: {self.character_config.llm_config}"
+            f"Loaded service context with cache: {character_config}"
         )
 
     def load_from_config(self, config: Config) -> None:
