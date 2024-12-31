@@ -28,7 +28,7 @@ class LLMFactory:
                 verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "mem0":
-            from open_llm_vtuber.llm.mem0 import LLM as Mem0LLM
+            from open_llm_vtuber.llm.mem0_llm import LLM as Mem0LLM
             return Mem0LLM(
                 user_id=kwargs.get("user_id"),
                 system=kwargs.get("system_prompt"),
