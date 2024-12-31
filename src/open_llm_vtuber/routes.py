@@ -69,13 +69,13 @@ def create_routes(default_context_cache: ServiceContext):
 
                 # ==== chat history related ====
 
-                if data.get("type") == "fetch-conf-info":
+                if data.get("type") == "fetch-conf-schemas":
+                    config_schemas = session_service_context.get_config_schemas()
                     await websocket.send_text(
                         json.dumps(
                             {
-                                "type": "config-info",
-                                "conf_name": session_service_context.character_config.conf_name,
-                                "conf_uid": session_service_context.character_config.conf_uid,
+                                "type": "conf-schemas",
+                                "schemas": config_schemas
                             }
                         )
                     )

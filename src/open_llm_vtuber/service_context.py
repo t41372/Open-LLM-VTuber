@@ -310,6 +310,46 @@ class ServiceContext:
             )
             raise e
 
+    def get_config_schemas(self) -> dict:
+        """
+        Get JSON schemas and current values for all configuration types.
+        
+        Returns:
+            dict: A dictionary containing both JSON schemas and current values for different config types
+        """
+        configs = {
+            "system_config": self.system_config,
+            "character_config": self.character_config,
+            "llm_config": self.character_config.llm_config,
+            "asr_config": self.character_config.asr_config,
+            "tts_config": self.character_config.tts_config
+        }
+        
+        schemas = {}
+        for config_type, config_obj in configs.items():
+            schema = config_obj.model_json_schema()
+            current_values = config_obj.model_dump()
+            
+            if hasattr(config_obj, 'DESCRIPTIONS'):
+                for field, desc in config_obj.DESCRIPTIONS.items():
+                    if field in schema.get('properties', {}):
+                        schema['properties'][field]['description'] = {
+                            'en': desc.en,
+                            'zh': desc.zh
+                        }
+                        if desc.notes:
+                            schema['properties'][field]['notes'] = {
+                                'en': desc.notes.en,
+                                'zh': desc.notes.zh
+                            }
+            
+            schemas[config_type] = {
+                "schema": schema,
+                "current_values": current_values
+            }
+        
+        return schemas
+
 
 def deep_merge(dict1, dict2):
     """
