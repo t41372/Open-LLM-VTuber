@@ -1,9 +1,8 @@
 import os
 import json
-from typing import Dict
 
 from loguru import logger
-from fastapi import APIRouter, WebSocket
+from fastapi import WebSocket
 
 from prompts import prompt_loader
 from .live2d_model import Live2dModel
@@ -30,7 +29,8 @@ from .config_manager import (
 
 
 class ServiceContext:
-    """Initializes, stores, and updates the asr, tts, llm instance for a connected client."""
+    """Initializes, stores, and updates the asr, tts, and llm instances and other
+    configurations for a connected client."""
 
     def __init__(self):
         self.config: Config = None
@@ -44,6 +44,7 @@ class ServiceContext:
         self.llm_engine: LLMInterface = None
         # self.translate: TranslateInterface
 
+        # the system prompt is a combination of the persona prompt and live2d expression prompt
         self.system_prompt: str = None
 
     def __str__(self):
@@ -91,9 +92,7 @@ class ServiceContext:
         self.tts_engine = tts_engine
         self.llm_engine = llm_engine
 
-        logger.debug(
-            f"Loaded service context with cache: {character_config}"
-        )
+        logger.debug(f"Loaded service context with cache: {character_config}")
 
     def load_from_config(self, config: Config) -> None:
         """
