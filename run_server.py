@@ -38,9 +38,10 @@ def init_logger(console_log_level="INFO"):
     logger.remove()
     # Console output
     logger.add(
-        sys.stdout,
-        level=console_log_level,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+        sys.stderr,
+        Level=console_log_level,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | {message}",
+        colorize=True,
     )
 
     # File output
@@ -48,11 +49,10 @@ def init_logger(console_log_level="INFO"):
         "logs/debug_{time:YYYY-MM-DD}.log",
         rotation="10 MB",
         retention="30 days",
-        level="DEBUG",
+        Level="DEBUG",
         format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message} | {extra}",
         backtrace=True,
         diagnose=True,
-        colorize=True,
     )
 
 
