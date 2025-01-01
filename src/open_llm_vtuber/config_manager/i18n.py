@@ -30,8 +30,6 @@ class Description(MultiLingualString):
     """
 
     notes: MultiLingualString | None = Field(None, description="Additional notes")
-    ui_widget: str | None = Field(None, description="UI widget type for form generation")
-    ui_options: dict | None = Field(None, description="Additional UI options for the widget")
 
     def get_text(self, lang_code: str) -> str:
         """
@@ -56,15 +54,6 @@ class Description(MultiLingualString):
             The additional notes in the specified language, or None if no notes are available.
         """
         return self.notes.get(lang_code) if self.notes else None
-
-    def get_ui_metadata(self) -> dict:
-        """
-        Get UI-related metadata for form generation.
-        """
-        return {
-            "widget": self.ui_widget,
-            "options": self.ui_options
-        } if self.ui_widget else {}
 
     @classmethod
     def from_str(cls, text: str, notes: str | None = None) -> "Description":

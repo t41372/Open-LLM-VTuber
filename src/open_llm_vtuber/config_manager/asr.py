@@ -7,27 +7,16 @@ class AzureASRConfig(I18nMixin):
     """Configuration for Azure ASR service."""
     
     api_key: str = Field(..., alias="api_key")
-    region: Literal["eastus", "westus", "eastasia", "southeastasia"] = Field(..., alias="region")
+    region: str = Field(..., alias="region")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "api_key": Description(
             en="API key for Azure ASR service",
-            zh="Azure ASR 服务的 API 密钥",
-            ui_widget="password",
-            ui_options={"autoComplete": "off"}
+            zh="Azure ASR 服务的 API 密钥"
         ),
         "region": Description(
             en="Azure region (e.g., eastus)",
-            zh="Azure 区域（如 eastus）",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "eastus": "East US",
-                    "westus": "West US",
-                    "eastasia": "East Asia",
-                    "southeastasia": "Southeast Asia"
-                }
-            }
+            zh="Azure 区域（如 eastus）"
         ),
     }
 
@@ -36,53 +25,32 @@ class FasterWhisperConfig(I18nMixin):
     
     model_path: str = Field(..., alias="model_path")
     download_root: str = Field(..., alias="download_root")
-    language: Optional[Literal["", "en", "zh", "ja"]] = Field(None, alias="language")
+    language: Optional[str] = Field(None, alias="language")
     device: Literal["auto", "cpu", "cuda"] = Field("auto", alias="device")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "model_path": Description(
             en="Path to the Faster Whisper model",
-            zh="Faster Whisper 模型路径",
-            ui_widget="text",
-            ui_options={"placeholder": "distil-medium.en"}
+            zh="Faster Whisper 模型路径"
         ),
         "download_root": Description(
             en="Root directory for downloading models",
-            zh="模型下载根目录",
-            ui_widget="text",
-            ui_options={"placeholder": "models/whisper"}
+            zh="模型下载根目录"
         ),
         "language": Description(
             en="Language code (e.g., en, zh) or None for auto-detect",
-            zh="语言代码（如 en, zh）或留空以自动检测",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "": "Auto Detect",
-                    "en": "English",
-                    "zh": "Chinese",
-                    "ja": "Japanese"
-                }
-            }
+            zh="语言代码（如 en, zh）或留空以自动检测"
         ),
         "device": Description(
-            en="Device to use for inference",
-            zh="推理设备",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "auto": "Auto",
-                    "cpu": "CPU",
-                    "cuda": "CUDA (GPU)"
-                }
-            }
+            en="Device to use for inference (cpu, cuda, or auto)",
+            zh="推理设备（cpu、cuda 或 auto）"
         ),
     }
 
 class WhisperCPPConfig(I18nMixin):
     """Configuration for WhisperCPP ASR."""
     
-    model_name: Literal["tiny", "base", "small", "medium", "large"] = Field(..., alias="model_name")
+    model_name: str = Field(..., alias="model_name")
     model_dir: str = Field(..., alias="model_dir")
     print_realtime: bool = Field(False, alias="print_realtime")
     print_progress: bool = Field(False, alias="print_progress")
@@ -91,86 +59,45 @@ class WhisperCPPConfig(I18nMixin):
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "model_name": Description(
             en="Name of the Whisper model",
-            zh="Whisper 模型名称",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "tiny": "Tiny",
-                    "base": "Base",
-                    "small": "Small",
-                    "medium": "Medium",
-                    "large": "Large"
-                }
-            }
+            zh="Whisper 模型名称"
         ),
         "model_dir": Description(
             en="Directory containing Whisper models",
-            zh="Whisper 模型目录",
-            ui_widget="text",
-            ui_options={"placeholder": "models/whisper"}
+            zh="Whisper 模型目录"
         ),
         "print_realtime": Description(
             en="Print output in real-time",
-            zh="实时打印输出",
-            ui_widget="switch"
+            zh="实时打印输出"
         ),
         "print_progress": Description(
             en="Print progress information",
-            zh="打印进度信息",
-            ui_widget="switch"
+            zh="打印进度信息"
         ),
         "language": Description(
-            en="Language code",
-            zh="语言代码",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "auto": "Auto Detect",
-                    "en": "English",
-                    "zh": "Chinese"
-                }
-            }
+            en="Language code (en, zh, or auto)",
+            zh="语言代码（en、zh 或 auto）"
         ),
     }
 
 class WhisperConfig(I18nMixin):
     """Configuration for OpenAI Whisper ASR."""
     
-    name: Literal["tiny", "base", "small", "medium", "large"] = Field(..., alias="name")
+    name: str = Field(..., alias="name")
     download_root: str = Field(..., alias="download_root")
     device: Literal["cpu", "cuda"] = Field("cpu", alias="device")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "name": Description(
             en="Name of the Whisper model",
-            zh="Whisper 模型名称",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "tiny": "Tiny",
-                    "base": "Base",
-                    "small": "Small",
-                    "medium": "Medium",
-                    "large": "Large"
-                }
-            }
+            zh="Whisper 模型名称"
         ),
         "download_root": Description(
             en="Root directory for downloading models",
-            zh="模型下载根目录",
-            ui_widget="text",
-            ui_options={"placeholder": "models/whisper"}
+            zh="模型下载根目录"
         ),
         "device": Description(
-            en="Device to use for inference",
-            zh="推理设备",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "cpu": "CPU",
-                    "cuda": "CUDA (GPU)"
-                }
-            }
+            en="Device to use for inference (cpu or cuda)",
+            zh="推理设备（cpu 或 cuda）"
         ),
     }
 
@@ -190,71 +117,39 @@ class FunASRConfig(I18nMixin):
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "model_name": Description(
             en="Name of the FunASR model",
-            zh="FunASR 模型名称",
-            ui_widget="text",
-            ui_options={"placeholder": "iic/SenseVoiceSmall"}
+            zh="FunASR 模型名称"
         ),
         "vad_model": Description(
             en="Voice Activity Detection model",
-            zh="语音活动检测模型",
-            ui_widget="text",
-            ui_options={"placeholder": "fsmn-vad"}
+            zh="语音活动检测模型"
         ),
         "punc_model": Description(
             en="Punctuation model",
-            zh="标点符号模型",
-            ui_widget="text",
-            ui_options={"placeholder": "ct-punc"}
+            zh="标点符号模型"
         ),
         "device": Description(
-            en="Device to use for inference",
-            zh="推理设备",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "cpu": "CPU",
-                    "cuda": "CUDA (GPU)"
-                }
-            }
+            en="Device to use for inference (cpu or cuda)",
+            zh="推理设备（cpu 或 cuda）"
         ),
         "disable_update": Description(
             en="Disable checking for FunASR updates on launch",
-            zh="启动时禁用 FunASR 更新检查",
-            ui_widget="switch"
+            zh="启动时禁用 FunASR 更新检查"
         ),
         "ncpu": Description(
             en="Number of CPU threads for internal operations",
-            zh="内部操作的 CPU 线程数",
-            ui_widget="number",
-            ui_options={"min": 1, "max": 32}
+            zh="内部操作的 CPU 线程数"
         ),
         "hub": Description(
-            en="Model hub to use",
-            zh="使用的模型仓库",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "ms": "ModelScope",
-                    "hf": "Hugging Face"
-                }
-            }
+            en="Model hub to use (ms for ModelScope, hf for Hugging Face)",
+            zh="使用的模型仓库（ms 为 ModelScope，hf 为 Hugging Face）"
         ),
         "use_itn": Description(
             en="Enable inverse text normalization",
-            zh="启用反向文本归一化",
-            ui_widget="switch"
+            zh="启用反向文本归一化"
         ),
         "language": Description(
-            en="Language code",
-            zh="语言代码",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "auto": "Auto Detect",
-                    "zh": "Chinese",
-                    "en": "English"
-                }
-            }
+            en="Language code (zh, en, or auto)",
+            zh="语言代码（zh、en 或 auto）"
         ),
     }
 
@@ -265,38 +160,20 @@ class GroqWhisperASRConfig(I18nMixin):
     model: Literal["whisper-large-v3-turbo", "whisper-large-v3"] = Field(
         "whisper-large-v3-turbo", alias="model"
     )
-    lang: Optional[Literal["", "en", "zh", "ja"]] = Field(None, alias="lang")
+    lang: Optional[str] = Field(None, alias="lang")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "api_key": Description(
             en="API key for Groq Whisper ASR",
-            zh="Groq Whisper ASR 的 API 密钥",
-            ui_widget="password",
-            ui_options={"autoComplete": "off"}
+            zh="Groq Whisper ASR 的 API 密钥"
         ),
         "model": Description(
             en="Name of the Groq Whisper model to use",
-            zh="要使用的 Groq Whisper 模型名称",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "whisper-large-v3-turbo": "Whisper Large V3 Turbo",
-                    "whisper-large-v3": "Whisper Large V3"
-                }
-            }
+            zh="要使用的 Groq Whisper 模型名称"
         ),
         "lang": Description(
             en="Language code (leave empty for auto-detect)",
-            zh="语言代码（留空以自动检测）",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "": "Auto Detect",
-                    "en": "English",
-                    "zh": "Chinese",
-                    "ja": "Japanese"
-                }
-            }
+            zh="语言代码（留空以自动检测）"
         ),
     }
 
@@ -329,133 +206,59 @@ class SherpaOnnxASRConfig(I18nMixin):
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "model_type": Description(
             en="Type of ASR model to use",
-            zh="要使用的 ASR 模型类型",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "transducer": "Transducer",
-                    "paraformer": "Paraformer",
-                    "nemo_ctc": "NeMo CTC",
-                    "wenet_ctc": "WeNet CTC",
-                    "whisper": "Whisper",
-                    "tdnn_ctc": "TDNN CTC",
-                    "sense_voice": "SenseVoice"
-                }
-            }
+            zh="要使用的 ASR 模型类型"
         ),
         "encoder": Description(
             en="Path to encoder model (for transducer)",
-            zh="编码器模型路径（用于 transducer）",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/encoder.onnx",
-                "accept": ".onnx"
-            }
+            zh="编码器模型路径（用于 transducer）"
         ),
         "decoder": Description(
             en="Path to decoder model (for transducer)",
-            zh="解码器模型路径（用于 transducer）",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/decoder.onnx",
-                "accept": ".onnx"
-            }
+            zh="解码器模型路径（用于 transducer）"
         ),
         "joiner": Description(
             en="Path to joiner model (for transducer)",
-            zh="连接器模型路径（用于 transducer）",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/joiner.onnx",
-                "accept": ".onnx"
-            }
+            zh="连接器模型路径（用于 transducer）"
         ),
         "paraformer": Description(
             en="Path to paraformer model",
-            zh="Paraformer 模型路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/model.onnx",
-                "accept": ".onnx"
-            }
+            zh="Paraformer 模型路径"
         ),
         "nemo_ctc": Description(
             en="Path to NeMo CTC model",
-            zh="NeMo CTC 模型路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/model.onnx",
-                "accept": ".onnx"
-            }
+            zh="NeMo CTC 模型路径"
         ),
         "wenet_ctc": Description(
             en="Path to WeNet CTC model",
-            zh="WeNet CTC 模型路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/model.onnx",
-                "accept": ".onnx"
-            }
+            zh="WeNet CTC 模型路径"
         ),
         "tdnn_model": Description(
             en="Path to TDNN model",
-            zh="TDNN 模型路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/model.onnx",
-                "accept": ".onnx"
-            }
+            zh="TDNN 模型路径"
         ),
         "whisper_encoder": Description(
             en="Path to Whisper encoder model",
-            zh="Whisper 编码器模型路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/encoder.onnx",
-                "accept": ".onnx"
-            }
+            zh="Whisper 编码器模型路径"
         ),
         "whisper_decoder": Description(
             en="Path to Whisper decoder model",
-            zh="Whisper 解码器模型路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/decoder.onnx",
-                "accept": ".onnx"
-            }
+            zh="Whisper 解码器模型路径"
         ),
         "sense_voice": Description(
             en="Path to SenseVoice model",
-            zh="SenseVoice 模型路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx",
-                "accept": ".onnx"
-            }
+            zh="SenseVoice 模型路径"
         ),
         "tokens": Description(
             en="Path to tokens file",
-            zh="词元文件路径",
-            ui_widget="file",
-            ui_options={
-                "placeholder": "path/to/tokens.txt",
-                "accept": ".txt"
-            }
+            zh="词元文件路径"
         ),
         "num_threads": Description(
-            en="Number of computation threads",
-            zh="计算线程数",
-            ui_widget="number",
-            ui_options={
-                "min": 1,
-                "max": 32,
-                "step": 1
-            }
+            en="Number of threads to use",
+            zh="使用的线程数"
         ),
         "use_itn": Description(
             en="Enable inverse text normalization",
-            zh="启用反向文本归一化",
-            ui_widget="switch"
+            zh="启用反向文本归一化"
         ),
     }
 
@@ -524,19 +327,7 @@ class ASRConfig(I18nMixin):
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "asr_model": Description(
             en="Speech-to-text model to use",
-            zh="要使用的语音识别模型",
-            ui_widget="select",
-            ui_options={
-                "enumNames": {
-                    "faster_whisper": "Faster Whisper",
-                    "whisper_cpp": "Whisper CPP",
-                    "whisper": "OpenAI Whisper",
-                    "azure_asr": "Azure ASR",
-                    "fun_asr": "FunASR",
-                    "groq_whisper_asr": "Groq Whisper",
-                    "sherpa_onnx_asr": "Sherpa Onnx ASR"
-                }
-            }
+            zh="要使用的语音识别模型"
         ),
         "azure_asr": Description(
             en="Configuration for Azure ASR",
