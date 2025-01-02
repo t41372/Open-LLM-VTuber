@@ -39,7 +39,7 @@ def init_logger(console_log_level="INFO"):
     # Console output
     logger.add(
         sys.stderr,
-        Level=console_log_level,
+        level=console_log_level,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | {message}",
         colorize=True,
     )

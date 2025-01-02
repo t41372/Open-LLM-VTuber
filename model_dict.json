@@ -7,7 +7,7 @@
         "initialXshift": 0,
         "initialYshift": 0,
         "kXOffset": 1150,
-        "idleMotionGroupName": "Idle",
+        "idleMotionGroupName": "idle",
         "emotionMap": {
             "neutral": 0,
             "anger": 2,
@@ -17,6 +17,20 @@
             "smirk": 3,
             "sadness": 1,
             "surprise": 3
+        },
+        "tapMotions": {
+            "body": {
+                "tap_body": 30,
+                "shake": 30,
+                "pinch_in": 20,
+                "pinch_out": 20
+            },
+            "head": {
+                "flick_head": 40,
+                "shake": 20,
+                "pinch_in": 20,
+                "pinch_out": 20
+            }
         }
     },
     {
@@ -27,7 +41,7 @@
         "initialXshift": 0,
         "initialYshift": 0,
         "kXOffset": 1150,
-        "idleMotionGroupName": "Idle",
+        "idleMotionGroupName": "idle",
         "emotionMap": {
             "neutral": 0,
             "anger": 2,
@@ -115,6 +129,34 @@
             "realization": 4,
             "optimism": 1,
             "excitement": 6
+        }
+    },
+    {
+        "name": "mao_pro",
+        "description": "",
+        "url": "/live2d-models/mao_pro/mao_pro.model3.json",
+        "kScale": 0.000125,
+        "initialXshift": 0,
+        "initialYshift": 0,
+        "kXOffset": 1150,
+        "idleMotionGroupName": "Idle",
+        "emotionMap": {
+            "neutral": 0,
+            "anger": 2,
+            "disgust": 2,
+            "fear": 1,
+            "joy": 3,
+            "smirk": 3,
+            "sadness": 1,
+            "surprise": 3
+        },
+        "tapMotions": {
+            "HitAreaHead": {
+                "": 1
+            },
+            "HitAreaBody": {
+                "": 1
+            }
         }
     }
 ]

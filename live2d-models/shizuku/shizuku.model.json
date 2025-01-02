@@ -30,29 +30,29 @@
       {"file": "motions/idle_02.mtn", "fade_in": 2000, "fade_out": 2000}
     ],
     "tap_body": [
-      {"file": "motions/tapBody_00.mtn", "sound": "sounds/tapBody_00.mp3"},
-      {"file": "motions/tapBody_01.mtn", "sound": "sounds/tapBody_01.mp3"},
-      {"file": "motions/tapBody_02.mtn", "sound": "sounds/tapBody_02.mp3"}
+      {"file": "motions/tapBody_00.mtn"},
+      {"file": "motions/tapBody_01.mtn"},
+      {"file": "motions/tapBody_02.mtn"}
     ],
     "pinch_in": [
-      {"file": "motions/pinchIn_00.mtn", "sound": "sounds/pinchIn_00.mp3"},
-      {"file": "motions/pinchIn_01.mtn", "sound": "sounds/pinchIn_01.mp3"},
-      {"file": "motions/pinchIn_02.mtn", "sound": "sounds/pinchIn_02.mp3"}
+      {"file": "motions/pinchIn_00.mtn"},
+      {"file": "motions/pinchIn_01.mtn"},
+      {"file": "motions/pinchIn_02.mtn"}
     ],
     "pinch_out": [
-      {"file": "motions/pinchOut_00.mtn", "sound": "sounds/pinchOut_00.mp3"},
-      {"file": "motions/pinchOut_01.mtn", "sound": "sounds/pinchOut_01.mp3"},
-      {"file": "motions/pinchOut_02.mtn", "sound": "sounds/pinchOut_02.mp3"}
+      {"file": "motions/pinchOut_00.mtn"},
+      {"file": "motions/pinchOut_01.mtn"},
+      {"file": "motions/pinchOut_02.mtn"}
     ],
     "shake": [
-      {"file": "motions/shake_00.mtn", "sound": "sounds/shake_00.mp3", "fade_in": 500},
-      {"file": "motions/shake_01.mtn", "sound": "sounds/shake_01.mp3", "fade_in": 500},
-      {"file": "motions/shake_02.mtn", "sound": "sounds/shake_02.mp3", "fade_in": 500}
+      {"file": "motions/shake_00.mtn"},
+      {"file": "motions/shake_01.mtn"},
+      {"file": "motions/shake_02.mtn"}
     ],
     "flick_head": [
-      {"file": "motions/flickHead_00.mtn", "sound": "sounds/flickHead_00.mp3"},
-      {"file": "motions/flickHead_01.mtn", "sound": "sounds/flickHead_01.mp3"},
-      {"file": "motions/flickHead_02.mtn", "sound": "sounds/flickHead_02.mp3"}
+      {"file": "motions/flickHead_00.mtn"},
+      {"file": "motions/flickHead_01.mtn"},
+      {"file": "motions/flickHead_02.mtn"}
     ]
   }
 }
