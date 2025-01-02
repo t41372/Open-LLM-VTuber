@@ -7,7 +7,7 @@
         "initialXshift": 0,
         "initialYshift": 0,
         "kXOffset": 1150,
-        "idleMotionGroupName": "Idle",
+        "idleMotionGroupName": "idle",
         "emotionMap": {
             "neutral": 0,
             "anger": 2,
@@ -27,7 +27,7 @@
         "initialXshift": 0,
         "initialYshift": 0,
         "kXOffset": 1150,
-        "idleMotionGroupName": "Idle",
+        "idleMotionGroupName": "idle",
         "emotionMap": {
             "neutral": 0,
             "anger": 2,
