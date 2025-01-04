@@ -22,8 +22,8 @@ from prompts import prompt_loader
 from .asr.asr_factory import ASRFactory
 from .asr.asr_interface import ASRInterface
 from .live2d_model import Live2dModel
-from .llm.llm_factory import LLMFactory
-from .llm.llm_interface import LLMInterface
+from .agent.llm_factory import LLMFactory
+from .agent.agent_interface import AgentInterface
 from .tts.tts_factory import TTSFactory
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
@@ -102,7 +102,7 @@ class OpenLLMVTuberMain:
         else:
             self.translator = None
 
-        self.llm: LLMInterface = self.init_llm()
+        self.llm: AgentInterface = self.init_llm()
 
     # Initialization methods
 
@@ -118,7 +118,7 @@ class OpenLLMVTuberMain:
             return None
         return live2d_controller
 
-    def init_llm(self) -> LLMInterface:
+    def init_llm(self) -> AgentInterface:
         llm_provider = self.config.get("LLM_PROVIDER")
         llm_config = self.config.get(llm_provider, {})
         system_prompt = self.get_system_prompt()

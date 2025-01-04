@@ -1,8 +1,8 @@
 import anthropic
 from typing import Iterator
-from .llm_interface import LLMInterface
+from .agent_interface import AgentInterface
 
-class LLM(LLMInterface):
+class LLM(AgentInterface):
     def __init__(
         self,
         system: str = None,

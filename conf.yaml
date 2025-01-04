@@ -31,6 +31,12 @@ character_config:
   #  =================== LLM Backend Settings ===================
 
   llm_config:
+    # memory implementation (like short-term or long term memory or different long term memory implementation)
+    # this only applies to stateless LLM providers that doesn't manage the memory by itself
+    # like ollama, llama cpp, and claude
+    # this option DOESN'T apply to providers that handles memory by itself like mem0 or memgpt
+    memory_implementation: "basic_memory"
+
     # Provider of LLM. Options available: "ollama_llm", "memgpt", "mem0", "claude_llm", "llama_cpp_llm"
     #   (or "fakellm for debug purposes")
     # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup

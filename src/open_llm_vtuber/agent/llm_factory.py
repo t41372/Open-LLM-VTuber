@@ -1,5 +1,5 @@
 from typing import Type
-from .llm_interface import LLMInterface
+from .agent_interface import AgentInterface
 from .ollama_llm import LLM as OllamaLLM
 from .memgpt import LLM as MemGPTLLM
 from .fake_llm import LLM as FakeLLM
@@ -8,7 +8,7 @@ from .claude_llm import LLM as ClaudeLLM
 
 class LLMFactory:
     @staticmethod
-    def create_llm(llm_provider, **kwargs) -> Type[LLMInterface]:
+    def create_llm(llm_provider, **kwargs) -> Type[AgentInterface]:
 
         if llm_provider == "ollama_llm":
             return OllamaLLM(
@@ -28,7 +28,7 @@ class LLMFactory:
                 verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "mem0":
-            from open_llm_vtuber.llm.mem0_llm import LLM as Mem0LLM
+            from open_llm_vtuber.agent.mem0_llm import LLM as Mem0LLM
             return Mem0LLM(
                 user_id=kwargs.get("user_id"),
                 system=kwargs.get("system_prompt"),

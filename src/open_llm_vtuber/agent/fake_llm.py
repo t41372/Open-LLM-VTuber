@@ -1,9 +1,9 @@
 from typing import Iterator
 import json
 
-from .llm_interface import LLMInterface
+from .agent_interface import AgentInterface
 
-class LLM(LLMInterface):
+class LLM(AgentInterface):
 
     def __init__(self):
         """

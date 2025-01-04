@@ -10,16 +10,15 @@ import json
 from openai import OpenAI
 from loguru import logger
 
-from .llm_interface import LLMInterface
+from .agent_interface import AgentInterface
 
 
-class LLM(LLMInterface):
+class LLM(AgentInterface):
     def __init__(
         self,
         base_url: str,
         model: str,
         system: str,
-        callback=print,
         organization_id: str = "z",
         project_id: str = "z",
         llm_api_key: str = "z",
@@ -32,7 +31,6 @@ class LLM(LLMInterface):
         - base_url (str): The base URL for the OpenAI API.
         - model (str): The model to be used for language generation.
         - system (str): The system to be used for language generation.
-        - callback [DEPRECATED] (function, optional): The callback function to be called after each API call. Defaults to `print`.
         - organization_id (str, optional): The organization ID for the OpenAI API. Defaults to an empty string.
         - project_id (str, optional): The project ID for the OpenAI API. Defaults to an empty string.
         - llm_api_key (str, optional): The API key for the OpenAI API. Defaults to an empty string.
@@ -42,7 +40,6 @@ class LLM(LLMInterface):
         self.base_url = base_url
         self.model = model
         self.system = system
-        self.callback = callback
         self.memory = []
         self.verbose = verbose
         self.client = OpenAI(
