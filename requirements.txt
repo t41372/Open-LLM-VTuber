@@ -20,3 +20,5 @@ httpx
 faster_whisper
 chardet
 anthropic
+pysbd
+langdetect
