@@ -6,6 +6,7 @@ from typing import AsyncIterator, List
 import numpy as np
 from loguru import logger
 from fastapi import WebSocket
+import re
 
 from .live2d_model import Live2dModel
 from .asr.asr_interface import ASRInterface
@@ -15,7 +16,7 @@ from .translate.translate_interface import TranslateInterface
 from .translate.translate_factory import TranslateFactory
 
 from .utils.audio_preprocessor import audio_filter
-from .utils.sentence_divider import is_complete_sentence
+from .utils.sentence_divider import process_text_stream, END_PUNCTUATIONS
 from .utils.stream_audio import prepare_audio_payload
 from .chat_history_manager import store_message
 
@@ -146,29 +147,44 @@ async def conversation_chain(
         tts_manager = TTSTaskManager()
 
         full_response: str = ""
-        sentence_buffer: str = ""
+        buffer: str = ""
 
         chat_completion: AsyncIterator[str] = llm_engine.async_chat_iter(user_input)
 
         async for token in chat_completion:
-            sentence_buffer += token
+            buffer += token
             full_response += token
-            if is_complete_sentence(sentence_buffer) and sentence_buffer.strip():
+
+            # Process buffer when it gets long enough or contains any ending punctuation
+            if len(buffer) >= 25 or any(punct in buffer for punct in END_PUNCTUATIONS):
+                sentences, remaining = process_text_stream(buffer)
+                for sentence in sentences:
+                    await tts_manager.speak(
+                        sentence_buffer=sentence,
+                        live2d_model=live2d_model,
+                        tts_engine=tts_engine,
+                        websocket_send=websocket_send,
+                    )
+                buffer = remaining
+
+        # Process any remaining text
+        if buffer.strip():
+            sentences, remaining = process_text_stream(buffer)
+            for sentence in sentences:
                 await tts_manager.speak(
-                    sentence_buffer=sentence_buffer,
+                    sentence_buffer=sentence,
                     live2d_model=live2d_model,
                     tts_engine=tts_engine,
                     websocket_send=websocket_send,
                 )
-                sentence_buffer = ""
-
-        if sentence_buffer:
-            await tts_manager.speak(
-                sentence_buffer=sentence_buffer,
-                live2d_model=live2d_model,
-                tts_engine=tts_engine,
-                websocket_send=websocket_send,
-            )
+            # If there's still incomplete text, speak it anyway
+            if remaining.strip():
+                await tts_manager.speak(
+                    sentence_buffer=remaining.strip(),
+                    live2d_model=live2d_model,
+                    tts_engine=tts_engine,
+                    websocket_send=websocket_send,
+                )
 
         # Wait for all TTS tasks to complete
         if tts_manager.task_list:
