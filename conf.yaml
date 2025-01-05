@@ -31,7 +31,7 @@ character_config:
 
   llm_config:
     # Provider of LLM. Options available: "ollama_llm", "memgpt", "mem0", "claude_llm", "llama_cpp_llm"
-    #   (or "fakellm for debug purposes")
+    #   (or "fake_llm for debug purposes")
     # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
     llm_provider: "ollama_llm"
 
