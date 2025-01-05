@@ -7,7 +7,7 @@ from typing import Iterator
 from mem0 import Memory
 from openai import OpenAI
 from loguru import logger
-from .agent_interface import AgentInterface
+from .agents.agent_interface import AgentInterface
 import json
 
 

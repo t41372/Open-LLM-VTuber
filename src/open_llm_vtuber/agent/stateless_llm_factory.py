@@ -1,5 +1,5 @@
 from typing import Type
-from .agent_interface import AgentInterface
+from .agents.agent_interface import AgentInterface
 from .ollama_llm import LLM as OllamaLLM
 from .memgpt import LLM as MemGPTLLM
 from .fake_llm import LLM as FakeLLM

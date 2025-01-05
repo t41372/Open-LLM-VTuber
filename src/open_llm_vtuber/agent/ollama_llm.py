@@ -10,7 +10,7 @@ import json
 from openai import OpenAI
 from loguru import logger
 
-from .agent_interface import AgentInterface
+from .agents.agent_interface import AgentInterface
 
 
 class LLM(AgentInterface):

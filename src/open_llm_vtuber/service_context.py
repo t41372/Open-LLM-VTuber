@@ -8,12 +8,12 @@ from prompts import prompt_loader
 from .live2d_model import Live2dModel
 from .asr.asr_interface import ASRInterface
 from .tts.tts_interface import TTSInterface
-from .agent.agent_interface import AgentInterface
+from .agent.agents.agent_interface import AgentInterface
 from .translate.translate_interface import TranslateInterface
 
 from .asr.asr_factory import ASRFactory
 from .tts.tts_factory import TTSFactory
-from .agent.stateless_llm_factory import LLMFactory
+from .agent.agent_factory import AgentFactory
 from .translate.translate_factory import TranslateFactory
 
 from .config_manager import (
@@ -22,7 +22,6 @@ from .config_manager import (
     SystemConfig,
     ASRConfig,
     TTSConfig,
-    LLMConfig,
     read_yaml,
     validate_config,
 )
@@ -41,7 +40,7 @@ class ServiceContext:
         self.live2d_model: Live2dModel = None
         self.asr_engine: ASRInterface = None
         self.tts_engine: TTSInterface = None
-        self.llm_engine: AgentInterface = None
+        self.agent_engine: AgentInterface = None
         # self.translate: TranslateInterface
 
         # the system prompt is a combination of the persona prompt and live2d expression prompt
@@ -57,9 +56,8 @@ class ServiceContext:
             f"    Config: {json.dumps(self.character_config.asr_config.model_dump(), indent=6) if self.character_config.asr_config else 'None'}\n"
             f"  TTS Engine: {type(self.tts_engine).__name__ if self.tts_engine else 'Not Loaded'}\n"
             f"    Config: {json.dumps(self.character_config.tts_config.model_dump(), indent=6) if self.character_config.tts_config else 'None'}\n"
-            f"  LLM Engine: {type(self.llm_engine).__name__ if self.llm_engine else 'Not Loaded'}\n"
-            f"    Config: {json.dumps(self.character_config.llm_config.model_dump(), indent=6) if self.character_config.llm_config else 'None'}\n"
-            f"  LLM Provider: {self.character_config.llm_config.llm_provider if self.character_config.llm_config else 'Not Set'}\n"
+            f"  LLM Engine: {type(self.agent_engine).__name__ if self.agent_engine else 'Not Loaded'}\n"
+            f"    Agent Config: {json.dumps(self.character_config.agent_config.model_dump(), indent=6) if self.character_config.agent_config else 'None'}\n"
             f"  System Prompt: {self.system_prompt or 'Not Set'}"
         )
 
@@ -73,7 +71,7 @@ class ServiceContext:
         live2d_model: Live2dModel,
         asr_engine: ASRInterface,
         tts_engine: TTSInterface,
-        llm_engine: AgentInterface,
+        agent_engine: AgentInterface,
     ) -> None:
         """
         Load the ServiceContext with the reference of the provided instances.
@@ -90,7 +88,7 @@ class ServiceContext:
         self.live2d_model = live2d_model
         self.asr_engine = asr_engine
         self.tts_engine = tts_engine
-        self.llm_engine = llm_engine
+        self.agent_engine = agent_engine
 
         logger.debug(f"Loaded service context with cache: {character_config}")
 
@@ -122,9 +120,9 @@ class ServiceContext:
         # init tts from character config
         self.init_tts(config.character_config.tts_config)
 
-        # init llm from character config
-        self.init_llm(
-            config.character_config.llm_config,
+        # init agent from character config
+        self.init_agent(
+            config.character_config.agent_config,
             config.character_config.persona_prompt,
         )
 
@@ -166,34 +164,38 @@ class ServiceContext:
         else:
             logger.info("TTS already initialized with the same config.")
 
-    # TODO - implement llm update logic after separating the memory and system prompt
-    def init_llm(self, llm_config: LLMConfig, persona_prompt: str) -> None:
-        logger.info(f"Initializing LLM: {llm_config.llm_provider}")
+    def init_agent(self, agent_config: "AgentConfig", persona_prompt: str) -> None:
+        """Initialize or update the LLM engine based on agent configuration."""
+        logger.info(f"Initializing Agent: {agent_config.conversation_agent_choice}")
 
         if (
-            self.llm_engine is not None
-            and llm_config == self.character_config.llm_config
+            self.agent_engine is not None
+            and agent_config == self.character_config.agent_config
             and persona_prompt == self.character_config.persona_prompt
         ):
-            logger.debug("LLM already initialized with the same config.")
+            logger.debug("Agent already initialized with the same config.")
             return
 
         system_prompt = self.construct_system_prompt(persona_prompt)
 
-        self.llm_engine = LLMFactory.create_llm(
-            llm_provider=llm_config.llm_provider,
-            system_prompt=system_prompt,
-            **(getattr(llm_config, llm_config.llm_provider).model_dump()),
-        )
-        logger.debug(f"LLM choice: {llm_config.llm_provider}")
-        logger.warning(
-            f"LLM initialized with config: {getattr(llm_config, llm_config.llm_provider)}"
-        )
-        logger.debug(f"System prompt: {system_prompt}")
+        try:
+            self.agent_engine = AgentFactory.create_agent(
+                conversation_agent_choice=agent_config.conversation_agent_choice,
+                agent_settings=agent_config.agent_settings.model_dump(),
+                llm_configs=agent_config.llm_configs.model_dump(),
+                system_prompt=system_prompt,
+            )
+            
+            logger.debug(f"Agent choice: {agent_config.conversation_agent_choice}")
+            logger.debug(f"System prompt: {system_prompt}")
 
-        # Save the current configuration
-        self.character_config.llm_config = llm_config
-        self.system_prompt = system_prompt
+            # Save the current configuration
+            self.character_config.agent_config = agent_config
+            self.system_prompt = system_prompt
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize agent: {e}")
+            raise
 
     # ==== utils
 

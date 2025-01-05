@@ -23,9 +23,9 @@ class BasicMemoryAgent(AgentInterface):
         """
 
     # chat function will be set by set_llm.
-    # The default chat function (which handles error when not override) is in 
+    # The default chat function (which handles error when not override) is in
     # the base class.
-    
+
     # ============== Setter ==============
 
     def _set_llm(self, llm: StatelessLLMInterface):
@@ -35,9 +35,7 @@ class BasicMemoryAgent(AgentInterface):
             the LLM
         """
         self._llm: StatelessLLMInterface = llm
-        self.chat = self._chat_function_factory(
-            llm.chat_completion
-        )
+        self.chat = self._chat_function_factory(llm.chat_completion)
 
     def set_system(self, system: str):
         """
