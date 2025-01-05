@@ -10,7 +10,7 @@ import re
 
 from .live2d_model import Live2dModel
 from .asr.asr_interface import ASRInterface
-from .agent.agent_interface import AgentInterface
+from .llm.llm_interface import LLMInterface
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
 from .translate.translate_factory import TranslateFactory
@@ -90,7 +90,7 @@ class TTSTaskManager:
 async def conversation_chain(
     user_input: str | np.ndarray,
     asr_engine: ASRInterface,
-    llm_engine: AgentInterface,
+    llm_engine: LLMInterface,
     tts_engine: TTSInterface,
     live2d_model: Live2dModel,
     websocket_send: WebSocket.send,

@@ -7,10 +7,10 @@ from typing import Iterator
 import json
 from llama_cpp import Llama
 
-from .agent_interface import AgentInterface
+from .llm_interface import LLMInterface
 
 
-class LLM(AgentInterface):
+class LLM(LLMInterface):
 
     def __init__(
         self,

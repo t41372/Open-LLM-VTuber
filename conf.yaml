@@ -21,7 +21,7 @@ character_config:
 
   # Persona choice is DEAD
   # Just enter the persona prompt you want to use below.
-  # If you want to create multiple characters and switch between them,
+  # If you want to create multiple characters and switch between them, 
   #   add characters in characters folder
   persona_prompt: |
     You are the sarcastic female AI VTuber Mili. You are overly confident, sarcastic, and dangerous.
@@ -30,78 +30,70 @@ character_config:
 
   #  =================== LLM Backend Settings ===================
 
-  agent_config:
-    conversation_agent_choice: "basic_memory_agent"
+  llm_config:
+    # Provider of LLM. Options available: "ollama_llm", "memgpt", "mem0", "claude_llm", "llama_cpp_llm"
+    #   (or "fakellm for debug purposes")
+    # "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
+    llm_provider: "ollama_llm"
 
-    agent_settings:
-      basic_memory_agent:
-        # The Basic AI Agent. Nothing fancy.
-        # choose one of the llm provider from the llm_config
-        # and set the required parameters in the corresponding field
-        llm_provider: "openai_compatible_llm"
+    # Ollama & OpenAI Compatible inference backend
+    ollama_llm:
+      base_url: "http://localhost:11434/v1"
+      llm_api_key: "somethingelse"
+      organization_id: "org_eternity"
+      project_id: "project_glass"
+      ## LLM name
+      model: "qwen2.5:latest"
+      # system prompt is at the very end of this file
+      verbose: False
 
-      mem0_agent:
-        vector_store:
-          provider: "qdrant"
-          config:
-            collection_name: "test"
-            host: "localhost"
-            port: 6333
-            embedding_model_dims: 1024
+    # Claude API Configuration
+    claude_llm:
+      base_url: "https://api.anthropic.com"
+      llm_api_key: "YOUR API KEY HERE"
+      model: "claude-3-haiku-20240307"
+      verbose: False
 
-        # mem0 has it's own llm settings and is different from our llm_config. 
-        # check their docs for more details
-        llm:
-          provider: "ollama"
-          config:
-            model: "llama3.1:latest"
-            temperature: 0
-            max_tokens: 8000
-            ollama_base_url: "http://localhost:11434"
+    llama_cpp_llm:
+      model_path: "<path-to-gguf-model-file>"
+      verbose: True
 
-        embedder:
-          provider: "ollama"
-          config:
-            model: "mxbai-embed-large:latest"
-            ollama_base_url: "http://localhost:11434"
+    mem0:
+      vector_store:
+        provider: "qdrant"
+        config:
+          collection_name: "test"
+          host: "localhost"
+          port: 6333
+          embedding_model_dims: 1024
 
-      # MemGPT Configurations
-      ## Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)
-      ## In addition, please set up an agent using the webui launched in the memGPT base_url
+      llm:
+        provider: "ollama"
+        config:
+          model: "llama3.1:latest"
+          temperature: 0
+          max_tokens: 8000
+          ollama_base_url: "http://localhost:11434"
 
-      memgpt:
-        base_url: "http://localhost:8283"
+      embedder:
+        provider: "ollama"
+        config:
+          model: "mxbai-embed-large:latest"
+          ollama_base_url: "http://localhost:11434"
 
-        # You will find admin server password in memGPT console output. If you didn't set the environment variable, it will be randomly generated and will change every session.
-        admin_token: ""
+    # MemGPT Configurations
+    ## Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)
+    ## In addition, please set up an agent using the webui launched in the memGPT base_url
 
-        # The ID of the agent to send the message to.
-        agent_id: ""
-        verbose: True
+    memgpt:
+      base_url: "http://localhost:8283"
 
-    llm_configs:
-      # a configuration pool for the credentials and connection details for 
-      # all of the stateless llm providers that will be used in different agents
+      # You will find admin server password in memGPT console output. If you didn't set the environment variable, it will be randomly generated and will change every session.
+      admin_token: ""
 
-      # Ollama & OpenAI Compatible inference backend
-      openai_compatible_llm:
-        base_url: "http://localhost:11434/v1"
-        llm_api_key: "somethingelse"
-        organization_id: "org_eternity"
-        project_id: "project_glass"
-        ## LLM name
-        model: "qwen2.5:latest"
-
-      # Claude API Configuration
-      claude_llm:
-        base_url: "https://api.anthropic.com"
-        llm_api_key: "YOUR API KEY HERE"
-        model: "claude-3-haiku-20240307"
-        verbose: False
-
-      llama_cpp_llm:
-        model_path: "<path-to-gguf-model-file>"
-        verbose: True
+      # The ID of the agent to send the message to.
+      agent_id: ""
+      verbose: True
 
   # === Automatic Speech Recognition ===
   asr_config:

@@ -7,11 +7,11 @@ from typing import Iterator
 from mem0 import Memory
 from openai import OpenAI
 from loguru import logger
-from .agent_interface import AgentInterface
+from .llm_interface import LLMInterface
 import json
 
 
-class LLM(AgentInterface):
+class LLM(LLMInterface):
 
     def __init__(
         self,
