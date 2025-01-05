@@ -49,7 +49,7 @@ def init_logger(console_log_level="INFO"):
         "logs/debug_{time:YYYY-MM-DD}.log",
         rotation="10 MB",
         retention="30 days",
-        level="DEBUG",
+        Level="DEBUG",
         format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message} | {extra}",
         backtrace=True,
         diagnose=True,
