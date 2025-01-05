@@ -28,7 +28,7 @@ from .tts.tts_factory import TTSFactory
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
 from .translate.translate_factory import TranslateFactory
-from .utils.audio_preprocessor import audio_filter
+from .utils.tts_preprocessor import tts_filter
 
 
 class OpenLLMVTuberMain:
@@ -402,7 +402,7 @@ class OpenLLMVTuberMain:
                                 raise InterruptedError("Producer interrupted")
                             tts_target_sentence = sentence_buffer
 
-                            tts_target_sentence = audio_filter(
+                            tts_target_sentence = tts_filter(
                                 tts_target_sentence,
                                 translator=(
                                     self.translator

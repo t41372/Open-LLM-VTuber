@@ -10,7 +10,6 @@ system_config:
   # This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
   # Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
   live2d_expression_prompt: "live2d_expression_prompt"
-  remove_special_char: True # remove special characters like emoji from audio generation
 
 # configuration for the default character
 character_config:
@@ -284,13 +283,16 @@ character_config:
       speed: 1.0 # Speech speed (1.0 is normal)
       debug: false # Enable debug mode (True/False)
 
-  #  ============== Translate (to only change the language for TTS) ==============
+  tts_preprocessor_config:
+    # settings regarding preprocessing for text that goes into TTS
 
-  translator:
-    # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
-    translate_audio: False # Warning: you need to deploy DeeplX to use this. Otherwise it's going to crash
-    translate_provider: "DeepLX"
+    remove_special_char: True # remove special characters like emoji from audio generation
 
-    deeplx:
-      deeplx_target_lang: "JA"
-      deeplx_api_endpoint: "http://localhost:1188/v2/translate"
+    translator_config:
+      # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
+      translate_audio: False # Warning: you need to deploy DeeplX to use this. Otherwise it's going to crash
+      translate_provider: "DeepLX"
+
+      deeplx:
+        deeplx_target_lang: "JA"
+        deeplx_api_endpoint: "http://localhost:1188/v2/translate"

@@ -12,7 +12,6 @@ class SystemConfig(I18nMixin):
     preload_models: bool = Field(..., alias="preload_models")
     config_alts_dir: str = Field(..., alias="config_alts_dir")
     live2d_expression_prompt: str = Field(..., alias="live2d_expression_prompt")
-    remove_special_char: bool = Field(..., alias="remove_special_char")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "conf_version": Description(
@@ -38,10 +37,6 @@ class SystemConfig(I18nMixin):
         "live2d_expression_prompt": Description(
             en="Prompt for Live2D expressions",
             zh="Live2D 表情提示词"
-        ),
-        "remove_special_char": Description(
-            en="Whether to remove special characters from audio generation",
-            zh="是否从音频生成中移除特殊字符"
         ),
     }
     

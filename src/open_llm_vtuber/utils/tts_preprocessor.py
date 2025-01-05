@@ -2,7 +2,7 @@ import unicodedata
 from ..translate.translate_interface import TranslateInterface
 
 
-def audio_filter(
+def tts_filter(
     text: str, remove_special_char: bool, translator: TranslateInterface | None = None
 ) -> str:
     """

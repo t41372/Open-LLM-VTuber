@@ -9,13 +9,14 @@ from fastapi import WebSocket
 import re
 
 from .live2d_model import Live2dModel
+from .config_manager.tts_preprocessor import TTSPreprocessorConfig
 from .asr.asr_interface import ASRInterface
 from .agent.agents.agent_interface import AgentInterface
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
 from .translate.translate_factory import TranslateFactory
 
-from .utils.audio_preprocessor import audio_filter
+from .utils.tts_preprocessor import tts_filter
 from .utils.sentence_divider import process_text_stream, END_PUNCTUATIONS
 from .utils.stream_audio import prepare_audio_payload
 from .chat_history_manager import store_message
@@ -70,19 +71,19 @@ class TTSTaskManager:
                 )
                 logger.debug("Sending Audio payload.")
                 await websocket_send(json.dumps(audio_payload))
-                
+
                 tts_engine.remove_file(audio_file_path)
                 logger.debug("Payload sent. Audio cache file cleaned.")
-                
+
             except Exception as e:
                 logger.error(f"Error preparing audio payload: {e}")
                 tts_engine.remove_file(audio_file_path)
-                
+
         except Exception as e:
             logger.error(f"Error in speak function: {e}")
         finally:
             self.next_index_to_play += 1
-            
+
             if current_task_index == len(self.task_list) - 1:
                 self.clear()
 
@@ -93,6 +94,7 @@ async def conversation_chain(
     agent_engine: AgentInterface,
     tts_engine: TTSInterface,
     live2d_model: Live2dModel,
+    tts_preprocessor_config: TTSPreprocessorConfig,
     websocket_send: WebSocket.send,
     conf_uid: str = "",
     history_uid: str = "",
@@ -155,6 +157,11 @@ async def conversation_chain(
             if len(buffer) >= 25 or any(punct in buffer for punct in END_PUNCTUATIONS):
                 sentences, remaining = process_text_stream(buffer)
                 for sentence in sentences:
+                    sentence = tts_filter(
+                        text=sentence,
+                        remove_special_char=tts_preprocessor_config.remove_special_char,
+                        # TODO We need to implement Translator...
+                    )
                     await tts_manager.speak(
                         sentence_buffer=sentence,
                         live2d_model=live2d_model,
