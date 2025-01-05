@@ -8,12 +8,12 @@ from prompts import prompt_loader
 from .live2d_model import Live2dModel
 from .asr.asr_interface import ASRInterface
 from .tts.tts_interface import TTSInterface
-from .llm.llm_interface import LLMInterface
+from .agent.agent_interface import AgentInterface
 from .translate.translate_interface import TranslateInterface
 
 from .asr.asr_factory import ASRFactory
 from .tts.tts_factory import TTSFactory
-from .llm.llm_factory import LLMFactory
+from .agent.stateless_llm_factory import LLMFactory
 from .translate.translate_factory import TranslateFactory
 
 from .config_manager import (
@@ -41,7 +41,7 @@ class ServiceContext:
         self.live2d_model: Live2dModel = None
         self.asr_engine: ASRInterface = None
         self.tts_engine: TTSInterface = None
-        self.llm_engine: LLMInterface = None
+        self.llm_engine: AgentInterface = None
         # self.translate: TranslateInterface
 
         # the system prompt is a combination of the persona prompt and live2d expression prompt
@@ -73,7 +73,7 @@ class ServiceContext:
         live2d_model: Live2dModel,
         asr_engine: ASRInterface,
         tts_engine: TTSInterface,
-        llm_engine: LLMInterface,
+        llm_engine: AgentInterface,
     ) -> None:
         """
         Load the ServiceContext with the reference of the provided instances.

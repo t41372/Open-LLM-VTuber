@@ -2,12 +2,12 @@ from typing import Iterator
 import json
 import requests
 from rich.console import Console
-from .llm_interface import LLMInterface
+from .agent_interface import AgentInterface
 
 console = Console()
 
 
-class LLM(LLMInterface):
+class LLM(AgentInterface):
 
     def __init__(
         self,
