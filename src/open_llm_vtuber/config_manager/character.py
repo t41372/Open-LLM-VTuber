@@ -5,7 +5,8 @@ from .i18n import I18nMixin, Description, MultiLingualString
 from .llm import LLMConfig
 from .asr import ASRConfig
 from .tts import TTSConfig
-from .translate import TranslatorConfig
+from .tts_preprocessor import TTSPreprocessorConfig
+
 
 class CharacterConfig(I18nMixin):
     """Character configuration settings."""
@@ -17,40 +18,34 @@ class CharacterConfig(I18nMixin):
     llm_config: LLMConfig = Field(..., alias="llm_config")
     asr_config: ASRConfig = Field(..., alias="asr_config")
     tts_config: TTSConfig = Field(..., alias="tts_config")
-    translator: TranslatorConfig = Field(..., alias="translator")
+    tts_preprocessor_config: TTSPreprocessorConfig = Field(...)
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "conf_name": Description(
-            en="Name of the character configuration",
-            zh="角色配置名称"
+            en="Name of the character configuration", zh="角色配置名称"
         ),
         "conf_uid": Description(
             en="Unique identifier for the character configuration",
-            zh="角色配置唯一标识符"
+            zh="角色配置唯一标识符",
         ),
         "live2d_model": Description(
-            en="Name of the Live2D model to use",
-            zh="使用的Live2D模型名称"
+            en="Name of the Live2D model to use", zh="使用的Live2D模型名称"
         ),
         "persona_prompt": Description(
-            en="Persona prompt. The persona of your character.",
-            zh="角色人设提示词"
+            en="Persona prompt. The persona of your character.", zh="角色人设提示词"
         ),
         "llm_config": Description(
-            en="Configuration for the Language Learning Model",
-            zh="语言模型配置"
+            en="Configuration for the Language Learning Model", zh="语言模型配置"
         ),
         "asr_config": Description(
-            en="Configuration for Automatic Speech Recognition",
-            zh="语音识别配置"
+            en="Configuration for Automatic Speech Recognition", zh="语音识别配置"
         ),
         "tts_config": Description(
-            en="Configuration for Text-to-Speech",
-            zh="语音合成配置"
+            en="Configuration for Text-to-Speech", zh="语音合成配置"
         ),
-        "translator": Description(
-            en="Configuration for the translator",
-            zh="翻译器配置"
+        "tts_preprocessor_config": Description(
+            en="Configuration for Text-to-Speech Preprocessor",
+            zh="语音合成预处理器配置",
         ),
     }
 

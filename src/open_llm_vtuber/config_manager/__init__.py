@@ -43,7 +43,7 @@ from .tts import (
     FishAPITTSConfig,
     SherpaOnnxTTSConfig,
 )
-from .translate import TranslatorConfig, DeepLXConfig
+from .tts_preprocessor import TTSPreprocessorConfig, TranslatorConfig, DeepLXConfig
 from .i18n import I18nMixin, Description, MultiLingualString
 
 # Import utility functions
@@ -91,7 +91,8 @@ __all__ = [
     "GPTSoVITSConfig",
     "FishAPITTSConfig",
     "SherpaOnnxTTSConfig",
-    # Translation related classes
+    # TTS preprocessor related classes
+    "TTSPreprocessorConfig",
     "TranslatorConfig",
     "DeepLXConfig",
     # i18n related classes
