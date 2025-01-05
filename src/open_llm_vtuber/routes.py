@@ -174,11 +174,27 @@ def create_routes(default_context_cache: ServiceContext):
                         np.array(data.get("audio"), dtype=np.float32),
                     )
 
-                elif data.get("type") in ["mic-audio-end", "text-input"]:
+                elif data.get("type") in [
+                    "mic-audio-end",
+                    "text-input",
+                    "ai-speak-signal",
+                ]:
                     await websocket.send_text(
                         json.dumps({"type": "full-text", "text": "Thinking..."})
                     )
-                    if data.get("type") == "text-input":
+
+                    if data.get("type") == "ai-speak-signal":
+                        user_input = ""
+                        await websocket.send_text(
+                            json.dumps(
+                                {
+                                    "type": "full-text",
+                                    "text": "AI wants to speak something...",
+                                }
+                            )
+                        )
+
+                    elif data.get("type") == "text-input":
                         user_input = data.get("text")
                     else:
                         user_input: np.ndarray | str = received_data_buffer
