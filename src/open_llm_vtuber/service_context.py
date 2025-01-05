@@ -13,7 +13,7 @@ from .translate.translate_interface import TranslateInterface
 
 from .asr.asr_factory import ASRFactory
 from .tts.tts_factory import TTSFactory
-from .agent.llm_factory import LLMFactory
+from .agent.stateless_llm_factory import LLMFactory
 from .translate.translate_factory import TranslateFactory
 
 from .config_manager import (

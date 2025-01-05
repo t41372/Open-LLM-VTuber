@@ -22,7 +22,7 @@ from prompts import prompt_loader
 from .asr.asr_factory import ASRFactory
 from .asr.asr_interface import ASRInterface
 from .live2d_model import Live2dModel
-from .agent.llm_factory import LLMFactory
+from .agent.stateless_llm_factory import LLMFactory
 from .agent.agent_interface import AgentInterface
 from .tts.tts_factory import TTSFactory
 from .tts.tts_interface import TTSInterface

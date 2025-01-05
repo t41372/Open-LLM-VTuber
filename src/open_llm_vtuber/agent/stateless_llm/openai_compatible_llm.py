@@ -14,8 +14,9 @@ from openai import (
 from openai.types.chat import ChatCompletionChunk
 from loguru import logger
 
+from .stateless_llm_interface import StatelessLLMInterface
 
-class AsyncLLM:
+class AsyncLLM(StatelessLLMInterface):
     def __init__(
         self,
         model: str,
@@ -90,7 +91,4 @@ class AsyncLLM:
             logger.error(f"LLM API (OpenAI-Compatible): error occurred: {e}")
             logger.debug(f"Base URL: {self.base_url}")
             logger.debug(f"Model: {self.model}")
-            logger.debug(
-                f"Request ID: {e.response._request_id if e.response else 'N/A'}"
-            )
             raise
