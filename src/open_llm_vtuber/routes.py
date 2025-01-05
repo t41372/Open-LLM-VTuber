@@ -211,6 +211,7 @@ def create_routes(default_context_cache: ServiceContext):
                             tts_engine=session_service_context.tts_engine,
                             agent_engine=session_service_context.agent_engine,
                             live2d_model=session_service_context.live2d_model,
+                            tts_preprocessor_config=session_service_context.character_config.tts_preprocessor_config,
                             websocket_send=websocket.send_text,
                             conf_uid=conf_uid,
                             history_uid=current_history_uid,
