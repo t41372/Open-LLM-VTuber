@@ -68,27 +68,23 @@ class TTSTaskManager:
                     display_text=sentence_buffer,
                     expression_list=[emotion],
                 )
-            except asyncio.CancelledError as e:
-                logger.debug("TTS task cancelled.")
-                raise e
+                logger.debug("Sending Audio payload.")
+                await websocket_send(json.dumps(audio_payload))
+                
+                tts_engine.remove_file(audio_file_path)
+                logger.debug("Payload sent. Audio cache file cleaned.")
+                
             except Exception as e:
                 logger.error(f"Error preparing audio payload: {e}")
-                return
-
-            logger.debug("Sending Audio payload.")
-            await websocket_send(json.dumps(audio_payload))
-
-            tts_engine.remove_file(audio_file_path)
-            logger.debug("Payload sent. Audio cache file cleaned.")
-
-            self.next_index_to_play += 1
-
-            if current_task_index == len(self.task_list) - 1:
-                self.clear()
-
+                tts_engine.remove_file(audio_file_path)
+                
         except Exception as e:
             logger.error(f"Error in speak function: {e}")
+        finally:
             self.next_index_to_play += 1
+            
+            if current_task_index == len(self.task_list) - 1:
+                self.clear()
 
 
 async def conversation_chain(

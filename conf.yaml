@@ -245,9 +245,9 @@ character_config:
       # put ref audio to root path of GPT-Sovits, or set the path here
       api_url: "http://127.0.0.1:9880/tts"
       text_lang: "zh"
-      ref_audio_path: "人类，我闻到了你身上散发出来的欧气。.wav"
+      ref_audio_path: ""
       prompt_lang: "zh"
-      prompt_text: "人类，我闻到了你身上散发出来的欧气。"
+      prompt_text: ""
       text_split_method: "cut5"
       batch_size: "1"
       media_type: "wav"
