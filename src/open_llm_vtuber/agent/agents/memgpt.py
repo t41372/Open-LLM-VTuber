@@ -2,7 +2,7 @@ from typing import Iterator
 import json
 import requests
 from rich.console import Console
-from .agents.agent_interface import AgentInterface
+from .agent_interface import AgentInterface
 
 console = Console()
 

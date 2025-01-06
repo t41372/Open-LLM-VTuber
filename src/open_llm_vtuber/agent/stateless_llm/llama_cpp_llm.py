@@ -7,7 +7,7 @@ from typing import Iterator
 import json
 from llama_cpp import Llama
 
-from .agents.agent_interface import AgentInterface
+from ..agents.agent_interface import AgentInterface
 
 
 class LLM(AgentInterface):

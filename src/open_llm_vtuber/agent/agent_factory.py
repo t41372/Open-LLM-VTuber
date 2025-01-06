@@ -4,8 +4,8 @@ from loguru import logger
 from .agents.agent_interface import AgentInterface
 from .agents.basic_memory_agent import BasicMemoryAgent
 from .stateless_llm_factory import LLMFactory as StatelessLLMFactory
-from .mem0_llm import LLM as Mem0LLM
-from .memgpt import LLM as MemGPTLLM
+from .agents.mem0_llm import LLM as Mem0LLM
+from .agents.memgpt import LLM as MemGPTLLM
 
 
 class AgentFactory:
@@ -26,6 +26,8 @@ class AgentFactory:
             system_prompt: The system prompt to use
             **kwargs: Additional arguments
         """
+        logger.info(f"Initializing agent: {conversation_agent_choice}")
+
         if conversation_agent_choice == "basic_memory_agent":
             # Get the LLM provider choice from agent settings
             basic_memory_settings = agent_settings.get("basic_memory_agent", {})
@@ -47,7 +49,7 @@ class AgentFactory:
             )
 
             # Create the agent with the LLM
-            return BasicMemoryAgent(llm=llm)
+            return BasicMemoryAgent(llm=llm, system=system_prompt)
 
         elif conversation_agent_choice == "mem0_agent":
             mem0_settings = agent_settings.get("mem0_agent", {})

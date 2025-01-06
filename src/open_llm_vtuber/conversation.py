@@ -145,7 +145,7 @@ async def conversation_chain(
         full_response: str = ""
         buffer: str = ""
 
-        chat_completion: AsyncIterator[str] = agent_engine.async_chat_iter(user_input)
+        chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
 
         async for token in chat_completion:
             buffer += token

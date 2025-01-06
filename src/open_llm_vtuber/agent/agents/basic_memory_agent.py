@@ -12,15 +12,17 @@ class BasicMemoryAgent(AgentInterface):
     This class provides a simple memory based on list for chat agents to store messages.
     """
 
-    def __init__(self, llm: StatelessLLMInterface = None):
-        self._llm: StatelessLLMInterface = None
-        self._set_llm(llm)
-        self._memory = []
-        self._system: str = """You are an error message repeater. 
+    _system: str = """You are an error message repeater. 
         Your job is repeating this error message: 
         'No system prompt set. Please set a system prompt'. 
         Don't say anything else.
         """
+
+    def __init__(self, llm: StatelessLLMInterface, system: str):
+        self._memory = []
+        self._set_llm(llm)
+        self.set_system(system)
+        logger.debug("BasicMemoryAgent initialized.")
 
     # chat function will be set by set_llm.
     # The default chat function (which handles error when not override) is in
@@ -43,6 +45,7 @@ class BasicMemoryAgent(AgentInterface):
         system: str
             the system prompt
         """
+        logger.debug(f"Memory Agent: Setting system prompt: '''{system}'''")
         self._system = system
 
     def _add_message(self, message: str, role: str):
@@ -138,14 +141,16 @@ class BasicMemoryAgent(AgentInterface):
                 str
                     A chunk of the response from the chat function.
             """
+            
+            # Add user message to memory first
+            self._add_message(prompt, "user")
+            
             messages: List[Dict[str, Any]] = [
                 {"role": "system", "content": self._system},
                 *self._memory,
-                {"role": "user", "content": prompt},
             ]
 
-            # Add user message to memory first
-            self._add_message(prompt, "user")
+            logger.critical(f"Memory Agent: Sending: '''{messages}'''")
 
             # Create response accumulator
             full_response = []
