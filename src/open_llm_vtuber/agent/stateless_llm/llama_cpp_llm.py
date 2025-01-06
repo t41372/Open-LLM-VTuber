@@ -1,147 +1,67 @@
-""" Description: This file contains the implementation of the LLM class using llama.cpp.
-This class is responsible for handling the interaction with the llama.cpp for 
-language generation.
+"""Description: This file contains the implementation of the LLM class using llama.cpp.
+This class provides a stateless interface to llama.cpp for language generation.
 """
 
-from typing import Iterator
-import json
+from typing import AsyncIterator, List, Dict, Any
+import asyncio
 from llama_cpp import Llama
+from loguru import logger
 
-from ..agents.agent_interface import AgentInterface
+from .stateless_llm_interface import StatelessLLMInterface
 
 
-class LLM(AgentInterface):
-
+class LLM(StatelessLLMInterface):
     def __init__(
         self,
         model_path: str,
-        system: str,
-        verbose: bool = False,
         **kwargs,
     ):
         """
-        Initializes an instance of the LLM class using llama.cpp.
+        Initializes a stateless instance of the LLM class using llama.cpp.
 
         Parameters:
         - model_path (str): Path to the GGUF model file
-        - system (str): The system prompt
-        - verbose (bool, optional): Enable verbose mode. Defaults to False
         - **kwargs: Additional arguments passed to Llama constructor
         """
+        logger.info(f"Initializing llama cpp with model path: {model_path}")
         self.model_path = model_path
-        self.system = system
-        self.memory = []
-        self.verbose = verbose
-        self.llm = Llama(model_path=model_path, **kwargs)
+        try:
+            self.llm = Llama(model_path=model_path, **kwargs)
+        except Exception as e:
+            logger.critical(f"Failed to initialize Llama model: {e}")
+            raise
 
-        self.__set_system(system)
-
-        if self.verbose:
-            self.__printDebugInfo()
-
-    def __set_system(self, system):
+    async def chat_completion(
+        self, messages: List[Dict[str, Any]]
+    ) -> AsyncIterator[str]:
         """
-        Set the system prompt
-        system: str
-            the system prompt
+        Generates a chat completion using llama.cpp asynchronously.
+
+        Parameters:
+        - messages (List[Dict[str, Any]]): The list of messages to send to the model.
+
+        Yields:
+        - str: The content of each chunk from the model response.
         """
-        self.system = system
-        self.memory.append(
-            {
-                "role": "system",
-                "content": system,
-            }
-        )
-
-    def __print_memory(self):
-        """
-        Print the memory
-        """
-        print("Memory:\n========\n")
-        # for message in self.memory:
-        print(self.memory)
-        print("\n========\n")
-
-    def __printDebugInfo(self):
-        print(" -- Model Path: " + self.model_path)
-        print(" -- System: " + self.system)
-
-    def chat_iter(self, prompt: str) -> Iterator[str]:
-        self.memory.append(
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        )
-
-        if self.verbose:
-            self.__print_memory()
-            print(f" -- Model Path: {self.model_path}")
-            print(f" -- System: {self.system}")
-            print(f" -- Prompt: {prompt}\n\n")
+        logger.debug(f"Generating completion for messages: {messages}")
 
         try:
-            chat_completion = self.llm.create_chat_completion(
-                messages=self.memory, stream=True
+            # Create chat completion in a separate thread to avoid blocking
+            chat_completion = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: self.llm.create_chat_completion(
+                    messages=messages,
+                    stream=True,
+                ),
             )
-        except Exception as e:
-            print(f"Error calling llama.cpp: {str(e)}")
-            self.__printDebugInfo()
-            return iter([f"Error calling llama.cpp: {str(e)}"])
 
-        def _generate_response():
+            # Process chunks
             for chunk in chat_completion:
-                try:
-                    if chunk.get("choices") and chunk["choices"][0].get("delta"):
-                        content = chunk["choices"][0]["delta"].get("content", "")
-                        if content:
-                            yield content
-                except Exception as e:
-                    print(f"Error processing chunk: {e}")
-                    continue
+                if chunk.get("choices") and chunk["choices"][0].get("delta"):
+                    content = chunk["choices"][0]["delta"].get("content", "")
+                    if content:
+                        yield content
 
-            # Store complete response after generation
-            complete_response = "".join(content for content in _generate_response())
-            self.memory.append({"role": "assistant", "content": complete_response})
-
-            with open("mem.json", "w", encoding="utf-8") as file:
-                json.dump(self.memory, file)
-
-        return _generate_response()
-
-    def handle_interrupt(self, heard_response: str) -> None:
-        if self.memory[-1]["role"] == "assistant":
-            self.memory[-1]["content"] = heard_response + "..."
-        else:
-            if heard_response:
-                self.memory.append(
-                    {
-                        "role": "assistant",
-                        "content": heard_response + "...",
-                    }
-                )
-        self.memory.append(
-            {
-                "role": "system",
-                "content": "[Interrupted by user]",
-            }
-        )
-
-
-def test():
-    llm = LLM(
-        model_path="/Users/tim/Desktop/gguf/qwen2.5-3b-instruct-q4_k_m.gguf",
-        system='You are a sarcastic AI chatbot who loves to say "Get out and touch some grass"',
-        verbose=True,
-    )
-    while True:
-        print("\n>> (Press Ctrl+C to exit.)")
-        chat_complet = llm.chat_iter(input(">> "))
-
-        for chunk in chat_complet:
-            if chunk:
-                print(chunk, end="")
-
-
-if __name__ == "__main__":
-    test()
+        except Exception as e:
+            logger.error(f"Error in chat completion: {e}")
+            raise

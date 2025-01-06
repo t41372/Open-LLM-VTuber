@@ -35,8 +35,6 @@ class LLMFactory:
 
             return LlamaLLM(
                 model_path=kwargs.get("model_path"),
-                system=kwargs.get("system_prompt"),
-                verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "claude_llm":
             return ClaudeLLM(

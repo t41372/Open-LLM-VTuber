@@ -66,15 +66,10 @@ class LlamaCppConfig(I18nMixin):
     """Configuration for LlamaCpp."""
     
     model_path: str = Field(..., alias="model_path")
-    verbose: bool = Field(True, alias="verbose")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "model_path": Description(
             en="Path to the GGUF model file",
             zh="GGUF 模型文件路径"
-        ),
-        "verbose": Description(
-            en="Enable verbose output",
-            zh="启用详细输出"
         ),
     }

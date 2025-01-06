@@ -38,6 +38,7 @@ character_config:
         # The Basic AI Agent. Nothing fancy.
         # choose one of the llm provider from the llm_config
         # and set the required parameters in the corresponding field
+        # examples: "llama_cpp_llm", "openai_compatible_llm"
         llm_provider: "openai_compatible_llm"
 
       mem0_agent:
@@ -49,7 +50,7 @@ character_config:
             port: 6333
             embedding_model_dims: 1024
 
-        # mem0 has it's own llm settings and is different from our llm_config. 
+        # mem0 has it's own llm settings and is different from our llm_config.
         # check their docs for more details
         llm:
           provider: "ollama"
@@ -80,7 +81,7 @@ character_config:
         verbose: True
 
     llm_configs:
-      # a configuration pool for the credentials and connection details for 
+      # a configuration pool for the credentials and connection details for
       # all of the stateless llm providers that will be used in different agents
 
       # Ollama & OpenAI Compatible inference backend

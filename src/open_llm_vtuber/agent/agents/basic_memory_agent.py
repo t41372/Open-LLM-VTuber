@@ -22,7 +22,7 @@ class BasicMemoryAgent(AgentInterface):
         self._memory = []
         self._set_llm(llm)
         self.set_system(system)
-        logger.debug("BasicMemoryAgent initialized.")
+        logger.info("BasicMemoryAgent initialized.")
 
     # chat function will be set by set_llm.
     # The default chat function (which handles error when not override) is in
