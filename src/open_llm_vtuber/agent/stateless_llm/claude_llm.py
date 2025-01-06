@@ -1,83 +1,78 @@
-import anthropic
-from typing import Iterator
-from ..agents.agent_interface import AgentInterface
+"""Description: This file contains the implementation of the `AsyncLLM` class for Claude API.
+This class is responsible for handling asynchronous interaction with Claude API endpoints
+for language generation.
+"""
 
-class LLM(AgentInterface):
+from typing import AsyncIterator, List, Dict, Any
+from anthropic import AsyncAnthropic
+from loguru import logger
+
+from .stateless_llm_interface import StatelessLLMInterface
+
+class AsyncLLM(StatelessLLMInterface):
     def __init__(
         self,
-        system: str = None,
-        base_url: str = None,
         model: str = "claude-3-haiku-20240307",
+        base_url: str = None,
         llm_api_key: str = None,
-        verbose: bool = False,
+        system: str = None,
     ):
         """
         Initialize Claude LLM.
         
         Args:
-            system (str): System prompt
-            base_url (str): Base URL for Claude API
             model (str): Model name
+            base_url (str): Base URL for Claude API
             llm_api_key (str): Claude API key
-            verbose (bool): Whether to print debug info
+            system (str): System prompt
         """
-        self.system = system
         self.model = model
-        self.verbose = verbose
+        self.system = system
         
         # Initialize Claude client
-        self.client = anthropic.Anthropic(
+        self.client = AsyncAnthropic(
             api_key=llm_api_key,
             base_url=base_url if base_url else None
         )
         
-        # Store conversation history (excluding system prompt)
-        self.messages = []
+        logger.info(f"Initialized Claude AsyncLLM with model: {self.model}")
+        logger.debug(f"Base URL: {base_url}")
 
-    def chat_iter(self, prompt: str) -> Iterator[str]:
+    async def chat_completion(
+        self, 
+        messages: List[Dict[str, Any]],
+        system: str = None
+    ) -> AsyncIterator[str]:
         """
-        Send message to Claude and yield response tokens.
-        
-        Args:
-            prompt (str): User message
-            
+        Generates a chat completion using the Claude API asynchronously.
+
+        Parameters:
+        - messages (List[Dict[str, Any]]): The list of messages to send to the API.
+        - system (str, optional): System prompt to use for this completion.
+
         Yields:
-            str: Response tokens
+        - str: The content of each chunk from the API response.
         """
-        # Add user message to history
-        self.messages.append({"role": "user", "content": prompt})
-        
         try:
-            # Stream response from Claude
-            with self.client.messages.stream(
-                messages=self.messages,
-                system=self.system if self.system else "",
+            # Filter out system messages from the conversation as Claude doesn't support them in messages
+            filtered_messages = [msg for msg in messages if msg["role"] != "system"]
+            
+            logger.debug(f"Sending messages to Claude API: {filtered_messages}")
+            stream = await self.client.messages.create(
+                messages=filtered_messages,
+                system=system if system else (self.system if self.system else ""),
                 model=self.model,
-                max_tokens=1024
-            ) as stream:
-                response_text = ""
-                for text in stream.text_stream:
-                    response_text += text
-                    yield text
-                
-                # Add assistant response to history
-                self.messages.append({
-                    "role": "assistant", 
-                    "content": response_text
-                })
-                
-        except Exception as e:
-            if self.verbose:
-                print(f"Error in Claude chat: {str(e)}")
-            yield f"Error occurred: {str(e)}"
+                max_tokens=1024,
+                stream=True
+            )
+            
+            async for chunk in stream:
+                if chunk.type == "content_block_delta":
+                    if chunk.delta.text is None:
+                        chunk.delta.text = ""
+                    yield chunk.delta.text
 
-    def handle_interrupt(self, heard_response: str) -> None:
-        """
-        Handle interruption by updating the last assistant message.
-        
-        Args:
-            heard_response (str): The heard portion of the response
-        """
-        if self.messages and self.messages[-1]["role"] == "assistant":
-            # Update last assistant message with only heard portion
-            self.messages[-1]["content"] = heard_response
+        except Exception as e:
+            logger.error(f"Claude API error occurred: {str(e)}")
+            logger.info(f"Model: {self.model}")
+            raise

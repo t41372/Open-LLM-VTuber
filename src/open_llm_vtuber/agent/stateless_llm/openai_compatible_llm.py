@@ -49,13 +49,16 @@ class AsyncLLM(StatelessLLMInterface):
         )
 
     async def chat_completion(
-        self, messages: List[Dict[str, Any]]
+        self, 
+        messages: List[Dict[str, Any]],
+        system: str = None
     ) -> AsyncIterator[str]:
         """
         Generates a chat completion using the OpenAI API asynchronously.
 
         Parameters:
         - messages (List[Dict[str, Any]]): The list of messages to send to the API.
+        - system (str, optional): System prompt to use for this completion.
 
         Yields:
         - str: The content of each chunk from the API response.
@@ -67,10 +70,18 @@ class AsyncLLM(StatelessLLMInterface):
         """
         logger.debug(f"Messages: {messages}")
         try:
+            # If system prompt is provided, add it to the messages
+            messages_with_system = messages
+            if system:
+                messages_with_system = [
+                    {"role": "system", "content": system},
+                    *messages
+                ]
+
             stream: AsyncStream[
                 ChatCompletionChunk
             ] = await self.client.chat.completions.create(
-                messages=messages,
+                messages=messages_with_system,
                 model=self.model,
                 stream=True,
             )

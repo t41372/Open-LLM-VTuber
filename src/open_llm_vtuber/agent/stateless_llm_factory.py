@@ -8,7 +8,7 @@ from .stateless_llm.stateless_llm_interface import StatelessLLMInterface
 
 from .stateless_llm.openai_compatible_llm import AsyncLLM as OpenAICompatibleLLM
 from .fake_llm import LLM as FakeLLM
-from .stateless_llm.claude_llm import LLM as ClaudeLLM
+from .stateless_llm.claude_llm import AsyncLLM as ClaudeLLM
 
 
 class LLMFactory:
@@ -42,7 +42,6 @@ class LLMFactory:
                 base_url=kwargs.get("base_url"),
                 model=kwargs.get("model"),
                 llm_api_key=kwargs.get("llm_api_key"),
-                verbose=kwargs.get("verbose", False),
             )
         elif llm_provider == "fake_llm":
             return FakeLLM()

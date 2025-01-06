@@ -56,10 +56,6 @@ class ClaudeConfig(I18nMixin):
             en="Name of the Claude model to use",
             zh="要使用的 Claude 模型名称"
         ),
-        "verbose": Description(
-            en="Enable verbose output",
-            zh="启用详细输出"
-        ),
     }
 
 class LlamaCppConfig(I18nMixin):

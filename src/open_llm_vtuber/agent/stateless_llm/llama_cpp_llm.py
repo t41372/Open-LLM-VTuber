@@ -32,13 +32,16 @@ class LLM(StatelessLLMInterface):
             raise
 
     async def chat_completion(
-        self, messages: List[Dict[str, Any]]
+        self, 
+        messages: List[Dict[str, Any]],
+        system: str = None
     ) -> AsyncIterator[str]:
         """
         Generates a chat completion using llama.cpp asynchronously.
 
         Parameters:
         - messages (List[Dict[str, Any]]): The list of messages to send to the model.
+        - system (str, optional): System prompt to use for this completion.
 
         Yields:
         - str: The content of each chunk from the model response.
@@ -46,11 +49,19 @@ class LLM(StatelessLLMInterface):
         logger.debug(f"Generating completion for messages: {messages}")
 
         try:
+            # Add system prompt if provided
+            messages_with_system = messages
+            if system:
+                messages_with_system = [
+                    {"role": "system", "content": system},
+                    *messages
+                ]
+
             # Create chat completion in a separate thread to avoid blocking
             chat_completion = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: self.llm.create_chat_completion(
-                    messages=messages,
+                    messages=messages_with_system,
                     stream=True,
                 ),
             )

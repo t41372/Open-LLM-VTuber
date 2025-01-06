@@ -111,7 +111,8 @@ class BasicMemoryAgent(AgentInterface):
         )
 
     def _chat_function_factory(
-        self, chat_func: Callable[[List[Dict[str, Any]]], AsyncIterator[str]]
+        self, 
+        chat_func: Callable[[List[Dict[str, Any]], str], AsyncIterator[str]]
     ) -> Callable[[str], AsyncIterator[str]]:
         """
         Decorator to create async chat functions that uses memory.
@@ -119,7 +120,7 @@ class BasicMemoryAgent(AgentInterface):
         Parameters:
             chat_func : ChatCompletionFunc
                 The async chat completion function to wrap. Must take a list of message
-                dictionaries and return an AsyncIterator[str].
+                dictionaries and system prompt, and return an AsyncIterator[str].
 
         Returns:
             Callable[[str], AsyncIterator[str]]
@@ -144,19 +145,14 @@ class BasicMemoryAgent(AgentInterface):
             
             # Add user message to memory first
             self._add_message(prompt, "user")
-            
-            messages: List[Dict[str, Any]] = [
-                {"role": "system", "content": self._system},
-                *self._memory,
-            ]
 
-            logger.critical(f"Memory Agent: Sending: '''{messages}'''")
+            logger.critical(f"Memory Agent: Sending: '''{self._memory}'''")
 
             # Create response accumulator
             full_response = []
 
             # Get the async iterator from chat_func
-            async for chunk in chat_func(messages):
+            async for chunk in chat_func(self._memory, self._system):
                 full_response.append(chunk)
                 yield chunk
 
