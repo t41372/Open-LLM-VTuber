@@ -3,7 +3,7 @@ import asyncio
 from typing import Iterator, AsyncIterator
 
 
-class LLMInterface(metaclass=abc.ABCMeta):
+class AgentInterface(metaclass=abc.ABCMeta):
 
     async def async_chat_iter(self, prompt: str) -> AsyncIterator[str]:
         """
