@@ -10,14 +10,9 @@ from .main import Config
 from .system import SystemConfig
 from .character import CharacterConfig
 from .llm import (
-    LLMConfig,
-    OllamaConfig,
+    OpenAICompatibleConfig,
     ClaudeConfig,
     LlamaCppConfig,
-    Mem0Config,
-    MemGPTConfig,
-    Mem0VectorStoreConfig,
-    Mem0EmbedderConfig,
 )
 from .asr import (
     ASRConfig,
@@ -45,6 +40,16 @@ from .tts import (
 )
 from .translate import TranslatorConfig, DeepLXConfig
 from .i18n import I18nMixin, Description, MultiLingualString
+from .agent import (
+    AgentConfig,
+    AgentSettings,
+    LLMConfigs,
+    BasicMemoryAgentConfig,
+    Mem0Config,
+    Mem0VectorStoreConfig,
+    Mem0LLMConfig,
+    Mem0EmbedderConfig,
+)
 
 # Import utility functions
 from .utils import (
@@ -61,13 +66,17 @@ __all__ = [
     "SystemConfig",
     "CharacterConfig",
     # LLM related classes
-    "LLMConfig",
-    "OllamaConfig",
+    "OpenAICompatibleConfig",
     "ClaudeConfig",
     "LlamaCppConfig",
+    # Agent related classes
+    "AgentConfig",
+    "AgentSettings",
+    "LLMConfigs",
+    "BasicMemoryAgentConfig",
     "Mem0Config",
-    "MemGPTConfig",
     "Mem0VectorStoreConfig",
+    "Mem0LLMConfig",
     "Mem0EmbedderConfig",
     # ASR related classes
     "ASRConfig",

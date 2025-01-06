@@ -12,20 +12,22 @@ class BasicMemoryAgent(AgentInterface):
     This class provides a simple memory based on list for chat agents to store messages.
     """
 
-    def __init__(self, llm: StatelessLLMInterface = None):
-        self._llm: StatelessLLMInterface = None
-        self._set_llm(llm)
-        self._memory = []
-        self._system: str = """You are an error message repeater. 
+    _system: str = """You are an error message repeater. 
         Your job is repeating this error message: 
         'No system prompt set. Please set a system prompt'. 
         Don't say anything else.
         """
 
+    def __init__(self, llm: StatelessLLMInterface, system: str):
+        self._memory = []
+        self._set_llm(llm)
+        self.set_system(system)
+        logger.info("BasicMemoryAgent initialized.")
+
     # chat function will be set by set_llm.
-    # The default chat function (which handles error when not override) is in 
+    # The default chat function (which handles error when not override) is in
     # the base class.
-    
+
     # ============== Setter ==============
 
     def _set_llm(self, llm: StatelessLLMInterface):
@@ -35,9 +37,7 @@ class BasicMemoryAgent(AgentInterface):
             the LLM
         """
         self._llm: StatelessLLMInterface = llm
-        self.chat = self._chat_function_factory(
-            llm.chat_completion
-        )
+        self.chat = self._chat_function_factory(llm.chat_completion)
 
     def set_system(self, system: str):
         """
@@ -45,6 +45,7 @@ class BasicMemoryAgent(AgentInterface):
         system: str
             the system prompt
         """
+        logger.debug(f"Memory Agent: Setting system prompt: '''{system}'''")
         self._system = system
 
     def _add_message(self, message: str, role: str):
@@ -110,7 +111,8 @@ class BasicMemoryAgent(AgentInterface):
         )
 
     def _chat_function_factory(
-        self, chat_func: Callable[[List[Dict[str, Any]]], AsyncIterator[str]]
+        self, 
+        chat_func: Callable[[List[Dict[str, Any]], str], AsyncIterator[str]]
     ) -> Callable[[str], AsyncIterator[str]]:
         """
         Decorator to create async chat functions that uses memory.
@@ -118,7 +120,7 @@ class BasicMemoryAgent(AgentInterface):
         Parameters:
             chat_func : ChatCompletionFunc
                 The async chat completion function to wrap. Must take a list of message
-                dictionaries and return an AsyncIterator[str].
+                dictionaries and system prompt, and return an AsyncIterator[str].
 
         Returns:
             Callable[[str], AsyncIterator[str]]
@@ -140,20 +142,17 @@ class BasicMemoryAgent(AgentInterface):
                 str
                     A chunk of the response from the chat function.
             """
-            messages: List[Dict[str, Any]] = [
-                {"role": "system", "content": self._system},
-                *self._memory,
-                {"role": "user", "content": prompt},
-            ]
-
+            
             # Add user message to memory first
             self._add_message(prompt, "user")
+
+            logger.critical(f"Memory Agent: Sending: '''{self._memory}'''")
 
             # Create response accumulator
             full_response = []
 
             # Get the async iterator from chat_func
-            async for chunk in chat_func(messages):
+            async for chunk in chat_func(self._memory, self._system):
                 full_response.append(chunk)
                 yield chunk
 

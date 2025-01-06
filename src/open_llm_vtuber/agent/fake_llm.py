@@ -1,7 +1,7 @@
 from typing import Iterator
 import json
 
-from .agent_interface import AgentInterface
+from .agents.agent_interface import AgentInterface
 
 class LLM(AgentInterface):
 

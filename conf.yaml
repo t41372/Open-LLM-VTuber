@@ -12,6 +12,7 @@ system_config:
   live2d_expression_prompt: "live2d_expression_prompt"
   remove_special_char: True # remove special characters like emoji from audio generation
 
+# configuration for the default character
 character_config:
   conf_name: "shizuku-local"
   conf_uid: "shizuku-local-001"
@@ -38,6 +39,7 @@ character_config:
         # The Basic AI Agent. Nothing fancy.
         # choose one of the llm provider from the llm_config
         # and set the required parameters in the corresponding field
+        # examples: "llama_cpp_llm", "openai_compatible_llm"
         llm_provider: "openai_compatible_llm"
 
       mem0_agent:
@@ -49,7 +51,7 @@ character_config:
             port: 6333
             embedding_model_dims: 1024
 
-        # mem0 has it's own llm settings and is different from our llm_config. 
+        # mem0 has it's own llm settings and is different from our llm_config.
         # check their docs for more details
         llm:
           provider: "ollama"
@@ -65,22 +67,11 @@ character_config:
             model: "mxbai-embed-large:latest"
             ollama_base_url: "http://localhost:11434"
 
-      # MemGPT Configurations
-      ## Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)
-      ## In addition, please set up an agent using the webui launched in the memGPT base_url
-
-      memgpt:
-        base_url: "http://localhost:8283"
-
-        # You will find admin server password in memGPT console output. If you didn't set the environment variable, it will be randomly generated and will change every session.
-        admin_token: ""
-
-        # The ID of the agent to send the message to.
-        agent_id: ""
-        verbose: True
+      # MemGPT Configurations: MemGPT is temporarily removed
+      ##
 
     llm_configs:
-      # a configuration pool for the credentials and connection details for 
+      # a configuration pool for the credentials and connection details for
       # all of the stateless llm providers that will be used in different agents
 
       # Ollama & OpenAI Compatible inference backend

@@ -36,7 +36,7 @@ def create_routes(default_context_cache: ServiceContext):
             live2d_model=default_context_cache.live2d_model,
             asr_engine=default_context_cache.asr_engine,
             tts_engine=default_context_cache.tts_engine,
-            llm_engine=default_context_cache.llm_engine,
+            agent_engine=default_context_cache.agent_engine,
         )
 
         await websocket.send_text(
@@ -91,7 +91,7 @@ def create_routes(default_context_cache: ServiceContext):
                     if history_uid:
                         messages = get_history(conf_uid, history_uid)
                         current_history_uid = history_uid
-                        session_service_context.llm_engine.set_memory_from_history(
+                        session_service_context.agent_engine.set_memory_from_history(
                             messages
                         )
                         await websocket.send_text(
@@ -100,7 +100,7 @@ def create_routes(default_context_cache: ServiceContext):
 
                 elif data.get("type") == "create-new-history":
                     current_history_uid = create_new_history(conf_uid)
-                    session_service_context.llm_engine.clear_memory()
+                    session_service_context.agent_engine.clear_memory()
                     await websocket.send_text(
                         json.dumps(
                             {
@@ -147,7 +147,7 @@ def create_routes(default_context_cache: ServiceContext):
                     # is sent back from the frontend as an interruption signal
                     # We'll store this in chat history instead of the full response
                     heard_ai_response = data.get("text", "")
-                    session_service_context.llm_engine.handle_interrupt(
+                    session_service_context.agent_engine.handle_interrupt(
                         heard_ai_response
                     )
                     if not modify_latest_message(
@@ -209,7 +209,7 @@ def create_routes(default_context_cache: ServiceContext):
                             user_input=user_input,
                             asr_engine=session_service_context.asr_engine,
                             tts_engine=session_service_context.tts_engine,
-                            llm_engine=session_service_context.llm_engine,
+                            agent_engine=session_service_context.agent_engine,
                             live2d_model=session_service_context.live2d_model,
                             websocket_send=websocket.send_text,
                             conf_uid=conf_uid,

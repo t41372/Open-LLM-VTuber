@@ -8,7 +8,10 @@ class AgentInterface(ABC):
 
     async def chat(self, prompt: str) -> AsyncIterator[str]:
         """
-        Chat with the agent.
+        Chat with the agent asynchronously, given a prompt.
+
+        This function should be implemented by the agent.
+        
         prompt: str
             the prompt
 
@@ -22,7 +25,7 @@ class AgentInterface(ABC):
     def handle_interrupt(self, heard_response: str) -> None:
         """
         Handle user interruption. This function will be called when the agent is interrupted by the user.
-        
+
         heard_response: str
             the part of the agent's response heard by the user before interruption
         """
