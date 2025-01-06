@@ -5,7 +5,6 @@ from .agents.agent_interface import AgentInterface
 from .agents.basic_memory_agent import BasicMemoryAgent
 from .stateless_llm_factory import LLMFactory as StatelessLLMFactory
 from .agents.mem0_llm import LLM as Mem0LLM
-from .agents.memgpt import LLM as MemGPTLLM
 
 
 class AgentFactory:
@@ -59,13 +58,6 @@ class AgentFactory:
             return Mem0LLM(
                 user_id=kwargs.get("user_id"), system=system_prompt, **mem0_settings
             )
-
-        elif conversation_agent_choice == "memgpt":
-            memgpt_settings = agent_settings.get("memgpt", {})
-            if not memgpt_settings:
-                raise ValueError("MemGPT settings not found")
-
-            return MemGPTLLM(**memgpt_settings)
 
         else:
             raise ValueError(f"Unsupported agent type: {conversation_agent_choice}")

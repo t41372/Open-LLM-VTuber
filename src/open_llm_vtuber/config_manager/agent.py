@@ -1,5 +1,5 @@
 """
-This module contains the pydantic model for the configurations of 
+This module contains the pydantic model for the configurations of
 different types of agents.
 """
 
@@ -87,26 +87,6 @@ class Mem0Config(I18nMixin, BaseModel):
     }
 
 
-class MemGPTConfig(I18nMixin, BaseModel):
-    """Configuration for MemGPT."""
-
-    base_url: str = Field(..., alias="base_url")
-    admin_token: str = Field(..., alias="admin_token")
-    agent_id: str = Field(..., alias="agent_id")
-    verbose: bool = Field(True, alias="verbose")
-
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "base_url": Description(
-            en="Base URL for MemGPT server", zh="MemGPT 服务器基础 URL"
-        ),
-        "admin_token": Description(
-            en="Admin token for authentication", zh="管理员认证令牌"
-        ),
-        "agent_id": Description(en="ID of the agent to use", zh="要使用的代理 ID"),
-        "verbose": Description(en="Enable verbose output", zh="启用详细输出"),
-    }
-
-
 # =================================
 
 
@@ -117,14 +97,12 @@ class AgentSettings(I18nMixin, BaseModel):
         None, alias="basic_memory_agent"
     )
     mem0_agent: Optional[Mem0Config] = Field(None, alias="mem0_agent")
-    memgpt: Optional[MemGPTConfig] = Field(None, alias="memgpt")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "basic_memory_agent": Description(
             en="Configuration for basic memory agent", zh="基础记忆代理配置"
         ),
         "mem0_agent": Description(en="Configuration for Mem0 agent", zh="Mem0代理配置"),
-        "memgpt": Description(en="Configuration for MemGPT agent", zh="MemGPT代理配置"),
     }
 
 
@@ -155,7 +133,7 @@ class LLMConfigs(I18nMixin, BaseModel):
 class AgentConfig(I18nMixin, BaseModel):
     """This class contains all of the configurations related to agent."""
 
-    conversation_agent_choice: Literal["basic_memory_agent", "mem0_agent", "memgpt"] = (
+    conversation_agent_choice: Literal["basic_memory_agent", "mem0_agent"] = (
         Field(..., alias="conversation_agent_choice")
     )
     agent_settings: AgentSettings = Field(..., alias="agent_settings")

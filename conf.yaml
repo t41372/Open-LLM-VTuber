@@ -12,6 +12,7 @@ system_config:
   live2d_expression_prompt: "live2d_expression_prompt"
   remove_special_char: True # remove special characters like emoji from audio generation
 
+# configuration for the default character
 character_config:
   conf_name: "shizuku-local"
   conf_uid: "shizuku-local-001"
@@ -66,19 +67,8 @@ character_config:
             model: "mxbai-embed-large:latest"
             ollama_base_url: "http://localhost:11434"
 
-      # MemGPT Configurations
-      ## Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)
-      ## In addition, please set up an agent using the webui launched in the memGPT base_url
-
-      memgpt:
-        base_url: "http://localhost:8283"
-
-        # You will find admin server password in memGPT console output. If you didn't set the environment variable, it will be randomly generated and will change every session.
-        admin_token: ""
-
-        # The ID of the agent to send the message to.
-        agent_id: ""
-        verbose: True
+      # MemGPT Configurations: MemGPT is temporarily removed
+      ##
 
     llm_configs:
       # a configuration pool for the credentials and connection details for

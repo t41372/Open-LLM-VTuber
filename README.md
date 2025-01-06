@@ -33,7 +33,7 @@
 
 Open-LLM-VTuber allows you to talk to (and interrupt!) any LLM locally by voice (hands-free) with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. Online LLM/ASR/TTS options are also supported.
 
-Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.
+~~Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.~~ (temporily removed)
 
 This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run offline on platforms other than Windows.
 
@@ -102,7 +102,7 @@ Currently supported LLM backend
 - Any OpenAI-API-compatible backend, such as Ollama, Groq, LM Studio, OpenAI, and more.
 - Claude
 - llama.cpp local inference within this project
-- MemGPT (broken)
+- MemGPT (broken) (temporily removed)
 - Mem0 (not great)
 
 Currently supported Speech recognition backend
@@ -278,7 +278,7 @@ For more options, check [here](https://github.com/abetlen/llama-cpp-python?tab=r
 
 
 
-### MemGPT (Broken and will probably be removed rather than fixed)
+### MemGPT (Broken) (temporily removed)
 
 > :warning: MemGPT was renamed to Letta, and they changed their API. Currently, the integration of MemGPT in this project has not been updated with the latest changes, so the integration is broken.
 > It probably won't get fixed because MemGPT (or Letta now) is quite slow and unstable for local LLMs. A new long-term memory solution is planned.
