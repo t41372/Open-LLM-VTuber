@@ -25,7 +25,7 @@ def create_new_history(conf_uid: str) -> str:
         logger.warning("No conf_uid provided")
         return ""
 
-    history_uid = str(uuid.uuid4())
+    history_uid = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{str(uuid.uuid4())}"
     conf_dir = _ensure_conf_dir(conf_uid)
 
     # Create empty history file
@@ -78,7 +78,6 @@ def store_message(
     logger.debug(f"Successfully stored {role} message")
 
 
-
 def get_history(conf_uid: str, history_uid: str) -> List[HistoryMessage]:
     """Read chat history for the given conf_uid and history_uid"""
     if not conf_uid or not history_uid:
@@ -89,7 +88,7 @@ def get_history(conf_uid: str, history_uid: str) -> List[HistoryMessage]:
         return []
 
     filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
-    
+
     if not os.path.exists(filepath):
         logger.warning(f"History file not found: {filepath}")
         return []
@@ -174,7 +173,10 @@ def get_history_list(conf_uid: str) -> List[dict]:
 
 
 def modify_latest_message(
-    conf_uid: str, history_uid: str, role: Literal["human", "ai", "system"], new_content: str
+    conf_uid: str,
+    history_uid: str,
+    role: Literal["human", "ai", "system"],
+    new_content: str,
 ) -> bool:
     """Modify the latest message in a specific history file if it matches the given role"""
     if not conf_uid or not history_uid:
@@ -196,13 +198,15 @@ def modify_latest_message(
 
         latest_message = history_data[-1]
         if latest_message["role"] != role:
-            logger.warning(f"Latest message role ({latest_message['role']}) doesn't match requested role ({role})")
+            logger.warning(
+                f"Latest message role ({latest_message['role']}) doesn't match requested role ({role})"
+            )
             return False
 
         latest_message["content"] = new_content
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(history_data, f, ensure_ascii=False, indent=2)
-        
+
         logger.debug(f"Successfully modified latest {role} message")
         return True
 
