@@ -4,6 +4,7 @@ from pathlib import Path
 import threading
 
 import pyttsx3
+from loguru import logger
 
 from .tts_interface import TTSInterface
 
@@ -15,7 +16,6 @@ sys.path.append(current_dir)
 
 
 class TTSEngine(TTSInterface):
-
     def __init__(self):
         self.engine = pyttsx3.init()
         self.temp_audio_file = "temp"
@@ -28,13 +28,13 @@ class TTSEngine(TTSInterface):
 
     #! This method (pyttsx3) is not thread safe. It will blow if it's called from multiple threads at the same time.
     def generate_audio(self, text, file_name_no_ext=None):
-        print(f"Start Generating {file_name_no_ext}")
+        logger.debug(f"Start Generating {file_name_no_ext}")
         file_name = self.generate_cache_file_name(file_name_no_ext, self.file_extension)
 
         with self.lock:
             self.engine.save_to_file(text=text, filename=file_name)
             self.engine.runAndWait()
-        print(f"Finished Generating {file_name}")
+        logger.info(f"Finished Generating {file_name}")
         return file_name
 
 

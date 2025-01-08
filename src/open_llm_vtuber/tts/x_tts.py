@@ -1,4 +1,5 @@
 import requests
+from loguru import logger
 from tts.tts_interface import TTSInterface
 
 
@@ -36,7 +37,7 @@ class TTSEngine(TTSInterface):
             return file_name
         else:
             # Handle errors or unsuccessful requests
-            print(
+            logger.critical(
                 f"Error: Failed to generate audio. Status code: {response.status_code}"
             )
             return None

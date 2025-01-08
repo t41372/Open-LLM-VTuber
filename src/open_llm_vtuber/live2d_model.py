@@ -28,7 +28,6 @@ class Live2dModel:
     def __init__(
         self, live2d_model_name: str, model_dict_path: str = "model_dict.json"
     ):
-
         self.model_dict_path: str = model_dict_path
         self.live2d_model_name: str = live2d_model_name
         self.set_model(live2d_model_name)
@@ -105,18 +104,22 @@ class Live2dModel:
             file_content = self._load_file_content(self.model_dict_path)
             model_dict = json.loads(file_content)
         except FileNotFoundError as file_e:
-            print(f"Model dictionary file not found at {self.model_dict_path}.")
+            logger.critical(
+                f"Model dictionary file not found at {self.model_dict_path}."
+            )
             raise file_e
         except json.JSONDecodeError as json_e:
-            print(
+            logger.critical(
                 f"Error decoding JSON from model dictionary file at {self.model_dict_path}."
             )
             raise json_e
         except UnicodeError as uni_e:
-            print(f"Error reading model dictionary file at {self.model_dict_path}.")
+            logger.critical(
+                f"Error reading model dictionary file at {self.model_dict_path}."
+            )
             raise uni_e
         except Exception as e:
-            print(
+            logger.critical(
                 f"Error occurred while reading model dictionary file at {self.model_dict_path}."
             )
             raise e
@@ -127,14 +130,14 @@ class Live2dModel:
         )
 
         if matched_model is None:
-            print(f"Unable to find {model_name} in {self.model_dict_path}.")
+            logger.critical(f"Unable to find {model_name} in {self.model_dict_path}.")
             raise KeyError(
                 f"{model_name} not found in model dictionary {self.model_dict_path}."
             )
 
         # The feature: "translate model url to full url if it starts with '/' " is no longer implemented here
 
-        print("Model Information Loaded.")
+        logger.info("Model Information Loaded.")
 
         return matched_model
 
@@ -187,14 +190,3 @@ class Live2dModel:
                 target_str = target_str[:start_index] + target_str[end_index:]
                 lower_str = lower_str[:start_index] + lower_str[end_index:]
         return target_str
-
-
-if __name__ == "__main__":
-    live2d_model = Live2dModel("shizuku-local")
-    print(live2d_model.model_info)
-    print(live2d_model.emo_map)
-    print(live2d_model.emo_str)
-    test_str = "[*joins hands and smi]les* * [SmIrK]: HEHE, YOU THINK YOU CAN HANDLE THE TRUTH?[anger][anger] [anger] [smirk] [anger]["
-    print(test_str)
-    print(live2d_model.extract_emotion(test_str))
-    print(live2d_model.remove_emotion_keywords(test_str))

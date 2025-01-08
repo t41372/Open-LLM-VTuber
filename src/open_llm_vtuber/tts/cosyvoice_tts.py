@@ -1,4 +1,5 @@
 from gradio_client import Client, file
+from loguru import logger
 from .tts_interface import TTSInterface
 
 
@@ -30,7 +31,7 @@ class TTSEngine(TTSInterface):
     def generate_audio(self, text, file_name_no_ext=None):
 
         if file_name_no_ext is not None:
-            print(
+            logger.warning(
                 "Warning: customizing the temp file name with file_name_no_ext is not supported by cosyvoiceTTS and will be ignored."
             )
 

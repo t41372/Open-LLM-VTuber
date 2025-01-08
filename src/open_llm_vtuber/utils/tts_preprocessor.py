@@ -1,4 +1,5 @@
 import unicodedata
+from loguru import logger
 from ..translate.translate_interface import TranslateInterface
 
 
@@ -24,18 +25,18 @@ def tts_filter(
         try:
             text = remove_special_characters(text)
         except Exception as e:
-            print(f"Error removing special characters: {e}")
-            print(f"Text: {text}")
-            print("Skipping...")
+            logger.warning(f"Error removing special characters: {e}")
+            logger.warning(f"Text: {text}")
+            logger.warning("Skipping...")
     if translator:
         try:
-            print("Translating...")
+            logger.info("Translating...")
             text = translator.translate(text)
-            print(f"Translated: {text}")
+            logger.info(f"Translated: {text}")
         except Exception as e:
-            print(f"Error translating: {e}")
-            print(f"Text: {text}")
-            print("Skipping...")
+            logger.critical(f"Error translating: {e}")
+            logger.critical(f"Text: {text}")
+            logger.warning("Skipping...")
         
     return text
 

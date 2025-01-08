@@ -2,6 +2,8 @@ import abc
 import os
 import asyncio
 
+from loguru import logger
+
 
 class TTSInterface(metaclass=abc.ABCMeta):
     
@@ -50,13 +52,13 @@ class TTSInterface(metaclass=abc.ABCMeta):
             verbose (bool): If True, print messages to the console.
         """
         if not os.path.exists(filepath):
-            print(f"File {filepath} does not exist")
+            logger.warning(f"File {filepath} does not exist")
             return
         try:
-            print(f"Removing file {filepath}") if verbose else None
+            logger.debug(f"Removing file {filepath}") if verbose else None
             os.remove(filepath)
         except Exception as e:
-            print(f"Failed to remove file {filepath}: {e}")
+            logger.error(f"Failed to remove file {filepath}: {e}")
         
 
     def generate_cache_file_name(self, file_name_no_ext=None, file_extension="wav"):

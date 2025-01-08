@@ -1,6 +1,7 @@
 import sys
 import os
 import azure.cognitiveservices.speech as speechsdk
+from loguru import logger
 from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -8,7 +9,6 @@ sys.path.append(current_dir)
 
 
 class TTSEngine(TTSInterface):
-
     temp_audio_file = "temp"
     file_extension = "wav"
     new_audio_dir = "cache"
@@ -86,14 +86,14 @@ class TTSEngine(TTSInterface):
 
         # check if the text is empty or not a string
         if not isinstance(text, str):
-            print("AzureTTS: The text cannot be non-string.")
-            print(f"Received type: {type(text)} and value: {text}")
+            logger.warning("AzureTTS: The text cannot be non-string.")
+            logger.warning(f"Received type: {type(text)} and value: {text}")
             return
         text = text.strip()
 
         if text.strip() == "":
-            print("AzureTTS: There is no text to speak.")
-            print(f"Received text: {text}")
+            logger.warning("AzureTTS: There is no text to speak.")
+            logger.info(f"Received text: {text}")
             return
 
         # Wrap the text with SSML to adjust pitch and rate
@@ -121,14 +121,16 @@ class TTSEngine(TTSInterface):
         ):
             if on_speak_end_callback is not None:
                 on_speak_end_callback()
-            print(f">> Speech synthesized for text [{text}]")
+            logger.info(f">> Speech synthesized for text [{text}]")
         elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = speech_synthesis_result.cancellation_details
-            print(f"Speech synthesis canceled: {cancellation_details.reason}")
+            logger.info(f"Speech synthesis canceled: {cancellation_details.reason}")
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 if cancellation_details.error_details:
-                    print(f"Error details: {cancellation_details.error_details}")
-                    print("Did you set the speech resource key and region values?")
+                    logger.error(f"Error details: {cancellation_details.error_details}")
+                    logger.error(
+                        "Did you set the speech resource key and region values?"
+                    )
 
 
 if __name__ == "__main__":

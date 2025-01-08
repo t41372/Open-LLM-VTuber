@@ -3,6 +3,7 @@ import os
 
 import sherpa_onnx
 import soundfile as sf
+from loguru import logger
 from .tts_interface import TTSInterface
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -92,7 +93,7 @@ class TTSEngine(TTSInterface):
             audio = self.tts.generate(text, sid=self.sid, speed=self.speed)
 
             if len(audio.samples) == 0:
-                print("Error in generating audios. Please read previous error messages.")
+                logger.error("Error in generating audios. Please read previous error messages.")
                 return None
 
             sf.write(
@@ -105,5 +106,5 @@ class TTSEngine(TTSInterface):
             return file_name
 
         except Exception as e:
-            print(f"\nError: sherpa-onnx unable to generate audio: {e}")
+            logger.critical(f"\nError: sherpa-onnx unable to generate audio: {e}")
             return None

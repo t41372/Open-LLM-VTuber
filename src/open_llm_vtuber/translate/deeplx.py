@@ -1,8 +1,9 @@
 import httpx, json
+from loguru import logger
 from .translate_interface import TranslateInterface
 
-class DeepLXTranslate(TranslateInterface):
 
+class DeepLXTranslate(TranslateInterface):
     api_endpoint: str = "http://127.0.0.1:1188/v2/translate"
     target_lang: str = "JP"
 
@@ -19,8 +20,8 @@ class DeepLXTranslate(TranslateInterface):
             res = json.loads(req)["translations"]
             res = " ".join([d["text"] for d in res])
         except Exception as e:
-            print(f"Error translating text: {e}")
-            print(f"Response: {req}")
+            logger.critical(f"Error translating text: {e}")
+            logger.critical(f"Response: {req}")
             raise e
 
         return res

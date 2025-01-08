@@ -4,6 +4,7 @@ from pathlib import Path
 import time
 import platform
 from bark import SAMPLE_RATE, generate_audio, preload_models
+from loguru import logger
 from scipy.io.wavfile import write as write_wav
 from .tts_interface import TTSInterface
 
@@ -12,11 +13,9 @@ sys.path.append(current_dir)
 
 
 class TTSEngine(TTSInterface):
-
     def __init__(self, voice="v2/en_speaker_1"):
-
         if platform.system() == "Darwin":
-            print(">> Note: Running barkTTS on macOS can be very slow.")
+            logger.info(">> Note: Running barkTTS on macOS can be very slow.")
             os.environ["SUNO_ENABLE_MPS"] = "True"
             os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
             os.environ["SUNO_OFFLOAD_CPU"] = "False"
@@ -58,7 +57,7 @@ class TTSEngine(TTSInterface):
 
         end_time = time.time()
         execution_time = end_time - start_time
-        print(
+        logger.info(
             "Execution time:",
             execution_time,
             "seconds",
@@ -68,31 +67,3 @@ class TTSEngine(TTSInterface):
         )
 
         return file_name
-
-
-def sample():
-    # download and load all models
-    preload_models()
-
-    start_time = time.time()
-
-    # generate audio from text
-    text_prompt = """
-        Hello, my name is Suuuuuuunooooooo!! And, uh — and I like pizza. [laughs] 
-        But I also have other interests such as playing tic tac toe. This is not my first time playing tic tac toe, but I absolutely hate it.
-    """
-    audio_array = generate_audio(text_prompt, history_prompt="v2/en_speaker_1")
-
-    # save audio to disk
-    write_wav("bark_generation.wav", SAMPLE_RATE, audio_array)
-
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(
-        "Execution time:",
-        execution_time,
-        "seconds",
-        "\n",
-        execution_time / 60,
-        "minutes",
-    )

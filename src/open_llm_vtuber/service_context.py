@@ -137,8 +137,8 @@ class ServiceContext:
             self.live2d_model = Live2dModel(live2d_model_name)
             self.character_config.live2d_model_name = live2d_model_name
         except Exception as e:
-            print(f"Error initializing Live2D: {e}")
-            print("Proceed without Live2D.")
+            logger.critical(f"Error initializing Live2D: {e}")
+            logger.critical("Try to proceed without Live2D...")
 
     def init_asr(self, asr_config: ASRConfig) -> None:
         if not self.asr_engine or (self.character_config.asr_config != asr_config):

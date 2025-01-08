@@ -1,6 +1,7 @@
 import io
 import wave
 import numpy as np
+from loguru import logger
 from groq import Groq
 from .asr_interface import ASRInterface
 
@@ -12,7 +13,7 @@ class VoiceRecognition(ASRInterface):
     def __init__(
         self, api_key: str, model: str = "distil-whisper-large-v3-en", lang: str = "en"
     ) -> None:
-        print("Initializing Groq ASR...")
+        logger.info("Initializing Groq ASR...")
         self.client = Groq(api_key=api_key)
         self.lang = lang
         self.model = model
@@ -27,7 +28,7 @@ class VoiceRecognition(ASRInterface):
             audio: The numpy array of the audio data to transcribe.
         """
 
-        print("Transcribing audio (GroqWhisperASR)...")
+        logger.info("Transcribing audio (GroqWhisperASR)...")
 
         # Turn the audio into an audio file
         # Make sure the audio is in the range [-1, 1]

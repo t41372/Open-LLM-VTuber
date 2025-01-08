@@ -131,7 +131,7 @@ async def conversation_chain(
             logger.warning("❓User input is None. Aborting conversation.")
             return ""
         elif isinstance(user_input, np.ndarray):
-            print("transcribing...")
+            logger.info("transcribing...")
             user_input: str = await asr_engine.async_transcribe_np(user_input)
             await websocket_send(
                 json.dumps({"type": "user-input-transcription", "text": user_input})
@@ -139,7 +139,7 @@ async def conversation_chain(
 
         store_message(conf_uid, history_uid, "human", user_input)
 
-        print(f"User input: {user_input}")
+        logger.info(f"User input: {user_input}")
 
         tts_manager = TTSTaskManager()
         full_response: str = ""

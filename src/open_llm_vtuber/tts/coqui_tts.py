@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 from TTS.api import TTS
+from loguru import logger
 import torch
 from .tts_interface import TTSInterface
 
@@ -28,13 +29,12 @@ class TTSEngine(TTSInterface):
         """
         # Auto-detect device if not specified
         if device:
-            print(f"Using device: {device}")
             self.device = device
         else:
-            print("Using default device")
+            logger.info("coqui_tts: Using default device")
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        print(f"Using device: {self.device}")
+        logger.info(f"coqui_tts: Using device: {device}")
 
         try:
             # Initialize TTS model
@@ -46,10 +46,12 @@ class TTSEngine(TTSInterface):
 
             self.speaker_wav = speaker_wav
             self.language = language
-            
+
             # Check if model is multi-speaker
-            self.is_multi_speaker = hasattr(self.tts, "speakers") and self.tts.speakers is not None
-            
+            self.is_multi_speaker = (
+                hasattr(self.tts, "speakers") and self.tts.speakers is not None
+            )
+
         except Exception as e:
             raise RuntimeError(f"Failed to initialize CoquiTTS model: {str(e)}")
 
@@ -75,17 +77,16 @@ class TTSEngine(TTSInterface):
                     text=text,
                     speaker_wav=self.speaker_wav,
                     language=self.language,
-                    file_path=output_path
+                    file_path=output_path,
                 )
             else:
                 # Single speaker mode
-                self.tts.tts_to_file(
-                    text=text,
-                    file_path=output_path
-                )
+                self.tts.tts_to_file(text=text, file_path=output_path)
 
             if not os.path.exists(output_path):
-                raise FileNotFoundError(f"Failed to generate audio file at {output_path}")
+                raise FileNotFoundError(
+                    f"Failed to generate audio file at {output_path}"
+                )
 
             return output_path
 
@@ -114,12 +115,14 @@ class TTSEngine(TTSInterface):
         """
         if not self.is_multi_speaker:
             return {"multi_speaker": False}
-        
+
         try:
             return {
                 "multi_speaker": True,
                 "speakers": self.tts.speakers,
-                "languages": self.tts.languages if hasattr(self.tts, "languages") else None
+                "languages": self.tts.languages
+                if hasattr(self.tts, "languages")
+                else None,
             }
         except Exception as e:
-            raise RuntimeError(f"Failed to get speaker information: {str(e)}") 
+            raise RuntimeError(f"Failed to get speaker information: {str(e)}")

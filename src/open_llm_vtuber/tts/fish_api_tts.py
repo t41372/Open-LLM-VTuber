@@ -1,5 +1,6 @@
 from typing import Literal
 from fish_audio_sdk import Session, TTSRequest
+from loguru import logger
 from .tts_interface import TTSInterface
 
 
@@ -32,7 +33,7 @@ class TTSEngine(TTSInterface):
 
         """
         
-        print(f"\nFish TTS API initialized with api key: {api_key} baseurl: {base_url} reference_id: {reference_id}, latency: {latency}")
+        logger.info(f"\nFish TTS API initialized with api key: {api_key} baseurl: {base_url} reference_id: {reference_id}, latency: {latency}")
 
         self.reference_id = reference_id
         self.latency = latency
@@ -51,7 +52,7 @@ class TTSEngine(TTSInterface):
                     f.write(chunk)
 
         except Exception as e:
-            print(f"\nError: Fish TTS API fail to generate audio: {e}")
+            logger.critical(f"\nError: Fish TTS API fail to generate audio: {e}")
             return None
 
         return file_name
