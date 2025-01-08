@@ -1,5 +1,6 @@
 # ===========================
 # 这是配置文件, conf.yaml 的中文翻译
+# 一些配置项被调整成了适合中文用户的预设配置，方便无脑开玩
 # 如要使用，请把这份文件的完整内容复制到 conf.yaml 文件中，替换掉conf.yaml
 # ===========================
 
@@ -40,7 +41,8 @@ character_config:
 
     agent_settings:
       basic_memory_agent:
-        # 基本的人工智能代理。没什么特别的。
+        # 基本的智能体，附带基本的记忆实现。没什么特别的。
+        
         # 从 llm_config 中选择一个 llm 提供程序
         # 并在相应字段中设置所需的参数
         # 示例："llama_cpp_llm", "openai_compatible_llm"
@@ -100,7 +102,7 @@ character_config:
   # === 自动语音识别 ===
   asr_config:
     # 语音转文本模型选项："faster_whisper", "whisper_cpp", "whisper", "azure_asr", "fun_asr", "groq_whisper_asr", "sherpa_onnx_asr"
-    asr_model: "faster_whisper"
+    asr_model: "fun_asr"
 
     azure_asr:
       api_key: "azure_api_key"
