@@ -122,6 +122,7 @@ def save_config(config: BaseModel, config_path: Union[str, Path]):
     except yaml.YAMLError as e:
         raise yaml.YAMLError(f"Error writing YAML file: {e}")
 
+
 def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
     """
     Scan the config_alts directory and return a list of config information.
@@ -142,7 +143,9 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
     config_files.append(
         {
             "filename": "conf.yaml",
-            "name": default_config.get("character_config", {}).get("conf_name", "conf.yaml")
+            "name": default_config.get("character_config", {}).get(
+                "conf_name", "conf.yaml"
+            )
             if default_config
             else "conf.yaml",
         }
@@ -163,7 +166,7 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
                         else file,
                     }
                 )
-    logger.warning(f"Found config files: {config_files}")
+    logger.debug(f"Found config files: {config_files}")
     return config_files
 
 

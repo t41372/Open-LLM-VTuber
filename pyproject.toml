@@ -23,6 +23,7 @@ dependencies = [
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
     "rich>=13.9.4",
+    "ruff>=0.8.6",
     "scipy>=1.14.1",
     "sounddevice>=0.5.1",
     "soundfile>=0.12.1",
