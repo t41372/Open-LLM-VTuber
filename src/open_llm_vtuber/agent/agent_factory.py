@@ -4,7 +4,6 @@ from loguru import logger
 from .agents.agent_interface import AgentInterface
 from .agents.basic_memory_agent import BasicMemoryAgent
 from .stateless_llm_factory import LLMFactory as StatelessLLMFactory
-from .agents.mem0_llm import LLM as Mem0LLM
 
 
 class AgentFactory:
@@ -51,6 +50,8 @@ class AgentFactory:
             return BasicMemoryAgent(llm=llm, system=system_prompt)
 
         elif conversation_agent_choice == "mem0_agent":
+            from .agents.mem0_llm import LLM as Mem0LLM
+
             mem0_settings = agent_settings.get("mem0_agent", {})
             if not mem0_settings:
                 raise ValueError("Mem0 agent settings not found")
