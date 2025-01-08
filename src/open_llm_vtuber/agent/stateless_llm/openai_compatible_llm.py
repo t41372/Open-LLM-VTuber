@@ -103,3 +103,10 @@ class AsyncLLM(StatelessLLMInterface):
             logger.debug(f"Base URL: {self.base_url}")
             logger.debug(f"Model: {self.model}")
             raise
+        
+        finally:
+            # make sure the stream is properly closed
+            # so when interrupted, no more tokens will being generated.
+            logger.debug("Chat completion finished.")
+            await stream.close()
+            logger.debug("Stream closed.")

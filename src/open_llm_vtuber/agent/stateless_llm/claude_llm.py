@@ -4,7 +4,7 @@ for language generation.
 """
 
 from typing import AsyncIterator, List, Dict, Any
-from anthropic import AsyncAnthropic
+from anthropic import AsyncAnthropic, AsyncStream
 from loguru import logger
 
 from .stateless_llm_interface import StatelessLLMInterface
@@ -58,7 +58,7 @@ class AsyncLLM(StatelessLLMInterface):
             filtered_messages = [msg for msg in messages if msg["role"] != "system"]
             
             logger.debug(f"Sending messages to Claude API: {filtered_messages}")
-            stream = await self.client.messages.create(
+            stream: AsyncStream = await self.client.messages.create(
                 messages=filtered_messages,
                 system=system if system else (self.system if self.system else ""),
                 model=self.model,
@@ -76,3 +76,8 @@ class AsyncLLM(StatelessLLMInterface):
             logger.error(f"Claude API error occurred: {str(e)}")
             logger.info(f"Model: {self.model}")
             raise
+        
+        finally:
+            logger.debug("Chat completion done.")
+            await stream.close()
+            logger.debug("Closed Claude API client.")
