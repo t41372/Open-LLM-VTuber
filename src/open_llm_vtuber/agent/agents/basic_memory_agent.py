@@ -2,6 +2,10 @@ from typing import AsyncIterator, List, Dict, Any, Callable
 
 from loguru import logger
 
+from ..sentence_divider import (
+    process_text_stream,
+    END_PUNCTUATIONS,
+)
 from .agent_interface import AgentInterface
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 
@@ -111,28 +115,20 @@ class BasicMemoryAgent(AgentInterface):
         )
 
     def _chat_function_factory(
-        self, 
-        chat_func: Callable[[List[Dict[str, Any]], str], AsyncIterator[str]]
+        self, chat_func: Callable[[List[Dict[str, Any]], str], AsyncIterator[str]]
     ) -> Callable[[str], AsyncIterator[str]]:
         """
-        Decorator to create async chat functions that uses memory.
-
-        Parameters:
-            chat_func : ChatCompletionFunc
-                The async chat completion function to wrap. Must take a list of message
-                dictionaries and system prompt, and return an AsyncIterator[str].
-
-        Returns:
-            Callable[[str], AsyncIterator[str]]
-                An async function that takes a prompt string and returns an AsyncIterator of
-                response chunks.
+        A factory to build async chat functions that uses memory and splits
+        responses into sentences.
         """
 
         async def chat_with_memory(prompt: str) -> AsyncIterator[str]:
             """
-            A chat function that sends a prompt (asynchronously) to the chat function
-            and yields the response chunks, while updating the memory with the
-            prompt and response.
+            Sends a user prompt (asynchronously) to the chat function
+            and returns an iterator to the response sentences.
+
+            This method is stateful and stores messages in the conversation
+            memory.
 
             Parameters:
                 prompt : str
@@ -142,19 +138,34 @@ class BasicMemoryAgent(AgentInterface):
                 str
                     A chunk of the response from the chat function.
             """
-            
-            # Add user message to memory first
             self._add_message(prompt, "user")
-
             logger.critical(f"Memory Agent: Sending: '''{self._memory}'''")
 
-            # Create response accumulator
             full_response = []
+            buffer = ""
 
-            # Get the async iterator from chat_func
-            async for chunk in chat_func(self._memory, self._system):
-                full_response.append(chunk)
-                yield chunk
+            async for token in chat_func(self._memory, self._system):
+                buffer += token
+                full_response.append(token)
+
+                # Process buffer when it gets long enough or contains any ending punctuation
+                if len(buffer) >= 25 or any(
+                    punct in buffer for punct in END_PUNCTUATIONS
+                ):
+                    sentences, remaining = process_text_stream(buffer)
+                    for sentence in sentences:
+                        if sentence.strip():
+                            yield sentence.strip()
+                    buffer = remaining
+
+            # Process any remaining text
+            if buffer.strip():
+                sentences, remaining = process_text_stream(buffer)
+                for sentence in sentences:
+                    if sentence.strip():
+                        yield sentence.strip()
+                if remaining.strip():
+                    yield remaining.strip()
 
             # Add the complete response to memory
             complete_response = "".join(full_response)
