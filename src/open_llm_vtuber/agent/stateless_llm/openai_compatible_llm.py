@@ -16,6 +16,7 @@ from loguru import logger
 
 from .stateless_llm_interface import StatelessLLMInterface
 
+
 class AsyncLLM(StatelessLLMInterface):
     def __init__(
         self,
@@ -24,6 +25,7 @@ class AsyncLLM(StatelessLLMInterface):
         llm_api_key: str = "z",
         organization_id: str = "z",
         project_id: str = "z",
+        temperature: float = 1.0,
     ):
         """
         Initializes an instance of the `AsyncLLM` class.
@@ -34,9 +36,11 @@ class AsyncLLM(StatelessLLMInterface):
         - organization_id (str, optional): The organization ID for the OpenAI API. Defaults to "z".
         - project_id (str, optional): The project ID for the OpenAI API. Defaults to "z".
         - llm_api_key (str, optional): The API key for the OpenAI API. Defaults to "z".
+        - temperature (float, optional): What sampling temperature to use, between 0 and 2. Defaults to 1.0.
         """
         self.base_url = base_url
         self.model = model
+        self.temperature = temperature
         self.client = AsyncOpenAI(
             base_url=base_url,
             organization=organization_id,
@@ -49,9 +53,7 @@ class AsyncLLM(StatelessLLMInterface):
         )
 
     async def chat_completion(
-        self, 
-        messages: List[Dict[str, Any]],
-        system: str = None
+        self, messages: List[Dict[str, Any]], system: str = None
     ) -> AsyncIterator[str]:
         """
         Generates a chat completion using the OpenAI API asynchronously.
@@ -75,7 +77,7 @@ class AsyncLLM(StatelessLLMInterface):
             if system:
                 messages_with_system = [
                     {"role": "system", "content": system},
-                    *messages
+                    *messages,
                 ]
 
             stream: AsyncStream[
@@ -84,6 +86,7 @@ class AsyncLLM(StatelessLLMInterface):
                 messages=messages_with_system,
                 model=self.model,
                 stream=True,
+                temperature=self.temperature,
             )
             async for chunk in stream:
                 if chunk.choices[0].delta.content is None:
@@ -99,11 +102,13 @@ class AsyncLLM(StatelessLLMInterface):
             raise
 
         except APIError as e:
-            logger.error(f"LLM API (OpenAI-Compatible): error occurred: {e}")
+            logger.error(f"LLM API: error occurred: {e}")
             logger.debug(f"Base URL: {self.base_url}")
             logger.debug(f"Model: {self.model}")
+            logger.debug(f"Messages: {messages}")
+            logger.debug(f"temperature: {self.temperature}")
             raise
-        
+
         finally:
             # make sure the stream is properly closed
             # so when interrupted, no more tokens will being generated.

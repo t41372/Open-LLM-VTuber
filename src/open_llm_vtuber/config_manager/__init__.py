@@ -9,7 +9,7 @@ and utility functions for loading/saving configurations.
 from .main import Config
 from .system import SystemConfig
 from .character import CharacterConfig
-from .llm import (
+from .stateless_llm import (
     OpenAICompatibleConfig,
     ClaudeConfig,
     LlamaCppConfig,
@@ -43,7 +43,7 @@ from .i18n import I18nMixin, Description, MultiLingualString
 from .agent import (
     AgentConfig,
     AgentSettings,
-    LLMConfigs,
+    StatelessLLMConfigs,
     BasicMemoryAgentConfig,
     Mem0Config,
     Mem0VectorStoreConfig,
@@ -72,7 +72,7 @@ __all__ = [
     # Agent related classes
     "AgentConfig",
     "AgentSettings",
-    "LLMConfigs",
+    "StatelessLLMConfigs",
     "BasicMemoryAgentConfig",
     "Mem0Config",
     "Mem0VectorStoreConfig",

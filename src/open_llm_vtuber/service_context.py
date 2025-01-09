@@ -18,6 +18,7 @@ from .translate.translate_factory import TranslateFactory
 
 from .config_manager import (
     Config,
+    AgentConfig,
     CharacterConfig,
     SystemConfig,
     ASRConfig,
@@ -164,7 +165,7 @@ class ServiceContext:
         else:
             logger.info("TTS already initialized with the same config.")
 
-    def init_agent(self, agent_config: "AgentConfig", persona_prompt: str) -> None:
+    def init_agent(self, agent_config: AgentConfig, persona_prompt: str) -> None:
         """Initialize or update the LLM engine based on agent configuration."""
         logger.info(f"Initializing Agent: {agent_config.conversation_agent_choice}")
 

@@ -38,7 +38,9 @@ character_config:
         # The Basic AI Agent. Nothing fancy.
         # choose one of the llm provider from the llm_config
         # and set the required parameters in the corresponding field
-        # examples: "llama_cpp_llm", "openai_compatible_llm"
+        # examples: 
+        # "openai_compatible_llm", "llama_cpp_llm", "claude_llm", "ollama_llm"
+        # "openai_llm", "gemini_llm", "zhipu_llm", "deepseek_llm", "groq_llm"
         llm_provider: "openai_compatible_llm"
 
       mem0_agent:
@@ -79,19 +81,48 @@ character_config:
         llm_api_key: "somethingelse"
         organization_id: "org_eternity"
         project_id: "project_glass"
-        ## LLM name
         model: "qwen2.5:latest"
+        temperature: 1.0 # value between 0 to 2
 
       # Claude API Configuration
       claude_llm:
         base_url: "https://api.anthropic.com"
         llm_api_key: "YOUR API KEY HERE"
         model: "claude-3-haiku-20240307"
-        verbose: False
 
       llama_cpp_llm:
         model_path: "<path-to-gguf-model-file>"
-        verbose: True
+        verbose: False
+
+      ollama_llm:
+        base_url: "http://localhost:11434/v1"
+        model: "qwen2.5:latest"
+        temperature: 1.0 # value between 0 to 2
+
+      openai_llm:
+        llm_api_key: "Your Open AI API key"
+        model: "gpt-4o"
+        temperature: 1.0 # value between 0 to 2
+
+      gemini_llm:
+        llm_api_key: "Your Gemini API Key"
+        model: "gemini-2.0-flash-exp"
+        temperature: 1.0 # value between 0 to 2
+
+      zhipu_llm:
+        llm_api_key: "Your ZhiPu AI API key"
+        model: "glm-4-flash"
+        temperature: 1.0 # value between 0 to 2
+
+      deepseek_llm:
+        llm_api_key: "Your DeepSeek API key"
+        model: "deepseek-chat"
+        temperature: 0.7 # note that deepseek's temperature ranges from 0 to 1
+
+      groq_llm:
+        llm_api_key: "your groq API key"
+        model: "llama-3.3-70b-versatile"
+        temperature: 1.0 # value between 0 to 2
 
   # === Automatic Speech Recognition ===
   asr_config:
