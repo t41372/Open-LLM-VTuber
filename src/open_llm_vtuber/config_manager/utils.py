@@ -172,7 +172,7 @@ def scan_config_alts_directory(config_alts_dir: str) -> list[dict]:
 
 def scan_bg_directory() -> list[str]:
     bg_files = []
-    bg_dir = os.path.join("static", "bg")
+    bg_dir = "backgrounds"
     for root, _, files in os.walk(bg_dir):
         for file in files:
             if file.endswith((".jpg", ".jpeg", ".png", ".gif")):

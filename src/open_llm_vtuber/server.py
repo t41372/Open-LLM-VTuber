@@ -38,7 +38,14 @@ class WebSocketServer:
             StaticFiles(directory="live2d-models"),
             name="live2d-models",
         )
-        self.app.mount("/", StaticFiles(directory="./static", html=True), name="static")
+        self.app.mount(
+            "/bg",
+            StaticFiles(directory="backgrounds"),
+            name="backgrounds",
+        )
+        self.app.mount(
+            "/", StaticFiles(directory="./frontend", html=True), name="frontend"
+        )
 
     def run(self):
         pass
