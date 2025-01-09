@@ -3,8 +3,6 @@ system_config:
   conf_version: "v1.0.0-alpha.1"
   host: "0.0.0.0" # use 127.0.0.1 if you want security
   port: 12393
-  # If true, ASR and TTS will be initialized when server starts and kept in memory
-  preload_models: True
   # New setting for alternative configurations
   config_alts_dir: "characters"
   # This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.

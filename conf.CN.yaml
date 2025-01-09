@@ -8,7 +8,6 @@ system_config:
   conf_version: "v1.0.0-alpha.1" # 配置文件版本
   host: "0.0.0.0" # 服务器监听的地址，"0.0.0.0" 表示监听所有网络接口；如果需要安全，可以使用 "127.0.0.1"（仅本地访问）
   port: 12393 # 服务器监听的端口
-  preload_models: True # 如果为 True，则在服务器启动时初始化 ASR（语音识别）和 TTS（语音合成）模型并将其保留在内存中
   config_alts_dir: "characters" # 用于存放替代配置的目录
   live2d_expression_prompt: "live2d_expression_prompt" # 将追加到系统提示末尾，让 LLM（大型语言模型）包含控制面部表情的关键字。支持的关键字将自动加载到 `[<insert_emomap_keys>]` 的位置。
 

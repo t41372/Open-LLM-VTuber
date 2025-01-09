@@ -9,7 +9,6 @@ class SystemConfig(I18nMixin):
     conf_version: str = Field(..., alias="conf_version")
     host: str = Field(..., alias="host") 
     port: int = Field(..., alias="port")
-    preload_models: bool = Field(..., alias="preload_models")
     config_alts_dir: str = Field(..., alias="config_alts_dir")
     live2d_expression_prompt: str = Field(..., alias="live2d_expression_prompt")
 
@@ -25,10 +24,6 @@ class SystemConfig(I18nMixin):
         "port": Description(
             en="Server port number",
             zh="服务器端口号"
-        ),
-        "preload_models": Description(
-            en="Whether to preload ASR and TTS models on startup",
-            zh="是否在服务器启动时预加载 ASR 和 TTS 模型"
         ),
         "config_alts_dir": Description(
             en="Directory for alternative configurations",
