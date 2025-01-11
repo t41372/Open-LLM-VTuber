@@ -111,6 +111,9 @@ async def conversation_chain(
     Returns:
     - str: The full response from the LLM
     """
+    tts_manager = TTSTaskManager()
+    full_response: str = ""
+    
     try:
         session_emoji = np.random.choice(EMOJI_LIST)
 
@@ -140,9 +143,6 @@ async def conversation_chain(
         store_message(conf_uid, history_uid, "human", user_input)
 
         logger.info(f"User input: {user_input}")
-
-        tts_manager = TTSTaskManager()
-        full_response: str = ""
 
         chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
 

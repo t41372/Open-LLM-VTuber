@@ -147,9 +147,14 @@ def create_routes(default_context_cache: ServiceContext):
                     # is sent back from the frontend as an interruption signal
                     # We'll store this in chat history instead of the full response
                     heard_ai_response = data.get("text", "")
-                    session_service_context.agent_engine.handle_interrupt(
-                        heard_ai_response
-                    )
+                    
+                    try:
+                        session_service_context.agent_engine.handle_interrupt(
+                            heard_ai_response
+                        )
+                    except Exception as e:
+                        logger.error(f"Error handling interrupt: {e}")
+                    
                     if not modify_latest_message(
                         conf_uid=conf_uid,
                         history_uid=current_history_uid,
