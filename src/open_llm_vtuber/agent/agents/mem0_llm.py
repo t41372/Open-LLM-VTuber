@@ -3,11 +3,11 @@ This class is responsible for handling the interaction with the OpenAI API for l
 Compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
 """
 
-from typing import Iterator
+from typing import Iterator, AsyncIterator
 from mem0 import Memory
 from openai import OpenAI
 from loguru import logger
-from .agent_interface import AgentInterface
+from .agent_interface import AgentInterface, AgentInputType, AgentOutputType
 import json
 
 
@@ -38,6 +38,7 @@ class LLM(AgentInterface):
         - verbose (bool, optional): Whether to enable verbose mode. Defaults to `False`.
         """
 
+        super().__init__()
         self.base_url = base_url
         self.model = model
         self.system = system
@@ -68,6 +69,16 @@ class LLM(AgentInterface):
 
         # Add a memory
         # self.mem0.add("I'm visiting Paris", user_id="john")
+
+    @property
+    def input_type(self) -> AgentInputType:
+        """Return the input type this agent accepts"""
+        return AgentInputType.TEXT
+
+    @property
+    def output_type(self) -> AgentOutputType:
+        """Return the output type of this agent"""
+        return AgentOutputType.RAW_LLM
 
     def chat_iter(self, prompt: str) -> Iterator[str]:
 
@@ -195,6 +206,19 @@ class LLM(AgentInterface):
                 "content": "[Interrupted by user]",
             }
         )
+
+    async def chat(self, prompt: str) -> AsyncIterator[str]:
+        """Async wrapper for chat_iter"""
+        for token in self.chat_iter(prompt):
+            yield token
+
+    def set_memory_from_history(self, messages: list) -> None:
+        """Empty function"""
+        pass  
+
+    def clear_memory(self) -> None:
+        """Empty function"""
+        pass  
 
 
 def test():
