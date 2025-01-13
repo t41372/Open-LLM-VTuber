@@ -65,6 +65,11 @@ character_config:
           config:
             model: "mxbai-embed-large:latest"
             ollama_base_url: "http://localhost:11434"
+        
+      hume_ai_agent:
+        api_key: ""
+        host: "api.hume.ai" # Do not change this in most cases
+        config_id: "" # Optional
 
       # MemGPT Configurations: MemGPT is temporarily removed
       ##
