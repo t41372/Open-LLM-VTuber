@@ -10,8 +10,8 @@ class OpenAICompatibleConfig(I18nMixin):
     base_url: str = Field(..., alias="base_url")
     llm_api_key: str = Field(..., alias="llm_api_key")
     model: str = Field(..., alias="model")
-    organization_id: str = Field(None, alias="organization_id")
-    project_id: str = Field(None, alias="project_id")
+    organization_id: str | None = Field(None, alias="organization_id")
+    project_id: str | None = Field(None, alias="project_id")
     temperature: float = Field(1.0, alias="temperature")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
