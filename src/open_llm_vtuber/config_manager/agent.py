@@ -94,6 +94,39 @@ class Mem0Config(I18nMixin, BaseModel):
 # =================================
 
 
+class HumeAIConfig(I18nMixin, BaseModel):
+    """Configuration for the Hume AI agent."""
+
+    api_key: str = Field(..., alias="api_key")
+    host: str = Field("api.hume.ai", alias="host")
+    config_id: Optional[str] = Field(None, alias="config_id")
+    config_version: Optional[int] = Field(None, alias="config_version")
+    verbose_transcription: bool = Field(False, alias="verbose_transcription")
+
+    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+        "api_key": Description(
+            en="API key for Hume AI service",
+            zh="Hume AI 服务的 API 密钥"
+        ),
+        "host": Description(
+            en="Host URL for Hume AI service (default: api.hume.ai)",
+            zh="Hume AI 服务的主机地址（默认：api.hume.ai）"
+        ),
+        "config_id": Description(
+            en="Configuration ID for EVI settings",
+            zh="EVI 配置 ID"
+        ),
+        "config_version": Description(
+            en="Version number of the EVI configuration",
+            zh="EVI 配置版本号"
+        ),
+        "verbose_transcription": Description(
+            en="Enable verbose transcription output",
+            zh="启用详细的转录输出"
+        ),
+    }
+
+
 class AgentSettings(I18nMixin, BaseModel):
     """Settings for different types of agents."""
 
@@ -101,21 +134,32 @@ class AgentSettings(I18nMixin, BaseModel):
         None, alias="basic_memory_agent"
     )
     mem0_agent: Optional[Mem0Config] = Field(None, alias="mem0_agent")
+    hume_ai_agent: Optional[HumeAIConfig] = Field(None, alias="hume_ai_agent")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "basic_memory_agent": Description(
-            en="Configuration for basic memory agent", zh="基础记忆代理配置"
+            en="Configuration for basic memory agent",
+            zh="基础记忆代理配置"
         ),
-        "mem0_agent": Description(en="Configuration for Mem0 agent", zh="Mem0代理配置"),
+        "mem0_agent": Description(
+            en="Configuration for Mem0 agent",
+            zh="Mem0代理配置"
+        ),
+        "hume_ai_agent": Description(
+            en="Configuration for Hume AI agent",
+            zh="Hume AI 代理配置"
+        ),
     }
 
 
 class AgentConfig(I18nMixin, BaseModel):
     """This class contains all of the configurations related to agent."""
 
-    conversation_agent_choice: Literal["basic_memory_agent", "mem0_agent"] = Field(
-        ..., alias="conversation_agent_choice"
-    )
+    conversation_agent_choice: Literal[
+        "basic_memory_agent",
+        "mem0_agent",
+        "hume_ai_agent"
+    ] = Field(..., alias="conversation_agent_choice")
     agent_settings: AgentSettings = Field(..., alias="agent_settings")
     llm_configs: StatelessLLMConfigs = Field(..., alias="llm_configs")
 

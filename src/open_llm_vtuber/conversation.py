@@ -11,7 +11,7 @@ import re
 from .live2d_model import Live2dModel
 from .config_manager.tts_preprocessor import TTSPreprocessorConfig
 from .asr.asr_interface import ASRInterface
-from .agent.agents.agent_interface import AgentInterface, AgentOutputType, AgentInputType
+from .agent.agents.agent_interface import AgentInterface, AgentOutputType
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
 from .translate.translate_factory import TranslateFactory
@@ -134,36 +134,15 @@ async def conversation_chain(
             logger.warning("❓User input is None. Aborting conversation.")
             return ""
 
-        match agent_engine.input_type:
-            case AgentInputType.TEXT:
-                # If input is audio data, transcribe it first
-                if isinstance(user_input, np.ndarray):
-                    logger.info("Transcribing audio input...")
-                    user_input = await asr_engine.async_transcribe_np(user_input)
-                    await websocket_send(
-                        json.dumps({"type": "user-input-transcription", "text": user_input})
-                    )
-                # Now user_input is guaranteed to be text
-                store_message(conf_uid, history_uid, "human", user_input)
-                logger.info(f"User text input: {user_input}")
+        if isinstance(user_input, np.ndarray):
+            logger.info("Transcribing audio input...")
+            user_input = await asr_engine.async_transcribe_np(user_input)
+            await websocket_send(
+                json.dumps({"type": "user-input-transcription", "text": user_input})
+            )
 
-            case AgentInputType.AUDIO:
-                if isinstance(user_input, str):
-                    logger.error("Agent expects audio input but received text")
-                    return
-                # Get human input text from agent
-                human_input = await agent_engine.get_human_input(user_input)
-                store_message(conf_uid, history_uid, "human", human_input)
-                logger.info(f"User audio input processed: {human_input}")
-
-            case AgentInputType.BOTH:
-                if isinstance(user_input, np.ndarray):
-                    human_input = await agent_engine.get_human_input(user_input)
-                    store_message(conf_uid, history_uid, "human", human_input)
-                    logger.info(f"User audio input processed: {human_input}")
-                else:
-                    store_message(conf_uid, history_uid, "human", user_input)
-                    logger.info(f"Processing text input: {user_input}")
+        store_message(conf_uid, history_uid, "human", user_input)
+        logger.info(f"User input: {user_input}")
 
         # Process output based on agent's output type
         match agent_engine.output_type:
@@ -196,6 +175,7 @@ async def conversation_chain(
             case AgentOutputType.AUDIO_TEXT:
                 chat_completion: AsyncIterator[Tuple[str, str]] = agent_engine.chat(user_input)
                 async for audio_file_path, text in chat_completion:
+                    logger.info(f"Received audio file path: {audio_file_path}, Received text: {text}")
                     full_response += text
                     audio_payload = prepare_audio_payload(
                         audio_path=audio_file_path,

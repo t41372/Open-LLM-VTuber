@@ -7,7 +7,7 @@ from typing import Iterator, AsyncIterator
 from mem0 import Memory
 from openai import OpenAI
 from loguru import logger
-from .agent_interface import AgentInterface, AgentInputType, AgentOutputType
+from .agent_interface import AgentInterface, AgentOutputType
 import json
 
 
@@ -69,11 +69,6 @@ class LLM(AgentInterface):
 
         # Add a memory
         # self.mem0.add("I'm visiting Paris", user_id="john")
-
-    @property
-    def input_type(self) -> AgentInputType:
-        """Return the input type this agent accepts"""
-        return AgentInputType.TEXT
 
     @property
     def output_type(self) -> AgentOutputType:

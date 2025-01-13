@@ -6,7 +6,7 @@ from ..sentence_divider import (
     process_text_stream,
     END_PUNCTUATIONS,
 )
-from .agent_interface import AgentInterface, AgentInputType, AgentOutputType
+from .agent_interface import AgentInterface, AgentOutputType
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 
 
@@ -173,11 +173,6 @@ class BasicMemoryAgent(AgentInterface):
             self._add_message(complete_response, "assistant")
 
         return chat_with_memory
-
-    @property
-    def input_type(self) -> AgentInputType:
-        """Return the input type this agent accepts"""
-        return AgentInputType.TEXT
 
     @property
     def output_type(self) -> AgentOutputType:
