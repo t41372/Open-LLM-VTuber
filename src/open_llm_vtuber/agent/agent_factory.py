@@ -4,6 +4,7 @@ from loguru import logger
 from .agents.agent_interface import AgentInterface
 from .agents.basic_memory_agent import BasicMemoryAgent
 from .stateless_llm_factory import LLMFactory as StatelessLLMFactory
+from .agents.hume_ai import HumeAIAgent
 
 
 class AgentFactory:
@@ -58,6 +59,14 @@ class AgentFactory:
 
             return Mem0LLM(
                 user_id=kwargs.get("user_id"), system=system_prompt, **mem0_settings
+            )
+
+        elif conversation_agent_choice == "hume_ai_agent":
+            settings = agent_settings.get("hume_ai_agent", {})
+            return HumeAIAgent(
+                api_key=settings.get("api_key"),
+                host=settings.get("host", "api.hume.ai"),
+                config_id=settings.get("config_id"),
             )
 
         else:

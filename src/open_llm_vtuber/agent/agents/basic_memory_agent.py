@@ -6,7 +6,7 @@ from ..sentence_divider import (
     process_text_stream,
     END_PUNCTUATIONS,
 )
-from .agent_interface import AgentInterface
+from .agent_interface import AgentInterface, AgentOutputType
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 
 
@@ -23,6 +23,7 @@ class BasicMemoryAgent(AgentInterface):
         """
 
     def __init__(self, llm: StatelessLLMInterface, system: str):
+        super().__init__()
         self._memory = []
         self._set_llm(llm)
         self.set_system(system)
@@ -172,3 +173,12 @@ class BasicMemoryAgent(AgentInterface):
             self._add_message(complete_response, "assistant")
 
         return chat_with_memory
+
+    @property
+    def output_type(self) -> AgentOutputType:
+        """Return the output type of this agent"""
+        return AgentOutputType.RAW_LLM
+
+    async def chat(self, prompt: str) -> AsyncIterator[str]:
+        """Placeholder for the chat method that will be replaced at runtime"""
+        return self.chat(prompt)  

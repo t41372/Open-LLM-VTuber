@@ -67,6 +67,11 @@ character_config:
             model: "mxbai-embed-large:latest" # 使用的模型
             ollama_base_url: "http://localhost:11434" # Ollama 基础 URL
 
+      hume_ai_agent:
+        api_key: ""
+        host: "api.hume.ai" # 一般无需更改
+        config_id: "" # 可选
+
       # MemGPT 配置：MemGPT 暂时被移除
       ##
 

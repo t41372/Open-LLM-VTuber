@@ -2,7 +2,7 @@ from datetime import datetime
 import uuid
 import json
 import asyncio
-from typing import AsyncIterator, List
+from typing import AsyncIterator, List, Tuple
 import numpy as np
 from loguru import logger
 from fastapi import WebSocket
@@ -11,7 +11,7 @@ import re
 from .live2d_model import Live2dModel
 from .config_manager.tts_preprocessor import TTSPreprocessorConfig
 from .asr.asr_interface import ASRInterface
-from .agent.agents.agent_interface import AgentInterface
+from .agent.agents.agent_interface import AgentInterface, AgentOutputType
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
 from .translate.translate_factory import TranslateFactory
@@ -129,39 +129,61 @@ async def conversation_chain(
         # Apply the color to the console output
         logger.info(f"New Conversation Chain {session_emoji} started!")
 
-        # if user_input is not string, make it string
+        # Process input based on agent's input type
         if user_input is None:
             logger.warning("❓User input is None. Aborting conversation.")
             return ""
-        elif isinstance(user_input, np.ndarray):
-            logger.info("transcribing...")
-            user_input: str = await asr_engine.async_transcribe_np(user_input)
+
+        if isinstance(user_input, np.ndarray):
+            logger.info("Transcribing audio input...")
+            user_input = await asr_engine.async_transcribe_np(user_input)
             await websocket_send(
                 json.dumps({"type": "user-input-transcription", "text": user_input})
             )
 
         store_message(conf_uid, history_uid, "human", user_input)
-
         logger.info(f"User input: {user_input}")
 
-        chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
+        # Process output based on agent's output type
+        match agent_engine.output_type:
+            case AgentOutputType.RAW_LLM:
+                chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
+                async for sentence in chat_completion:
+                    full_response += sentence
+                    filtered_sentence = tts_filter(
+                        text=sentence,
+                        remove_special_char=tts_preprocessor_config.remove_special_char,
+                    )
+                    await tts_manager.speak(
+                        sentence_buffer=filtered_sentence,
+                        live2d_model=live2d_model,
+                        tts_engine=tts_engine,
+                        websocket_send=websocket_send,
+                    )
 
-        async for sentence in chat_completion:
-            full_response += sentence
+            case AgentOutputType.TEXT_FOR_TTS:
+                chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
+                async for sentence in chat_completion:
+                    full_response += sentence
+                    await tts_manager.speak(
+                        sentence_buffer=sentence,
+                        live2d_model=live2d_model,
+                        tts_engine=tts_engine,
+                        websocket_send=websocket_send,
+                    )
 
-            filtered_sentence = tts_filter(
-                text=sentence,
-                remove_special_char=tts_preprocessor_config.remove_special_char,
-            )
+            case AgentOutputType.AUDIO_TEXT:
+                chat_completion: AsyncIterator[Tuple[str, str]] = agent_engine.chat(user_input)
+                async for audio_file_path, text in chat_completion:
+                    logger.info(f"Received audio file path: {audio_file_path}, Received text: {text}")
+                    full_response += text
+                    audio_payload = prepare_audio_payload(
+                        audio_path=audio_file_path,
+                        display_text=text,
+                        expression_list=[]
+                    )
+                    await websocket_send(json.dumps(audio_payload))
 
-            await tts_manager.speak(
-                sentence_buffer=filtered_sentence,
-                live2d_model=live2d_model,
-                tts_engine=tts_engine,
-                websocket_send=websocket_send,
-            )
-
-        # Wait for all TTS tasks to complete
         if tts_manager.task_list:
             await asyncio.gather(*tts_manager.task_list)
 

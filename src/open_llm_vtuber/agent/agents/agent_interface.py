@@ -1,22 +1,50 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator
+from typing import AsyncIterator, Union, Tuple, Optional
+from enum import Enum
 from loguru import logger
+import numpy as np
+import asyncio
+
+class AgentOutputType(Enum):
+    """Agent output type enumeration"""
+    RAW_LLM = "raw_llm"        
+    TEXT_FOR_TTS = "text_tts" 
+    AUDIO_TEXT = "audio_text"      
 
 
 class AgentInterface(ABC):
     """Base interface for all agent implementations"""
+    
+    @property
+    @abstractmethod
+    def output_type(self) -> AgentOutputType:
+        """Return the output type of this agent"""
+        pass
 
-    async def chat(self, prompt: str) -> AsyncIterator[str]:
+    @abstractmethod
+    async def chat(self, prompt: str) -> Union[
+        AsyncIterator[str],                    
+        AsyncIterator[str],                    
+        AsyncIterator[Tuple[str, str]]         
+    ]:
         """
-        Chat with the agent asynchronously, given a prompt.
+        Chat with the agent asynchronously.
 
         This function should be implemented by the agent.
+        Input format depends on the agent's input_format:
+        - TEXT: str - Text prompt
+        - AUDIO: np.ndarray - Audio data
+
+        Output format depends on the agent's output_format:
+        - RAW_LLM: AsyncIterator[str] - Raw LLM output stream
+        - TEXT_FOR_TTS: AsyncIterator[str] - Text ready for TTS
+        - AUDIO_TEXT: AsyncIterator[Tuple[str, str]] - (audio_file_path, text) pairs
         
-        prompt: str
-            the prompt
+        Args:
+            prompt: str - Input according to agent's input_format
 
         Returns:
-        AsyncIterator[str]: An iterator to the response
+            Response stream according to the agent's output_format
         """
         logger.critical("Agent: No chat function set.")
         raise ValueError("Agent: No chat function set.")
