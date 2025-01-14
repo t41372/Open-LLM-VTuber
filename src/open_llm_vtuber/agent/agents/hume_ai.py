@@ -10,7 +10,7 @@ import websockets
 from .agent_interface import AgentInterface, AgentOutputType
 import os
 from pathlib import Path
-from ...chat_history_manager import get_metadata, set_metadata
+from ...chat_history_manager import get_metadata, update_metadate
 
 
 class HumeAIAgent(AgentInterface):
@@ -71,7 +71,7 @@ class HumeAIAgent(AgentInterface):
                 new_chat_group_id = data.get("chat_group_id")
                 
                 if not resume_chat_group_id and self._current_history_uid:
-                    set_metadata(
+                    update_metadate(
                         self._current_conf_uid,
                         self._current_history_uid,
                         {

@@ -94,7 +94,7 @@ def create_routes(default_context_cache: ServiceContext):
                             conf_uid=conf_uid,
                             history_uid=history_uid
                         )
-                        messages = get_history(conf_uid, history_uid)
+                        messages = [msg for msg in get_history(conf_uid, history_uid) if msg['role'] != 'system']
                         await websocket.send_text(
                             json.dumps({"type": "history-data", "messages": messages})
                         )

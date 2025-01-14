@@ -104,7 +104,7 @@ def get_metadata(conf_uid: str, history_uid: str) -> dict:
     return {}
 
 
-def set_metadata(conf_uid: str, history_uid: str, metadata: dict) -> bool:
+def update_metadate(conf_uid: str, history_uid: str, metadata: dict) -> bool:
     """Set metadata in history file
     
     Updates existing metadata with new fields, preserving existing ones.
