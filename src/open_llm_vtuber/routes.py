@@ -89,18 +89,22 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "fetch-and-set-history":
                     history_uid = data.get("history_uid")
                     if history_uid:
-                        messages = get_history(conf_uid, history_uid)
                         current_history_uid = history_uid
                         session_service_context.agent_engine.set_memory_from_history(
-                            messages
+                            conf_uid=conf_uid,
+                            history_uid=history_uid
                         )
+                        messages = [msg for msg in get_history(conf_uid, history_uid) if msg['role'] != 'system']
                         await websocket.send_text(
                             json.dumps({"type": "history-data", "messages": messages})
                         )
 
                 elif data.get("type") == "create-new-history":
                     current_history_uid = create_new_history(conf_uid)
-                    session_service_context.agent_engine.clear_memory()
+                    session_service_context.agent_engine.set_memory_from_history(
+                        conf_uid=conf_uid,
+                        history_uid=current_history_uid
+                    )
                     await websocket.send_text(
                         json.dumps(
                             {

@@ -100,8 +100,7 @@ class HumeAIConfig(I18nMixin, BaseModel):
     api_key: str = Field(..., alias="api_key")
     host: str = Field("api.hume.ai", alias="host")
     config_id: Optional[str] = Field(None, alias="config_id")
-    config_version: Optional[int] = Field(None, alias="config_version")
-    verbose_transcription: bool = Field(False, alias="verbose_transcription")
+    idle_timeout: int = Field(15, alias="idle_timeout")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "api_key": Description(
@@ -116,14 +115,10 @@ class HumeAIConfig(I18nMixin, BaseModel):
             en="Configuration ID for EVI settings",
             zh="EVI 配置 ID"
         ),
-        "config_version": Description(
-            en="Version number of the EVI configuration",
-            zh="EVI 配置版本号"
-        ),
-        "verbose_transcription": Description(
-            en="Enable verbose transcription output",
-            zh="启用详细的转录输出"
-        ),
+        "idle_timeout": Description(
+            en="Idle timeout in seconds before disconnecting (default: 15)",
+            zh="空闲超时断开连接的秒数（默认：15）"
+        )
     }
 
 

@@ -28,16 +28,22 @@ def create_new_history(conf_uid: str) -> str:
     history_uid = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{str(uuid.uuid4())}"
     conf_dir = _ensure_conf_dir(conf_uid)
 
-    # Create empty history file
+    # Create history file with empty metadata
     try:
         filepath = os.path.join(conf_dir, f"{history_uid}.json")
+        initial_data = [
+            {
+                "role": "metadata",
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
+            }
+        ]
         with open(filepath, "w", encoding="utf-8") as f:
-            json.dump([], f)
+            json.dump(initial_data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error(f"Failed to create new history file: {e}")
         return ""
 
-    logger.debug(f"Created new history file: {filepath}")
+    logger.debug(f"Created new history file with empty metadata: {filepath}")
     return history_uid
 
 
@@ -78,6 +84,65 @@ def store_message(
     logger.debug(f"Successfully stored {role} message")
 
 
+def get_metadata(conf_uid: str, history_uid: str) -> dict:
+    """Get metadata from history file"""
+    if not conf_uid or not history_uid:
+        return {}
+
+    filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    if not os.path.exists(filepath):
+        return {}
+
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            history_data = json.load(f)
+            
+        if history_data and history_data[0]["role"] == "metadata":
+            return history_data[0]
+    except Exception as e:
+        logger.error(f"Failed to get metadata: {e}")
+    return {}
+
+
+def update_metadate(conf_uid: str, history_uid: str, metadata: dict) -> bool:
+    """Set metadata in history file
+    
+    Updates existing metadata with new fields, preserving existing ones.
+    If no metadata exists, creates new metadata entry.
+    """
+    if not conf_uid or not history_uid:
+        return False
+
+    filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    if not os.path.exists(filepath):
+        return False
+
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            history_data = json.load(f)
+
+        if history_data and history_data[0]["role"] == "metadata":
+            # Update existing metadata while preserving other fields
+            history_data[0].update(metadata)
+        else:
+            # Create new metadata with timestamp if none exists
+            new_metadata = {
+                "role": "metadata",
+                "timestamp": datetime.now().isoformat(timespec="seconds")
+            }
+            new_metadata.update(metadata)  # Add new fields
+            history_data.insert(0, new_metadata)
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(history_data, f, ensure_ascii=False, indent=2)
+        
+        logger.debug(f"Updated metadata for history {history_uid}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to set metadata: {e}")
+    return False
+
+
 def get_history(conf_uid: str, history_uid: str) -> List[HistoryMessage]:
     """Read chat history for the given conf_uid and history_uid"""
     if not conf_uid or not history_uid:
@@ -95,7 +160,9 @@ def get_history(conf_uid: str, history_uid: str) -> List[HistoryMessage]:
 
     try:
         with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
+            history_data = json.load(f)
+            # Filter out metadata
+            return [msg for msg in history_data if msg["role"] != "metadata"]
     except Exception:
         return []
 
@@ -137,11 +204,14 @@ def get_history_list(conf_uid: str) -> List[dict]:
             try:
                 with open(filepath, "r", encoding="utf-8") as f:
                     messages = json.load(f)
-                    if not messages:
+                    
+                    # Filter out metadata for checking if history is empty
+                    actual_messages = [msg for msg in messages if msg["role"] != "metadata"]
+                    if not actual_messages:
                         empty_history_uids.append(history_uid)
                         continue
 
-                    latest_message = messages[-1]
+                    latest_message = actual_messages[-1]
                     history_info = {
                         "uid": history_uid,
                         "latest_message": latest_message,
@@ -154,6 +224,7 @@ def get_history_list(conf_uid: str) -> List[dict]:
                 logger.error(f"Error reading history file {filename}: {e}")
                 continue
 
+        # Clean up empty histories if there are other non-empty ones
         if len(empty_history_uids) > 0 and len(os.listdir(conf_dir)) > 1:
             for uid in empty_history_uids:
                 try:
@@ -213,3 +284,22 @@ def modify_latest_message(
     except Exception as e:
         logger.error(f"Failed to modify latest message: {e}")
         return False
+
+
+def rename_history_file(conf_uid: str, old_history_uid: str, new_history_uid: str) -> bool:
+    """Rename a history file with a new history_uid"""
+    if not conf_uid or not old_history_uid or not new_history_uid:
+        logger.warning("Missing required parameters for rename")
+        return False
+
+    old_filepath = os.path.join("chat_history", conf_uid, f"{old_history_uid}.json")
+    new_filepath = os.path.join("chat_history", conf_uid, f"{new_history_uid}.json")
+
+    try:
+        if os.path.exists(old_filepath):
+            os.rename(old_filepath, new_filepath)
+            logger.info(f"Renamed history file from {old_history_uid} to {new_history_uid}")
+            return True
+    except Exception as e:
+        logger.error(f"Failed to rename history file: {e}")
+    return False

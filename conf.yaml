@@ -70,7 +70,8 @@ character_config:
         api_key: ""
         host: "api.hume.ai" # Do not change this in most cases
         config_id: "" # Optional
-
+        idle_timeout: 15 # How many seconds to wait before disconnecting
+ 
       # MemGPT Configurations: MemGPT is temporarily removed
       ##
 

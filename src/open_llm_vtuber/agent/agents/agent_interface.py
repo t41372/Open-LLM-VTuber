@@ -31,20 +31,16 @@ class AgentInterface(ABC):
         Chat with the agent asynchronously.
 
         This function should be implemented by the agent.
-        Input format depends on the agent's input_format:
-        - TEXT: str - Text prompt
-        - AUDIO: np.ndarray - Audio data
-
-        Output format depends on the agent's output_format:
+        Output type depends on the agent's output_type:
         - RAW_LLM: AsyncIterator[str] - Raw LLM output stream
         - TEXT_FOR_TTS: AsyncIterator[str] - Text ready for TTS
         - AUDIO_TEXT: AsyncIterator[Tuple[str, str]] - (audio_file_path, text) pairs
         
         Args:
-            prompt: str - Input according to agent's input_format
+            prompt: str - User input transcription
 
         Returns:
-            Response stream according to the agent's output_format
+            Response stream according to the agent's output_type
         """
         logger.critical("Agent: No chat function set.")
         raise ValueError("Agent: No chat function set.")
@@ -64,11 +60,6 @@ class AgentInterface(ABC):
         pass
 
     @abstractmethod
-    def set_memory_from_history(self, messages: list) -> None:
-        """Load the agent's working memory from the message history"""
-        pass
-
-    @abstractmethod
-    def clear_memory(self) -> None:
-        """Clear the agent's working memory"""
+    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
+        """Load the agent's working memory from chat history"""
         pass
