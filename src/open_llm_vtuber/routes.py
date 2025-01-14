@@ -89,44 +89,22 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "fetch-and-set-history":
                     history_uid = data.get("history_uid")
                     if history_uid:
-                        messages = get_history(conf_uid, history_uid)
                         current_history_uid = history_uid
-                        
-                        if not messages:
-                            # 空历史记录,不传 resume_chat_group_id
-                            session_service_context.agent_engine.set_memory_from_history(
-                                conf_uid=conf_uid,
-                                history_uid=history_uid,
-                                is_empty_history=True
-                            )
-                        else:
-                            session_service_context.agent_engine.set_memory_from_history(
-                                conf_uid=conf_uid,
-                                history_uid=history_uid
-                            )
-                        
+                        session_service_context.agent_engine.set_memory_from_history(
+                            conf_uid=conf_uid,
+                            history_uid=history_uid
+                        )
+                        messages = get_history(conf_uid, history_uid)
                         await websocket.send_text(
                             json.dumps({"type": "history-data", "messages": messages})
                         )
 
                 elif data.get("type") == "create-new-history":
                     current_history_uid = create_new_history(conf_uid)
-                    
-                    # 获取历史消息检查是否为空
-                    messages = get_history(conf_uid, current_history_uid)
-                    if not messages:
-                        # 如果是空的,不传 resume_chat_group_id,等待获取新的 chat_group_id
-                        session_service_context.agent_engine.set_memory_from_history(
-                            conf_uid=conf_uid,
-                            history_uid=current_history_uid,
-                            is_empty_history=True  # 添加标记表示是空历史
-                        )
-                    else:
-                        session_service_context.agent_engine.set_memory_from_history(
-                            conf_uid=conf_uid,
-                            history_uid=current_history_uid
-                        )
-                    
+                    session_service_context.agent_engine.set_memory_from_history(
+                        conf_uid=conf_uid,
+                        history_uid=current_history_uid
+                    )
                     await websocket.send_text(
                         json.dumps(
                             {

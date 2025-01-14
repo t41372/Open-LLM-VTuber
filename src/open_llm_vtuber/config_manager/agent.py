@@ -100,6 +100,7 @@ class HumeAIConfig(I18nMixin, BaseModel):
     api_key: str = Field(..., alias="api_key")
     host: str = Field("api.hume.ai", alias="host")
     config_id: Optional[str] = Field(None, alias="config_id")
+    idle_timeout: int = Field(15, alias="idle_timeout")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "api_key": Description(
@@ -113,6 +114,10 @@ class HumeAIConfig(I18nMixin, BaseModel):
         "config_id": Description(
             en="Configuration ID for EVI settings",
             zh="EVI 配置 ID"
+        ),
+        "idle_timeout": Description(
+            en="Idle timeout in seconds before disconnecting (default: 15)",
+            zh="空闲超时断开连接的秒数（默认：15）"
         )
     }
 

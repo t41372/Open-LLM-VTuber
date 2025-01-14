@@ -67,6 +67,7 @@ class AgentFactory:
                 api_key=settings.get("api_key"),
                 host=settings.get("host", "api.hume.ai"),
                 config_id=settings.get("config_id"),
+                idle_timeout=settings.get("idle_timeout", 15)
             )
 
         else:

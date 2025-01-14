@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Tuple, Optional, Union
+from typing import AsyncIterator, Tuple, Optional
 import asyncio
 import sys
 import numpy as np
@@ -9,48 +9,131 @@ import requests
 import websockets
 from .agent_interface import AgentInterface, AgentOutputType
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+from ...chat_history_manager import get_metadata, set_metadata
 
 
 class HumeAIAgent(AgentInterface):
     """Hume AI Agent that handles text input and audio output"""
+
+    AGENT_TYPE = "hume_ai_agent"
 
     def __init__(
         self,
         api_key: str,
         host: str = "api.hume.ai",
         config_id: Optional[str] = None,
+        idle_timeout: int = 15 
     ):
         self.api_key = api_key
         self.host = host
         self.config_id = config_id
+        self.idle_timeout = idle_timeout
         self._ws = None
         self._current_text = None
         self._current_id = None
         self._connected = False
+        self._chat_group_id = None
+        self._idle_timer = None
+        self._current_conf_uid = None
+        self._current_history_uid = None
 
         # Create cache directory if it doesn't exist
         self.cache_dir = Path("./cache")
         self.cache_dir.mkdir(exist_ok=True)
 
-    async def connect(self):
-        """Establish initial WebSocket connection"""
-        if not self._connected:
-            # Build URL with query parameters according to documentation
-            socket_url = f"wss://{self.host}/v0/evi/chat?api_key={self.api_key}"
+    async def connect(self, resume_chat_group_id: Optional[str] = None):
+        """Establish WebSocket connection with optional chat group resumption"""
+        if self._ws:
+            await self._ws.close()
+            self._ws = None
+            self._connected = False
+        
+        # Build URL with query parameters
+        socket_url = f"wss://{self.host}/v0/evi/chat?api_key={self.api_key}"
+        
+        if self.config_id:
+            socket_url += f"&config_id={self.config_id}"
+            
+        if resume_chat_group_id:
+            logger.info(f"Resuming chat group: {resume_chat_group_id}")
+            socket_url += f"&resumed_chat_group_id={resume_chat_group_id}"
+            self._chat_group_id = resume_chat_group_id
+            
+        logger.info(f"Connecting to EVI with config_id: {self.config_id}")
+        
+        self._ws = await websockets.connect(socket_url)
+        self._connected = True
+        
+        async for message in self._ws:
+            data = json.loads(message)
+            if data.get("type") == "chat_metadata":
+                new_chat_group_id = data.get("chat_group_id")
+                
+                if not resume_chat_group_id and self._current_history_uid:
+                    set_metadata(
+                        self._current_conf_uid,
+                        self._current_history_uid,
+                        {
+                            "resume_id": new_chat_group_id,
+                            "agent_type": self.AGENT_TYPE
+                        }
+                    )
+                        
+                self._chat_group_id = new_chat_group_id
+                logger.info(
+                    f"{'Resumed' if resume_chat_group_id else 'Created new'} "
+                    f"chat group: {self._chat_group_id}"
+                )
+                break
 
-            if self.config_id:
-                socket_url += f"&config_id={self.config_id}"
-
-            logger.info(f"Connecting to EVI with config_id: {self.config_id}")
-            self._ws = await websockets.connect(socket_url)
-            self._connected = True
+    def _reset_idle_timer(self):
+        """Reset the idle timer"""
+        if self._idle_timer:
+            self._idle_timer.cancel()
+        
+        async def disconnect_after_timeout():
+            await asyncio.sleep(self.idle_timeout)
+            if self._ws and self._connected:
+                logger.info("Idle timeout reached, disconnecting...")
+                await self._ws.close()
+                self._connected = False
+                
+        self._idle_timer = asyncio.create_task(disconnect_after_timeout())
 
     async def _ensure_connection(self):
         """Ensure connection is alive, reconnect if needed"""
         if not self._connected or not self._ws or self._ws.closed:
-            await self.connect()
+            await self.connect(self._chat_group_id)
+
+    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
+        """Set chat group ID based on history"""
+        self._current_conf_uid = conf_uid
+        self._current_history_uid = history_uid
+        
+        metadata = get_metadata(conf_uid, history_uid)
+        
+        agent_type = metadata.get("agent_type")
+        if agent_type and agent_type != self.AGENT_TYPE:
+            logger.warning(
+                f"Incompatible agent type in history: {agent_type}. "
+                f"Expected: {self.AGENT_TYPE} or empty. Memory will not be set."
+            )
+            self._chat_group_id = None
+            return
+            
+        resume_id = metadata.get("resume_id")
+        if resume_id:
+            self._chat_group_id = resume_id
+            logger.info(f"Using resume_id from metadata: {resume_id}")
+        else:
+            self._chat_group_id = None
+            logger.info("No resume_id found in metadata, will create new chat group")
+            
+        # Force reconnection on next chat
+        if self._ws:
+            asyncio.create_task(self._ws.close())
+            self._connected = False
 
     @property
     def output_type(self) -> AgentOutputType:
@@ -59,6 +142,7 @@ class HumeAIAgent(AgentInterface):
     async def chat(self, prompt: str) -> AsyncIterator[Tuple[str, str]]:
         """Chat with Hume AI and get audio response"""
         try:
+            self._reset_idle_timer()
             await self._ensure_connection()
 
             message = {
@@ -68,6 +152,8 @@ class HumeAIAgent(AgentInterface):
             await self._ws.send(json.dumps(message))
 
             async for message in self._ws:
+                self._reset_idle_timer()
+                logger.debug(f"Received message: {message}")
                 try:
                     response_data = json.loads(message)
                     msg_type = response_data.get("type")
@@ -80,20 +166,15 @@ class HumeAIAgent(AgentInterface):
                     elif msg_type == "audio_output":
                         if msg_id == self._current_id and self._current_text:
                             audio_data = base64.b64decode(response_data["data"])
-
-                            # Create temp file in cache directory
                             cache_file = self.cache_dir / f"evi_audio_{msg_id}.wav"
+                            
                             with open(cache_file, "wb") as f:
                                 f.write(audio_data)
                                 logger.debug(f"Saved audio to cache file: {cache_file}")
                                 
-                            # Add a small delay to ensure file is fully written
                             yield str(cache_file), self._current_text
-
                             self._current_text = None
                             self._current_id = None
-                        else:
-                            logger.warning("Received audio output without matching text")
 
                     elif msg_type == "assistant_end":
                         break
@@ -109,7 +190,6 @@ class HumeAIAgent(AgentInterface):
             logger.warning(f"Connection closed: {e}, attempting to reconnect...")
             self._connected = False
             await self._ensure_connection()
-            # Retry the chat after reconnection
             async for result in self.chat(prompt):
                 yield result
 
@@ -117,36 +197,14 @@ class HumeAIAgent(AgentInterface):
             logger.error(f"Error in chat: {e}")
             raise
 
-    def handle_interrupt(self) -> None:
+    def handle_interrupt(self, heard_response: str) -> None:
         pass
-
-    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
-        pass
-
-    async def clear_memory(self) -> None:
-        """Clear memory by resetting the WebSocket connection"""
-        try:
-            # Close existing WebSocket connection
-            if self._ws:
-                await self._ws.close()
-                self._ws = None
-            
-            # Reset connection state
-            self._connected = False
-            self._current_text = None
-            self._current_id = None
-            
-            # Reconnect to establish fresh connection
-            await self.connect()
-            
-            logger.info("Successfully cleared memory by resetting WebSocket connection")
-            
-        except Exception as e:
-            logger.error(f"Error clearing memory: {e}")
-            raise
 
     async def __del__(self):
         """Cleanup WebSocket connection and cache files"""
+        if self._idle_timer:
+            self._idle_timer.cancel()
+            
         if self._ws:
             await self._ws.close()
 
