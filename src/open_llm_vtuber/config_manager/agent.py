@@ -100,8 +100,6 @@ class HumeAIConfig(I18nMixin, BaseModel):
     api_key: str = Field(..., alias="api_key")
     host: str = Field("api.hume.ai", alias="host")
     config_id: Optional[str] = Field(None, alias="config_id")
-    config_version: Optional[int] = Field(None, alias="config_version")
-    verbose_transcription: bool = Field(False, alias="verbose_transcription")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "api_key": Description(
@@ -115,15 +113,7 @@ class HumeAIConfig(I18nMixin, BaseModel):
         "config_id": Description(
             en="Configuration ID for EVI settings",
             zh="EVI 配置 ID"
-        ),
-        "config_version": Description(
-            en="Version number of the EVI configuration",
-            zh="EVI 配置版本号"
-        ),
-        "verbose_transcription": Description(
-            en="Enable verbose transcription output",
-            zh="启用详细的转录输出"
-        ),
+        )
     }
 
 

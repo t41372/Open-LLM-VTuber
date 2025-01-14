@@ -21,33 +21,18 @@ class HumeAIAgent(AgentInterface):
         api_key: str,
         host: str = "api.hume.ai",
         config_id: Optional[str] = None,
-        config_version: Optional[int] = None,
-        verbose_transcription: bool = False
     ):
         self.api_key = api_key
         self.host = host
         self.config_id = config_id
-        self.config_version = config_version
-        self.verbose_transcription = verbose_transcription
         self._ws = None
         self._current_text = None
         self._current_id = None
         self._connected = False
-        self._heartbeat_task = None
 
         # Create cache directory if it doesn't exist
         self.cache_dir = Path("./cache")
         self.cache_dir.mkdir(exist_ok=True)
-
-    async def _heartbeat(self):
-        """Send periodic heartbeat to keep connection alive"""
-        try:
-            while True:
-                if self._ws and not self._ws.closed:
-                    await self._ws.send(json.dumps({"type": "ping"}))
-                await asyncio.sleep(60)  # Send heartbeat every 60 seconds
-        except Exception as e:
-            logger.error(f"Heartbeat error: {e}")
 
     async def connect(self):
         """Establish initial WebSocket connection"""
@@ -57,20 +42,10 @@ class HumeAIAgent(AgentInterface):
 
             if self.config_id:
                 socket_url += f"&config_id={self.config_id}"
-                if self.config_version:
-                    socket_url += f"&config_version={self.config_version}"
-
-            if self.verbose_transcription:
-                socket_url += "&verbose_transcription=true"
 
             logger.info(f"Connecting to EVI with config_id: {self.config_id}")
             self._ws = await websockets.connect(socket_url)
             self._connected = True
-
-            # Start heartbeat
-            if self._heartbeat_task:
-                self._heartbeat_task.cancel()
-            self._heartbeat_task = asyncio.create_task(self._heartbeat())
 
     async def _ensure_connection(self):
         """Ensure connection is alive, reconnect if needed"""
@@ -151,11 +126,6 @@ class HumeAIAgent(AgentInterface):
     async def clear_memory(self) -> None:
         """Clear memory by resetting the WebSocket connection"""
         try:
-            # Cancel heartbeat task if exists
-            if self._heartbeat_task:
-                self._heartbeat_task.cancel()
-                self._heartbeat_task = None
-            
             # Close existing WebSocket connection
             if self._ws:
                 await self._ws.close()
@@ -177,8 +147,6 @@ class HumeAIAgent(AgentInterface):
 
     async def __del__(self):
         """Cleanup WebSocket connection and cache files"""
-        if self._heartbeat_task:
-            self._heartbeat_task.cancel()
         if self._ws:
             await self._ws.close()
 
