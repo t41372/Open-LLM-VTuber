@@ -117,10 +117,10 @@ class HumeAIAgent(AgentInterface):
             logger.error(f"Error in chat: {e}")
             raise
 
-    def handle_interrupt(self, heard_response: str) -> None:
+    def handle_interrupt(self) -> None:
         pass
 
-    def set_memory_from_history(self, messages: list) -> None:
+    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         pass
 
     async def clear_memory(self) -> None:

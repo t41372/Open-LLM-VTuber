@@ -9,6 +9,7 @@ from openai import OpenAI
 from loguru import logger
 from .agent_interface import AgentInterface, AgentOutputType
 import json
+from ...chat_history_manager import get_history
 
 
 class LLM(AgentInterface):
@@ -207,14 +208,8 @@ class LLM(AgentInterface):
         for token in self.chat_iter(prompt):
             yield token
 
-    def set_memory_from_history(self, messages: list) -> None:
-        """Empty function"""
-        pass  
-
-    def clear_memory(self) -> None:
-        """Empty function"""
-        pass  
-
+    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
+       pass
 
 def test():
 

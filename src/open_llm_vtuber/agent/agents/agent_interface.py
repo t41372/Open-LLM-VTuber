@@ -60,11 +60,6 @@ class AgentInterface(ABC):
         pass
 
     @abstractmethod
-    def set_memory_from_history(self, messages: list) -> None:
-        """Load the agent's working memory from the message history"""
-        pass
-
-    @abstractmethod
-    def clear_memory(self) -> None:
-        """Clear the agent's working memory"""
+    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
+        """Load the agent's working memory from chat history"""
         pass

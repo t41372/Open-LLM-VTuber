@@ -8,6 +8,7 @@ from ..sentence_divider import (
 )
 from .agent_interface import AgentInterface, AgentOutputType
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
+from ...chat_history_manager import get_history
 
 
 class BasicMemoryAgent(AgentInterface):
@@ -68,8 +69,10 @@ class BasicMemoryAgent(AgentInterface):
             }
         )
 
-    def set_memory_from_history(self, messages: list):
-        """Load the memory from history"""
+    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
+        """Load the memory from chat history"""
+        messages = get_history(conf_uid, history_uid)
+        
         system_message = next(
             (msg for msg in self._memory if msg["role"] == "system"), None
         )
@@ -84,12 +87,6 @@ class BasicMemoryAgent(AgentInterface):
                     "content": msg["content"],
                 }
             )
-
-    def clear_memory(self) -> None:
-        """
-        Clear the memory
-        """
-        self._memory = []
 
     def handle_interrupt(self, heard_response: str) -> None:
         """
