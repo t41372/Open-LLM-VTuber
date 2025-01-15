@@ -4,6 +4,7 @@ import sherpa_onnx
 from loguru import logger
 from .asr_interface import ASRInterface
 from .utils import download_and_extract
+import onnxruntime as ort
 
 
 class VoiceRecognition(ASRInterface):
@@ -19,7 +20,7 @@ class VoiceRecognition(ASRInterface):
         tdnn_model: str = None,  # Path to the model.onnx for the tdnn model of the yesno recipe
         whisper_encoder: str = None,  # Path to whisper encoder model
         whisper_decoder: str = None,  # Path to whisper decoder model
-        sense_voice: str = None, # Path to the model.onnx from SenseVoice
+        sense_voice: str = None,  # Path to the model.onnx from SenseVoice
         tokens: str = None,  # Path to tokens.txt
         hotwords_file: str = "",  # Path to hotwords file
         hotwords_score: float = 1.5,  # Hotwords score
@@ -46,7 +47,7 @@ class VoiceRecognition(ASRInterface):
         self.tdnn_model = tdnn_model
         self.whisper_encoder = whisper_encoder
         self.whisper_decoder = whisper_decoder
-        self.sense_voice:str = sense_voice
+        self.sense_voice: str = sense_voice
         self.tokens = tokens
         self.hotwords_file = hotwords_file
         self.hotwords_score = hotwords_score
@@ -64,6 +65,11 @@ class VoiceRecognition(ASRInterface):
         self.use_itn = use_itn
 
         self.asr_with_vad = None
+
+        # we need to find a way to get cuda version of sherpa-onnx before we can
+        # use the gpu provider.
+        self.provider = "cpu"
+        logger.info(f"Sherpa-Onnx-ASR: Using {self.provider} provider for inference")
 
         self.recognizer = self._create_recognizer()
 
@@ -139,8 +145,8 @@ class VoiceRecognition(ASRInterface):
             )
         elif self.model_type == "sense_voice":
             if not self.sense_voice or not os.path.isfile(self.sense_voice):
-                if (
-                    self.sense_voice.startswith("./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17")
+                if self.sense_voice.startswith(
+                    "./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17"
                 ):
                     logger.warning(
                         "SenseVoice model not found. Downloading the model..."
