@@ -1,9 +1,12 @@
+import os
 import numpy as np
 import sherpa_onnx
+from loguru import logger
 from .asr_interface import ASRInterface
+from .utils import download_and_extract
+
 
 class VoiceRecognition(ASRInterface):
-
     def __init__(
         self,
         model_type: str = "paraformer",  # or "transducer", "nemo_ctc", "wenet_ctc", "whisper", "tdnn_ctc", "sense_voice"
@@ -31,9 +34,8 @@ class VoiceRecognition(ASRInterface):
         debug: bool = False,  # Show debug messages
         sample_rate: int = 16000,  # Sample rate
         feature_dim: int = 80,  # Feature dimension
-        use_itn: bool = True, # Use ITN for SenseVoice models
+        use_itn: bool = True,  # Use ITN for SenseVoice models
     ) -> None:
-
         self.model_type = model_type
         self.encoder = encoder
         self.decoder = decoder
@@ -44,7 +46,7 @@ class VoiceRecognition(ASRInterface):
         self.tdnn_model = tdnn_model
         self.whisper_encoder = whisper_encoder
         self.whisper_decoder = whisper_decoder
-        self.sense_voice = sense_voice
+        self.sense_voice:str = sense_voice
         self.tokens = tokens
         self.hotwords_file = hotwords_file
         self.hotwords_score = hotwords_score
@@ -136,12 +138,27 @@ class VoiceRecognition(ASRInterface):
                 debug=self.debug,
             )
         elif self.model_type == "sense_voice":
+            if not self.sense_voice or not os.path.isfile(self.sense_voice):
+                if (
+                    self.sense_voice.startswith("./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17")
+                ):
+                    logger.warning(
+                        "SenseVoice model not found. Downloading the model..."
+                    )
+                    download_and_extract(
+                        url="https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2",
+                        output_dir="./models",
+                    )
+                else:
+                    logger.critical(
+                        "The SenseVoice model is missing. Please provide the path to the model.onnx file."
+                    )
             recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
                 model=self.sense_voice,
                 tokens=self.tokens,
                 num_threads=self.num_threads,
                 use_itn=self.use_itn,
-                debug=self.debug
+                debug=self.debug,
             )
         else:
             raise ValueError(f"Invalid model type: {self.model_type}")

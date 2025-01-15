@@ -131,7 +131,7 @@ character_config:
   # === Automatic Speech Recognition ===
   asr_config:
     # speech to text model options: "faster_whisper", "whisper_cpp", "whisper", "azure_asr", "fun_asr", "groq_whisper_asr", "sherpa_onnx_asr"
-    asr_model: "faster_whisper"
+    asr_model: "sherpa_onnx_asr"
 
     azure_asr:
       api_key: "azure_api_key"
@@ -194,8 +194,10 @@ character_config:
       # whisper_encoder: "" # Path to the Whisper encoder model (e.g., "path/to/encoder.onnx")
       # whisper_decoder: "" # Path to the Whisper decoder model (e.g., "path/to/decoder.onnx")
       # --- For model_type: "sense_voice" ---
-      sense_voice: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx" # Path to the SenseVoice model (e.g., "path/to/model.onnx")
-      tokens: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt" # Path to tokens.txt (required for all model types)
+      # I've coded so that the sense voice model will get automatically downloaded.
+      # For other models, you need to download them yourself
+      sense_voice: "./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx" # Path to the SenseVoice model (e.g., "path/to/model.onnx")
+      tokens: "./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt" # Path to tokens.txt (required for all model types)
       # --- Optional parameters (with defaults shown) ---
       # hotwords_file: ""     # Path to hotwords file (if using hotwords)
       # hotwords_score: 1.5   # Score for hotwords

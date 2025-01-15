@@ -131,7 +131,7 @@ character_config:
   # === 自动语音识别 ===
   asr_config:
     # 语音转文本模型选项："faster_whisper", "whisper_cpp", "whisper", "azure_asr", "fun_asr", "groq_whisper_asr", "sherpa_onnx_asr"
-    asr_model: "faster_whisper" # 使用的语音识别模型
+    asr_model: "sherpa_onnx_asr" # 使用的语音识别模型
 
     azure_asr:
       api_key: "azure_api_key" # Azure API 密钥
@@ -192,8 +192,9 @@ character_config:
       # whisper_encoder: "" # Whisper 编码器模型路径（例如 "path/to/encoder.onnx"）
       # whisper_decoder: "" # Whisper 解码器模型路径（例如 "path/to/decoder.onnx"）
       # --- 对于 model_type: "sense_voice" ---
-      sense_voice: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx" # SenseVoice 模型路径（例如 "path/to/model.onnx"）
-      tokens: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt" # tokens.txt 路径（所有模型类型都需要）
+      # SenseVoice 我写了自动下载模型的逻辑，其他模型要自己手动下载
+      sense_voice: "./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.int8.onnx" # SenseVoice 模型路径（例如 "path/to/model.onnx"）
+      tokens: "./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt" # tokens.txt 路径（所有模型类型都需要）
       # --- 可选参数（显示默认值）---
       # hotwords_file: ""     # 热词文件路径（如果使用热词）
       # hotwords_score: 1.5   # 热词分数
