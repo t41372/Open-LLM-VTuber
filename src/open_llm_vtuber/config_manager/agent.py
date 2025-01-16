@@ -26,9 +26,16 @@ class BasicMemoryAgentConfig(I18nMixin, BaseModel):
         "groq_llm",
     ] = Field(..., alias="llm_provider")
 
+    faster_first_response: Optional[bool] = Field(True, alias="faster_first_response")
+
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "llm_provider": Description(
-            en="LLM provider to use for this agent", zh="此代理使用的语言模型提供者"
+            en="LLM provider to use for this agent",
+            zh="Basic Memory Agent 智能体使用的大语言模型选项",
+        ),
+        "faster_first_response": Description(
+            en="Whether to respond as soon as encountering a comma in the first sentence to reduce latency (default: True)",
+            zh="是否在第一句回应时遇上逗号就直接生成音频以减少首句延迟（默认：True）",
         ),
     }
 
@@ -104,21 +111,19 @@ class HumeAIConfig(I18nMixin, BaseModel):
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "api_key": Description(
-            en="API key for Hume AI service",
-            zh="Hume AI 服务的 API 密钥"
+            en="API key for Hume AI service", zh="Hume AI 服务的 API 密钥"
         ),
         "host": Description(
             en="Host URL for Hume AI service (default: api.hume.ai)",
-            zh="Hume AI 服务的主机地址（默认：api.hume.ai）"
+            zh="Hume AI 服务的主机地址（默认：api.hume.ai）",
         ),
         "config_id": Description(
-            en="Configuration ID for EVI settings",
-            zh="EVI 配置 ID"
+            en="Configuration ID for EVI settings", zh="EVI 配置 ID"
         ),
         "idle_timeout": Description(
             en="Idle timeout in seconds before disconnecting (default: 15)",
-            zh="空闲超时断开连接的秒数（默认：15）"
-        )
+            zh="空闲超时断开连接的秒数（默认：15）",
+        ),
     }
 
 
@@ -133,16 +138,11 @@ class AgentSettings(I18nMixin, BaseModel):
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "basic_memory_agent": Description(
-            en="Configuration for basic memory agent",
-            zh="基础记忆代理配置"
+            en="Configuration for basic memory agent", zh="基础记忆代理配置"
         ),
-        "mem0_agent": Description(
-            en="Configuration for Mem0 agent",
-            zh="Mem0代理配置"
-        ),
+        "mem0_agent": Description(en="Configuration for Mem0 agent", zh="Mem0代理配置"),
         "hume_ai_agent": Description(
-            en="Configuration for Hume AI agent",
-            zh="Hume AI 代理配置"
+            en="Configuration for Hume AI agent", zh="Hume AI 代理配置"
         ),
     }
 
@@ -151,9 +151,7 @@ class AgentConfig(I18nMixin, BaseModel):
     """This class contains all of the configurations related to agent."""
 
     conversation_agent_choice: Literal[
-        "basic_memory_agent",
-        "mem0_agent",
-        "hume_ai_agent"
+        "basic_memory_agent", "mem0_agent", "hume_ai_agent"
     ] = Field(..., alias="conversation_agent_choice")
     agent_settings: AgentSettings = Field(..., alias="agent_settings")
     llm_configs: StatelessLLMConfigs = Field(..., alias="llm_configs")

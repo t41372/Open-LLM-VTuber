@@ -5,6 +5,11 @@ import re
 from langdetect import detect
 
 # Constants for additional checks
+COMMAS = [
+    ",", "،", "，", "、", "፣", "၊", ";", "΄", "‛", 
+    "।", "﹐", "꓾", "⹁", "︐", "﹑", "､", "،",
+]
+
 END_PUNCTUATIONS = [".", "!", "?", "。", "！", "？", "...", "。。。"]
 ABBREVIATIONS = [
     "Mr.", "Mrs.", "Dr.", "Prof.", "Inc.", "Ltd.", "Jr.", "Sr.",
@@ -80,6 +85,38 @@ def is_complete_sentence(text: str) -> bool:
         return False
         
     return any(text.endswith(punct) for punct in END_PUNCTUATIONS)
+
+def contains_comma(text: str) -> bool:
+    """
+    Check if text contains any comma.
+    
+    Args:
+        text: Text to check
+        
+    Returns:
+        bool: Whether the text contains a comma
+    """
+    return any(comma in text for comma in COMMAS)
+
+def comma_splitter(text: str) -> Tuple[str, str]:
+    """
+    Process text and split it at the first comma.
+    Returns the split text and the remaining text.
+    
+    Args:
+        text: Text to split
+        
+    Returns:
+        Tuple[str, str]: (split text, remaining text)
+    """
+    if not text:
+        return [], ""
+    
+    for comma in COMMAS:
+        if comma in text:
+            split_text = text.split(comma, 1)
+            return split_text[0].strip(), split_text[1].strip()
+    return text, ""
 
 def process_text_stream(text: str) -> Tuple[List[str], str]:
     """

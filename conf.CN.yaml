@@ -41,6 +41,8 @@ character_config:
         # "openai_compatible_llm", "llama_cpp_llm", "claude_llm", "ollama_llm"
         # "openai_llm", "gemini_llm", "zhipu_llm", "deepseek_llm", "groq_llm"
         llm_provider: "openai_compatible_llm" # 使用的 LLM 提供商
+        # 是否在第一句回应时遇上逗号就直接生成音频以减少首句延迟（默认：True）
+        faster_first_response: True
 
       mem0_agent:
         vector_store:

@@ -29,8 +29,8 @@ class AgentFactory:
 
         if conversation_agent_choice == "basic_memory_agent":
             # Get the LLM provider choice from agent settings
-            basic_memory_settings = agent_settings.get("basic_memory_agent", {})
-            llm_provider = basic_memory_settings.get("llm_provider")
+            basic_memory_settings: dict = agent_settings.get("basic_memory_agent", {})
+            llm_provider: str = basic_memory_settings.get("llm_provider")
 
             if not llm_provider:
                 raise ValueError("LLM provider not specified for basic memory agent")
@@ -48,7 +48,13 @@ class AgentFactory:
             )
 
             # Create the agent with the LLM
-            return BasicMemoryAgent(llm=llm, system=system_prompt)
+            return BasicMemoryAgent(
+                llm=llm,
+                system=system_prompt,
+                faster_first_response=basic_memory_settings.get(
+                    "faster_first_response", True
+                ),
+            )
 
         elif conversation_agent_choice == "mem0_agent":
             from .agents.mem0_llm import LLM as Mem0LLM
@@ -61,12 +67,14 @@ class AgentFactory:
             required_fields = ["base_url", "model", "mem0_config"]
             for field in required_fields:
                 if field not in mem0_settings:
-                    raise ValueError(f"Missing required field '{field}' in mem0_agent settings")
+                    raise ValueError(
+                        f"Missing required field '{field}' in mem0_agent settings"
+                    )
 
             return Mem0LLM(
                 user_id=kwargs.get("user_id", "default"),
                 system=system_prompt,
-                **mem0_settings
+                **mem0_settings,
             )
 
         elif conversation_agent_choice == "hume_ai_agent":
@@ -75,7 +83,7 @@ class AgentFactory:
                 api_key=settings.get("api_key"),
                 host=settings.get("host", "api.hume.ai"),
                 config_id=settings.get("config_id"),
-                idle_timeout=settings.get("idle_timeout", 15)
+                idle_timeout=settings.get("idle_timeout", 15),
             )
 
         else:

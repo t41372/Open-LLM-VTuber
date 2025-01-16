@@ -3,6 +3,8 @@ from typing import AsyncIterator, List, Dict, Any, Callable
 from loguru import logger
 
 from ..sentence_divider import (
+    contains_comma,
+    comma_splitter,
     process_text_stream,
     END_PUNCTUATIONS,
 )
@@ -23,8 +25,14 @@ class BasicMemoryAgent(AgentInterface):
         Don't say anything else.
         """
 
-    def __init__(self, llm: StatelessLLMInterface, system: str):
+    def __init__(
+        self,
+        llm: StatelessLLMInterface,
+        system: str,
+        faster_first_response: bool = True,
+    ):
         super().__init__()
+        self.faster_first_response = faster_first_response
         self._memory = []
         self._set_llm(llm)
         self.set_system(system)
@@ -72,7 +80,7 @@ class BasicMemoryAgent(AgentInterface):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
         messages = get_history(conf_uid, history_uid)
-        
+
         system_message = next(
             (msg for msg in self._memory if msg["role"] == "system"), None
         )
@@ -141,10 +149,21 @@ class BasicMemoryAgent(AgentInterface):
 
             full_response = []
             buffer = ""
+            # flag to keep track of the first sentence
+            first_sentence = self.faster_first_response
+            logger.critical(f"Memory Agent: Faster first response: {first_sentence}")
 
             async for token in chat_func(self._memory, self._system):
                 buffer += token
                 full_response.append(token)
+
+                # process buffer right away when it contains a comma in the first sentence
+                if first_sentence and contains_comma(buffer):
+                    sentence, remaining = comma_splitter(buffer)
+                    if sentence.strip():
+                        yield sentence.strip()
+                    buffer = remaining
+                    first_sentence = False
 
                 # Process buffer when it gets long enough or contains any ending punctuation
                 if len(buffer) >= 25 or any(
@@ -155,6 +174,7 @@ class BasicMemoryAgent(AgentInterface):
                         if sentence.strip():
                             yield sentence.strip()
                     buffer = remaining
+                    first_sentence = False
 
             # Process any remaining text
             if buffer.strip():
@@ -178,4 +198,4 @@ class BasicMemoryAgent(AgentInterface):
 
     async def chat(self, prompt: str) -> AsyncIterator[str]:
         """Placeholder for the chat method that will be replaced at runtime"""
-        return self.chat(prompt)  
+        return self.chat(prompt)

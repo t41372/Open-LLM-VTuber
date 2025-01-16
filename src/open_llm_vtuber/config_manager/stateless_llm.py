@@ -41,6 +41,18 @@ class OllamaConfig(OpenAICompatibleConfig):
     keep_alive: float = Field(-1, alias="keep_alive")
     unload_at_exit: bool = Field(True, alias="unload_at_exit")
 
+    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+        "llm_api_key": Description(en="API key for authentication", zh="API 认证密钥"),
+        "keep_alive": Description(
+            en="Keep the model loaded for this many seconds after the last request. "
+            "Set to -1 to keep the model loaded indefinitely.",
+            zh="在最后一个请求之后保持模型加载的秒数。设置为 -1 以无限期保持模型加载。",
+        ),
+        "unload_at_exit": Description(
+            en="Unload the model when the program exits.", zh="是否在程序退出时卸载模型。"
+        ),
+    }
+
 
 class OpenAIConfig(OpenAICompatibleConfig):
     """Configuration for Official OpenAI API."""
