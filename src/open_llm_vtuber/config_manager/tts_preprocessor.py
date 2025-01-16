@@ -67,6 +67,9 @@ class TTSPreprocessorConfig(I18nMixin):
     """Configuration for TTS preprocessor."""
     
     remove_special_char: bool = Field(..., alias="remove_special_char")
+    ignore_brackets: bool = Field(default=True, alias="ignore_brackets")
+    ignore_parentheses: bool = Field(default=True, alias="ignore_parentheses")
+    ignore_asterisks: bool = Field(default=True, alias="ignore_asterisks")
     translator_config: TranslatorConfig = Field(..., alias="translator_config")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {

@@ -324,6 +324,9 @@ character_config:
     # settings regarding preprocessing for text that goes into TTS
 
     remove_special_char: True # remove special characters like emoji from audio generation
+    ignore_brackets: True # ignore everything inside brackets
+    ignore_parentheses: True # ignore everything inside parentheses
+    ignore_asterisks: True # ignore everything wrapped inside asterisks
 
     translator_config:
       # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things

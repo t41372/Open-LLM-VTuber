@@ -157,6 +157,9 @@ async def conversation_chain(
                     full_response += sentence
                     filtered_sentence = tts_filter(
                         text=sentence,
+                        ignore_brackets=tts_preprocessor_config.ignore_brackets,
+                        ignore_parentheses=tts_preprocessor_config.ignore_parentheses,
+                        ignore_asterisks=tts_preprocessor_config.ignore_asterisks,
                         remove_special_char=tts_preprocessor_config.remove_special_char,
                         translator=translate_engine,
                     )

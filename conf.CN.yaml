@@ -321,6 +321,9 @@ character_config:
     # 关于进入 TTS 的文本预处理的设置
 
     remove_special_char: True # 从音频生成中删除表情符号等特殊字符
+    ignore_brackets: True # 从音频生成中删除中括号包住的内容
+    ignore_parentheses: True # 从音频生成中删除括号包住的内容
+    ignore_asterisks: True # 从音频生成中删除星号包住的内容
 
     translator_config:
       # 比如...你说话并阅读英语字幕，而 TTS 说日语之类的
