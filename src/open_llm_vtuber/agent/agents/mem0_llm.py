@@ -1,19 +1,15 @@
-"""Description: This file contains the implementation of the `ollama` class.
-This class is responsible for handling the interaction with the OpenAI API for language generation.
-Compatible with all of the OpenAI Compatible endpoints, including Ollama, OpenAI, and more.
-"""
+"""Description: Memory-enhanced LLM agent implementation using mem0."""
 
 from typing import Iterator, AsyncIterator
-from mem0 import Memory
+import json
 from openai import OpenAI
 from loguru import logger
+from mem0 import Memory
+
 from .agent_interface import AgentInterface, AgentOutputType
-import json
 from ...chat_history_manager import get_history
 
-
 class LLM(AgentInterface):
-
     def __init__(
         self,
         user_id: str,
@@ -21,33 +17,19 @@ class LLM(AgentInterface):
         model: str,
         system: str,
         mem0_config: dict,
-        organization_id: str = "z",
-        project_id: str = "z",
-        llm_api_key: str = "z",
+        organization_id: str = "",
+        project_id: str = "",
+        llm_api_key: str = "",
         verbose: bool = False,
     ):
-        """
-        Initializes an instance of the `ollama` class.
-
-        Parameters:
-        - base_url (str): The base URL for the OpenAI API.
-        - model (str): The model to be used for language generation.
-        - system (str): The system to be used for language generation.
-        - organization_id (str, optional): The organization ID for the OpenAI API. Defaults to an empty string.
-        - project_id (str, optional): The project ID for the OpenAI API. Defaults to an empty string.
-        - llm_api_key (str, optional): The API key for the OpenAI API. Defaults to an empty string.
-        - verbose (bool, optional): Whether to enable verbose mode. Defaults to `False`.
-        """
-
         super().__init__()
         self.base_url = base_url
         self.model = model
         self.system = system
         self.mem0_config = mem0_config
         self.user_id = user_id
-
-        self.conversation_memory = []
         self.verbose = verbose
+        
         self.client = OpenAI(
             base_url=base_url,
             organization=organization_id,
@@ -55,7 +37,6 @@ class LLM(AgentInterface):
             api_key=llm_api_key,
         )
 
-        self.system = system
         self.conversation_memory = [
             {
                 "role": "system",
@@ -64,17 +45,42 @@ class LLM(AgentInterface):
         ]
 
         logger.debug("Initializing Memory...")
-        # Initialize Memory with the configuration
         self.mem0 = Memory.from_config(self.mem0_config)
         logger.debug("Memory Initialized...")
 
-        # Add a memory
-        # self.mem0.add("I'm visiting Paris", user_id="john")
-
-    @property
+    @property 
     def output_type(self) -> AgentOutputType:
-        """Return the output type of this agent"""
         return AgentOutputType.RAW_LLM
+
+    async def chat(self, prompt: str) -> AsyncIterator[str]:
+        """Async wrapper for chat_iter"""
+        for token in self.chat_iter(prompt):
+            yield token
+
+    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
+        """Load agent memory from chat history"""
+        messages = get_history(conf_uid, history_uid)
+        
+        # Keep system message
+        system_message = next(
+            (msg for msg in self.conversation_memory if msg["role"] == "system"), None
+        )
+        self.conversation_memory = []
+        if system_message:
+            self.conversation_memory.append(system_message)
+
+        # Add history messages
+        for msg in messages:
+            self.conversation_memory.append({
+                "role": "user" if msg["role"] == "human" else "assistant",
+                "content": msg["content"]
+            })
+            
+            # Also add to mem0
+            self.mem0.add([{
+                "role": "user" if msg["role"] == "human" else "assistant",
+                "content": msg["content"]
+            }], user_id=self.user_id)
 
     def chat_iter(self, prompt: str) -> Iterator[str]:
 
@@ -202,65 +208,3 @@ class LLM(AgentInterface):
                 "content": "[Interrupted by user]",
             }
         )
-
-    async def chat(self, prompt: str) -> AsyncIterator[str]:
-        """Async wrapper for chat_iter"""
-        for token in self.chat_iter(prompt):
-            yield token
-
-    def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
-       pass
-
-def test():
-
-    test_config = {
-        "vector_store": {
-            "provider": "qdrant",
-            "config": {
-                "collection_name": "test",
-                "host": "localhost",
-                "port": 6333,
-                "embedding_model_dims": 768,  # Change this according to your local model's dimensions
-            },
-        },
-        "llm": {
-            "provider": "ollama",
-            "config": {
-                "model": "llama3.1:latest",
-                "temperature": 0,
-                "max_tokens": 8000,
-                "ollama_base_url": "http://localhost:11434",  # Ensure this URL is correct
-            },
-        },
-        "embedder": {
-            "provider": "ollama",
-            "config": {
-                "model": "mxbai-embed-large:latest",
-                # Alternatively, you can use "snowflake-arctic-embed:latest"
-                "ollama_base_url": "http://localhost:11434",
-            },
-        },
-    }
-
-    llm = LLM(
-        user_id="rina",
-        base_url="http://localhost:11434/v1",
-        model="llama3:latest",
-        mem0_config=test_config,
-        system='You are a sarcastic AI chatbot who loves to the jokes "Get out and touch some grass"',
-        organization_id="organization_id",
-        project_id="project_id",
-        llm_api_key="llm_api_key",
-        verbose=True,
-    )
-    while True:
-        print("\n>> (Press Ctrl+C to exit.)")
-        chat_complet = llm.chat_iter(input(">> "))
-
-        for chunk in chat_complet:
-            if chunk:
-                print(chunk, end="")
-
-
-if __name__ == "__main__":
-    test()

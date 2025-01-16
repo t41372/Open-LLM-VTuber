@@ -57,8 +57,16 @@ class AgentFactory:
             if not mem0_settings:
                 raise ValueError("Mem0 agent settings not found")
 
+            # Validate required settings
+            required_fields = ["base_url", "model", "mem0_config"]
+            for field in required_fields:
+                if field not in mem0_settings:
+                    raise ValueError(f"Missing required field '{field}' in mem0_agent settings")
+
             return Mem0LLM(
-                user_id=kwargs.get("user_id"), system=system_prompt, **mem0_settings
+                user_id=kwargs.get("user_id", "default"),
+                system=system_prompt,
+                **mem0_settings
             )
 
         elif conversation_agent_choice == "hume_ai_agent":
