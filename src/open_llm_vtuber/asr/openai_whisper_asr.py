@@ -4,7 +4,6 @@ from .asr_interface import ASRInterface
 
 
 class VoiceRecognition(ASRInterface):
-
     def __init__(
         self,
         name: str = "base",
@@ -17,9 +16,6 @@ class VoiceRecognition(ASRInterface):
             download_root=download_root,
         )
         self.asr_with_vad = None
-
-    # Implemented in asr_interface.py
-    # def transcribe_with_local_vad(self) -> str: 
 
     def transcribe_np(self, audio: np.ndarray) -> str:
         segments = self.model.transcribe(audio)

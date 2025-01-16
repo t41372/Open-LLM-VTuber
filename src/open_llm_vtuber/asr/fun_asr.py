@@ -12,7 +12,6 @@ from .asr_interface import ASRInterface
 
 
 class VoiceRecognition(ASRInterface):
-
     def __init__(
         self,
         model_name: str = "iic/SenseVoiceSmall",
@@ -26,7 +25,6 @@ class VoiceRecognition(ASRInterface):
         sample_rate: int = 16000,
         use_itn: bool = False,
     ) -> None:
-
         self.model = AutoModel(
             model=model_name,
             vad_model=vad_model,
@@ -43,11 +41,7 @@ class VoiceRecognition(ASRInterface):
 
         self.asr_with_vad = None
 
-    # Implemented in asr_interface.py
-    # def transcribe_with_local_vad(self) -> str:
-
     def transcribe_np(self, audio: np.ndarray) -> str:
-
         audio_tensor = torch.tensor(audio, dtype=torch.float32)
 
         res = self.model.generate(
@@ -71,7 +65,6 @@ class VoiceRecognition(ASRInterface):
         return full_text.strip()
 
     def _numpy_to_wav_in_memory(self, numpy_array: np.ndarray, sample_rate):
-
         memory_file = io.BytesIO()
         sf.write(memory_file, numpy_array, sample_rate, format="WAV")
         memory_file.seek(0)

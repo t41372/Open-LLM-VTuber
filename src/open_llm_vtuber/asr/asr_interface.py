@@ -1,19 +1,16 @@
 import abc
 import numpy as np
 import asyncio
-from .asr_with_vad import VoiceRecognitionVAD
 
 
 class ASRInterface(metaclass=abc.ABCMeta):
-
-    asr_with_vad: VoiceRecognitionVAD = None
     SAMPLE_RATE = 16000
     NUM_CHANNELS = 1
     SAMPLE_WIDTH = 2
 
     async def async_transcribe_np(self, audio: np.ndarray) -> str:
         """Asynchronously transcribe speech audio in numpy array format.
-        
+
         By default, this runs the synchronous transcribe_np in a coroutine.
         Subclasses can override this method to provide true async implementation.
 
@@ -24,7 +21,7 @@ class ASRInterface(metaclass=abc.ABCMeta):
             str: The transcription result.
         """
         return await asyncio.to_thread(self.transcribe_np, audio)
-        
+
     @abc.abstractmethod
     def transcribe_np(self, audio: np.ndarray) -> str:
         """Transcribe speech audio in numpy array format and return the transcription.
@@ -56,16 +53,3 @@ class ASRInterface(metaclass=abc.ABCMeta):
             wf.setsampwidth(2)
             wf.setframerate(sample_rate)
             wf.writeframes(audio_integer.tobytes())
-
-    @DeprecationWarning
-    def transcribe_with_local_vad(self) -> str:
-        """Activate the microphone on this device, transcribe audio when a pause in speech is detected using VAD, and return the transcription.
-
-        This method should block until a transcription is available.
-
-        Returns:
-            The transcription of the speech audio.
-        """
-        if self.asr_with_vad is None:
-            self.asr_with_vad = VoiceRecognitionVAD(self.transcribe_np)
-        return self.asr_with_vad.start_listening()

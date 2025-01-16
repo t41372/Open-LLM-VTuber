@@ -7,7 +7,6 @@ from .asr_interface import ASRInterface
 
 
 class VoiceRecognition(ASRInterface):
-
     # sample_rate, n_channels, and sampwidth are defined in asr_interface.py
 
     def __init__(
@@ -17,9 +16,6 @@ class VoiceRecognition(ASRInterface):
         self.client = Groq(api_key=api_key)
         self.lang = lang
         self.model = model
-
-    # Implemented in asr_interface.py
-    # def transcribe_with_local_vad(self) -> str:
 
     def transcribe_np(self, audio: np.ndarray) -> str:
         """Transcribe speech audio in numpy array format and return the transcription.

@@ -4,7 +4,6 @@ from .asr_interface import ASRInterface
 
 
 class VoiceRecognition(ASRInterface):
-
     BEAM_SEARCH = True
     # SAMPLE_RATE # Defined in asr_interface.py
 
@@ -26,11 +25,7 @@ class VoiceRecognition(ASRInterface):
         )
         self.asr_with_vad = None
 
-    # Implemented in asr_interface.py
-    # def transcribe_with_local_vad(self) -> str:
-
     def transcribe_np(self, audio: np.ndarray) -> str:
-
         segments, info = self.model.transcribe(
             audio,
             beam_size=5 if self.BEAM_SEARCH else 1,

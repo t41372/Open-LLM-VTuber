@@ -25,9 +25,6 @@ class VoiceRecognition(ASRInterface):
         )
         self.asr_with_vad = None
 
-    # Implemented in asr_interface.py
-    # def transcribe_with_local_vad(self) -> str:
-
     def transcribe_np(self, audio: np.ndarray) -> str:
         segments = self.model.transcribe(audio, new_segment_callback=logger.info)
         full_text = ""

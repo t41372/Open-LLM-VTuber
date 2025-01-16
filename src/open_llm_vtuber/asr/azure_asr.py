@@ -45,29 +45,6 @@ class VoiceRecognition(ASRInterface):
             speech_config=self.speech_config, audio_config=audio_config
         )
 
-    def transcribe_with_local_vad(self) -> str:
-        speech_recognizer = self._create_speech_recognizer()
-        logger.info("Azure Listening...")
-        result = speech_recognizer.recognize_once()
-
-        if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-            self.callback(result.text)
-            return result.text
-        elif result.reason == speechsdk.ResultReason.NoMatch:
-            logger.warning("Not recognized")
-        elif result.reason == speechsdk.ResultReason.Canceled:
-            cancellation_details = result.cancellation_details
-            logger.warning(
-                "Recognition Canceled: {}".format(cancellation_details.reason)
-            )
-            if cancellation_details.reason == speechsdk.CancellationReason.Error:
-                logger.error(
-                    "Error Info: {}".format(cancellation_details.error_details)
-                )
-
-        logger.info("Speech recognition end.")
-        return ""
-
     def transcribe_np(self, audio: np.ndarray) -> str:
         """Transcribe audio using the given parameters.
 
