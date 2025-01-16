@@ -14,8 +14,9 @@ def tts_filter(
     Args:
         text (str): The text to filter.
         remove_special_char (bool): Whether to remove special characters.
-        
-        translator (TranslateInterface, optional): The translator to use. Defaults to None.
+
+        translator (TranslateInterface, optional):
+        The translator to use. If None, we'll skip the translation. Defaults to None.
 
     Returns:
         str: The filtered text.
@@ -37,7 +38,7 @@ def tts_filter(
             logger.critical(f"Error translating: {e}")
             logger.critical(f"Text: {text}")
             logger.warning("Skipping...")
-        
+
     return text
 
 

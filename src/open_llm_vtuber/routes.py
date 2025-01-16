@@ -37,6 +37,7 @@ def create_routes(default_context_cache: ServiceContext):
             asr_engine=default_context_cache.asr_engine,
             tts_engine=default_context_cache.tts_engine,
             agent_engine=default_context_cache.agent_engine,
+            translate_engine=default_context_cache.translate_engine,
         )
 
         await websocket.send_text(
@@ -91,10 +92,13 @@ def create_routes(default_context_cache: ServiceContext):
                     if history_uid:
                         current_history_uid = history_uid
                         session_service_context.agent_engine.set_memory_from_history(
-                            conf_uid=conf_uid,
-                            history_uid=history_uid
+                            conf_uid=conf_uid, history_uid=history_uid
                         )
-                        messages = [msg for msg in get_history(conf_uid, history_uid) if msg['role'] != 'system']
+                        messages = [
+                            msg
+                            for msg in get_history(conf_uid, history_uid)
+                            if msg["role"] != "system"
+                        ]
                         await websocket.send_text(
                             json.dumps({"type": "history-data", "messages": messages})
                         )
@@ -102,8 +106,7 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "create-new-history":
                     current_history_uid = create_new_history(conf_uid)
                     session_service_context.agent_engine.set_memory_from_history(
-                        conf_uid=conf_uid,
-                        history_uid=current_history_uid
+                        conf_uid=conf_uid, history_uid=current_history_uid
                     )
                     await websocket.send_text(
                         json.dumps(
@@ -151,14 +154,14 @@ def create_routes(default_context_cache: ServiceContext):
                     # is sent back from the frontend as an interruption signal
                     # We'll store this in chat history instead of the full response
                     heard_ai_response = data.get("text", "")
-                    
+
                     try:
                         session_service_context.agent_engine.handle_interrupt(
                             heard_ai_response
                         )
                     except Exception as e:
                         logger.error(f"Error handling interrupt: {e}")
-                    
+
                     if not modify_latest_message(
                         conf_uid=conf_uid,
                         history_uid=current_history_uid,
@@ -221,6 +224,7 @@ def create_routes(default_context_cache: ServiceContext):
                             agent_engine=session_service_context.agent_engine,
                             live2d_model=session_service_context.live2d_model,
                             tts_preprocessor_config=session_service_context.character_config.tts_preprocessor_config,
+                            translate_engine=session_service_context.translate_engine,
                             websocket_send=websocket.send_text,
                             conf_uid=conf_uid,
                             history_uid=current_history_uid,

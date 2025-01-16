@@ -241,7 +241,7 @@ character_config:
     edge_tts:
       # Check out doc at https://github.com/rany2/edge-tts
       # Use `edge-tts --list-voices` to list all available voices
-      voice: zh-CN-XiaoxiaoNeural # "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural" # "ja-JP-NanamiNeural"
+      voice: "en-US-AvaMultilingualNeural" # "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural" # "ja-JP-NanamiNeural"
 
     # pyttsx3_tts doesn't have any config.
 
@@ -328,7 +328,7 @@ character_config:
     translator_config:
       # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
       translate_audio: False # Warning: you need to deploy DeeplX to use this. Otherwise it's going to crash
-      translate_provider: "DeepLX"
+      translate_provider: "deeplx"
 
       deeplx:
         deeplx_target_lang: "JA"

@@ -325,7 +325,7 @@ character_config:
     translator_config:
       # 比如...你说话并阅读英语字幕，而 TTS 说日语之类的
       translate_audio: False # 警告：您需要部署 DeeplX 才能使用此功能。否则它会崩溃
-      translate_provider: "DeepLX" # 翻译提供商
+      translate_provider: "deeplx" # 翻译提供商
 
       deeplx:
         deeplx_target_lang: "JA" # 目标语言

@@ -1,4 +1,7 @@
-# Open-LLM-VTuber
+![](./banner.png)
+
+<h1 align="center">Open-LLM-VTuber</h1>
+<h3 align="center">
 
 [中文](https://github.com/t41372/Open-LLM-VTuber/blob/main/README.CN.md)
 
@@ -7,33 +10,36 @@
 [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) 
 [![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)
 
-[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/yi.ting) [![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx) <- (Clickable links)
+[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/yi.ting)
 
+[![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)
 
-(QQ群: 792615362）<- way more active than Discord group with over 700 population and majority of the contributors
+</h3>
+
+(QQ群: 792615362）<- way more active than Discord group with over 900 population and majority of the contributors
 > 常见问题 Common Issues doc (Written in Chinese): https://docs.qq.com/doc/DTHR6WkZ3aU9JcXpy
 >
 > User Survey: https://forms.gle/w6Y6PiHTZr1nzbtWA
 >
-> 调查问卷(中文)(现在不用登入了): https://wj.qq.com/s2/16150415/f50a/
+> 调查问卷(中文): https://wj.qq.com/s2/16150415/f50a/
 
 
 
-> :warning: This project is in its early stages and is currently under **active development**. Features are unstable, code is messy, and breaking changes will occur. The main goal of this stage is to build a minimum viable prototype using technologies that are easy to integrate.
+> :warning: This project is in its early stages and is currently under **active development**.
 
-> :warning: This project is **NOT** easy to install. Join the Discord server or QQ group if you need help or to get updates about this project.
-
-> :warning: If you want to run this program on a server and access it remotely on your laptop, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you should configure https with a reverse proxy to access the page on a remote machine (non-localhost).
-
-> You are right if you think this README and the docs are super duper messy! A complete refactoring of the documentation is planned. In the meantime, you can watch the installation videos if you speak Chinese.
+> :warning: If you want to run the server remotely and access it on a different machine, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you should configure https with a reverse proxy to access the page on a remote machine (non-localhost).
 
 
 ### ❓ What is this project?
 
 
-Open-LLM-VTuber allows you to talk to (and interrupt!) any LLM locally by voice (hands-free) with a Live2D talking face. The LLM inference backend, speech recognition, and speech synthesizer are all designed to be swappable. This project can be configured to run offline on macOS, Linux, and Windows. Online LLM/ASR/TTS options are also supported.
+Open-LLM-VTuber is a voice to voice agent with voice interruption capability and a Live2D talking face running locally on your computer (offline mode available). 
 
-~~Long-term memory with MemGPT can be configured to achieve perpetual chat, infinite* context length, and external data source.~~ (temporily removed)
+It's your virtual girlfriend/boyfriend/pet/something_else running locally on macOS/Linux/Windows. Web frontend and electron frontend (with transparent background!) are available.
+
+Long-term memory is temporily removed (will be added back very soon), but chat history persistence allows you to resume old conversations at any time.
+
+This project supports a wide range of LLM backend, text-to-speech models, and speech recognition models. You can use your custom Live2D model by following the doc in `doc/live2d.md`. 
 
 This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run offline on platforms other than Windows.
 
@@ -64,151 +70,69 @@ English Demo:
 
 
 ### Why this project and not other similar projects on GitHub?
-- It works on macOS
-  - Many existing solutions display Live2D models with VTube Studio and achieve lip sync by routing desktop internal audio into VTube Studio and controlling the lips with that. On macOS, however, there is no easy way to let VTuber Studio listen to internal audio on the desktop.
-  - Many existing solutions lack support for GPU acceleration on macOS, which makes them run slow on Mac.
-- This project supports [MemGPT](https://github.com/cpacker/MemGPT) for perpetual chat. The chatbot remembers what you've said.
-- No data leaves your computer if you wish to
-  - You can choose local LLM/voice recognition/speech synthesis solutions; everything works offline. Tested on macOS.
-- You can interrupt the LLM anytime with your voice without wearing headphones.
+- It works on macOS and Linux
+  - We care about macOS and Linux! And we also care about people who don't happen to use Nvidia GPU. Even if you don't have a GPU, you can choose to run things on CPU or offload demanding tasks to online APIs.
+- Offline mode available
+  - If you choose only the offline solutions, you don't have to connect to the internet - and we have a lot of them!
+- You can interrupt the LLM anytime with your voice without wearing headphones. No, the LLM won't hear itself.
 
 
 
 
 
 
-### Basic Features
-- [x] Chat with any LLM by voice
+### Some features we have
+- [x] Chat with any LLM (Ollama, OpenAI, OpenAI compatible format, Gemini, DeepSeek, Zhipu, running gguf directly, LM Studio, vLLM, and more!) by voice
+- [x] A beautiful frontend with pet mode. Web frontend and app frontend are both available.
 - [x] Interrupt LLM with voice at any time
-- [x] Choose your own LLM backend
-- [x] Choose your own Speech Recognition & Text to Speech provider
-- [x] Long-term memory
-- [x] Live2D frontend
+- [x] The AI can speak proactively (configurable)
+- [x] Choose your own LLM backend, Speech Recognition, and TTS
+- [x] Chat history persistence. You can resume old conversations.
+- [x] Audio translation feature so that you can chat with AI in English while hearing a Japanese voice!
+- [x] Works on macOS, Linux, and Windows
+- [x] A rewritten codebase with a lot of great features planned ahead! 
 
-### Target Platform
-- macOS
-- Linux
-- Windows
 
-### Recent Feature Updates
-Check out the GitHub Release for updated notes.
 
-## Implemented Features
 
-- Talk to LLM with voice. Offline.
-- ~~RAG on chat history~~ *(temporarily removed)*
 
-Currently supported LLM backend
-- Any OpenAI-API-compatible backend, such as Ollama, Groq, LM Studio, OpenAI, and more.
-- Claude
-- llama.cpp local inference within this project
-- MemGPT (broken) (temporily removed)
-- Mem0 (not great)
 
-Currently supported Speech recognition backend
-- [FunASR](https://github.com/modelscope/FunASR), which support [SenseVoiceSmall](https://github.com/FunAudioLLM/SenseVoice) and many other models. (~~Local~~ Currently requires an internet connection for loading. Compute locally)
-- [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (Local)
-- [Whisper-CPP](https://github.com/ggerganov/whisper.cpp) using the python binding [pywhispercpp](https://github.com/abdeladim-s/pywhispercpp) (Local, mac GPU acceleration can be configured)
-- [Whisper](https://github.com/openai/whisper) (local)
-- [Groq Whisper](https://groq.com/) (API Key required). This is a hosted Whisper endpoint. It's fast and has a generous free limit every day.
-- [Azure Speech Recognition](https://azure.microsoft.com/en-us/products/ai-services/speech-to-text) (API Key required)
-- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Local, fast, supports various models including transducer, Paraformer, NeMo CTC, WeNet CTC, Whisper, TDNN CTC, and SenseVoice models.)
 
-Currently supported Text to Speech backend
-- [py3-tts](https://github.com/thevickypedia/py3-tts) (Local, it uses your system's default TTS engine)
-- [meloTTS](https://github.com/myshell-ai/MeloTTS) (Local, fast)
-- [Coqui-TTS](https://github.com/idiap/coqui-ai-TTS) (Local, speed depends on the model you run.)
-- [bark](https://github.com/suno-ai/bark) (Local, very resource-consuming)
-- [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) (Local, very resource-consuming)
-- [xTTSv2](https://github.com/daswer123/xtts-api-server) (Local, very resource-consuming)
-- [Edge TTS](https://github.com/rany2/edge-tts) (online, no API key required)
-- [Azure Text-to-Speech](https://azure.microsoft.com/en-us/products/ai-services/text-to-speech) (online, API Key required)
-- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Local, fast, supports various models. For English, piper models are recommended. For pure Chinese, consider using [sherpa-onnx-vits-zh-ll.tar.bz2](https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-vits-zh-ll.tar.bz2). For a mix of Chinese and English, [vits-melo-tts-zh_en.tar.bz2](https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-melo-tts-zh_en.tar.bz2) can be used, though the English pronunciation might not be ideal.)
-- [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) (checkout doc [here](https://docs.qq.com/doc/DTHR6WkZ3aU9JcXpy))
 
-Fast Text Synthesis
-- Synthesize sentences as soon as they arrive, so there is no need to wait for the entire LLM response.
-- Producer-consumer model with multithreading: Audio will be continuously synthesized in the background. They will be played one by one whenever the new audio is ready. The audio player will not block the audio synthesizer.
 
-Live2D Talking face
-- Change Live2D model with `config.yaml` (model needs to be listed in model_dict.json)
-- Load local Live2D models. Check `doc/live2d.md` for documentation.
-- Uses expression keywords in LLM response to control facial expression, so there is no additional model for emotion detection. The expression keywords are automatically loaded into the system prompt and excluded from the speech synthesis output.
+----
+----
 
-live2d technical details
-- Uses [guansss/pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) to display live2d models in *browser*
-- Uses WebSocket to control facial expressions and talking state between the server and the front end
-- All the required packages are locally available, so the front end works offline. 
-- You can load live2d models from a URL or the one stored locally in the `live2d-models` directory. The default `shizuku-local` is stored locally and works offline. If the URL property of the model in the model_dict.json is a URL rather than a path starting with `/live2d-models`, they will need to be fetched from the specified URL whenever the front end is opened. Read `doc/live2d.md` for documentation on loading your live2D model from local.
-- Run the `server.py` to run the WebSocket communication server, open the `index.html` in the `./static` folder to open the front end, and run ~~`launch.py`~~ `main.py` to run the backend for LLM/ASR/TTS processing.
+
+
+
+
+
+
+
 
 ## Quick Start
 
-If you speak Chinese, there are two installation videos for you.
-- (preferred 🎉) `v0.4.3` [Complete Tutorial with auto-install script for Windows users](https://www.bilibili.com/video/BV1UDz4YcEr8/)
-- `v0.2.4` [manual installation tutorial on macOS](https://www.bilibili.com/video/BV1GYSrYKE8i/)
+[To be complete]
 
-If you don't speak Chinese, good luck. Let me know if you create on in other languages so I can put it here.
-
-> **New installation instruction is being created [here](https://github.com/t41372/Open-LLM-VTuber/wiki)**
-
-
-
-### One-click gogo script
-A new quick start script (experimental) was added in `v0.4.0`.
-This script allows you to get this project running without worrying (too much) about the dependencies.
-The only thing you need for this script is Python, a good internet connection, and enough disk space.
-
-This script will do the following:
-- download miniconda in the project directory
-- create a conda environment in the project directory
-- install all the dependencies you need for the configuration of `FunASR` + `edgeTTS` (you still need to get an ollama or some OpenAI compatible backend)
-- run this project inside the conda environment
-
-Run the script with `python start_webui.py`. Note that you should always use `start_webui.py` as the entry point if you decide to use the auto-installation script because `server.py` doesn't start the conda environment for you.
-
-Also note that if you want to install other dependencies, you need to enter the auto-configured conda environment first by running `python activate_conda.py`
-
-
-## Manual installation
-
-In general, there are 4 steps involved in getting this project running:
-1. basic setup
-2. Get the LLM (large language model)
-3. Get the TTS (text-to-speech)
-4. Get the ASR (speech recognition)
-
-### Requirements:
-- ffmpeg
-- Python >= 3.10, < 3.13 (3.13 doesn't work for now)
-
-Clone this repository.
-
-Virtual Python environment like conda or venv is strongly recommended! (because the dependencies are a mess!). 
-
-Run the following in the terminal to install the basic dependencies.
-
-~~~shell
-pip install -r requirements.txt # Run this in the project directory 
-# Install Speech recognition dependencies and text-to-speech dependencies according to the instructions below
-~~~
-
-
-Edit the `conf.yaml` for configurations. You can follow the configuration used in the demo video.
-
-Once the live2D model appears on the screen, it's ready to talk to you.
-
-~~If you don't want the live2d, you can run `main.py` with Python for cli mode. ~~ (CLI mode is deprecated now and will be removed in `v1.0.0`. If some still want the cli mode, maybe we can make a cli client in the future, but the current architecture will be refactored very soon)
-
-Some models will be downloaded on your first launch, which may require an internet connection and may take a while.
+Read https://open-llm-vtuber.github.io/docs/quick-start for quick start. It will be translated to English once things are more stable.
 
 
 
 ### Update
-🎉 A new experimental update script was added in `v0.3.0`. Run `python upgrade.py` to update to the latest version.
 
-Back up the configuration files `conf.yaml` if you've edited them, and then update the repo.
-Or just clone the repo again and make sure to transfer your configurations. The configuration file will sometimes change because this project is still in its early stages. Be cautious when updating the program.
+[To be complete]
+
+Run the upgrade script `python upgrade.py` to update.
+
+or run the following command inside the project repository:
+
+```sh
+git stash push -u -m "Stashing all local changes"
+git fetch
+git pull
+git stash pop
+```
 
 
 ## Configure LLM

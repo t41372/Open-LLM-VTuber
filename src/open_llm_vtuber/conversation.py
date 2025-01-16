@@ -32,25 +32,29 @@ class TTSTaskManager:
 
     async def speak(
         self,
-        sentence_buffer: str,
+        sentence_to_speak: str,
         live2d_model: Live2dModel,
         tts_engine: TTSInterface,
         websocket_send: WebSocket.send,
+        display_text: str | None = None,
     ) -> None:
-        if not sentence_buffer or not sentence_buffer.strip():
+        if not display_text:
+            display_text = sentence_to_speak
+
+        if not sentence_to_speak or not sentence_to_speak.strip():
             logger.error(
-                f'TTS receives "{sentence_buffer}", which is empty. So nothing to be spoken.'
+                f'TTS receives "{sentence_to_speak}", which is empty. So nothing to be spoken.'
             )
             return
 
-        logger.debug(f"🏃Generating audio for '''{sentence_buffer}'''...")
-        emotion = live2d_model.extract_emotion(str_to_check=sentence_buffer)
-        logger.debug(f"emotion: {emotion}, content: {sentence_buffer}")
+        logger.debug(f"🏃Generating audio for '''{sentence_to_speak}'''...")
+        emotion = live2d_model.extract_emotion(str_to_check=sentence_to_speak)
+        logger.debug(f"emotion: {emotion}, content: {sentence_to_speak}")
 
         current_task_index = len(self.task_list)
         tts_task = asyncio.create_task(
             tts_engine.async_generate_audio(
-                text=sentence_buffer,
+                text=sentence_to_speak,
                 file_name_no_ext=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}",
             )
         )
@@ -65,7 +69,7 @@ class TTSTaskManager:
             try:
                 audio_payload = prepare_audio_payload(
                     audio_path=audio_file_path,
-                    display_text=sentence_buffer,
+                    display_text=display_text,
                     expression_list=[emotion],
                 )
                 logger.debug("Sending Audio payload.")
@@ -94,6 +98,7 @@ async def conversation_chain(
     tts_engine: TTSInterface,
     live2d_model: Live2dModel,
     tts_preprocessor_config: TTSPreprocessorConfig,
+    translate_engine: TranslateInterface | None,
     websocket_send: WebSocket.send,
     conf_uid: str = "",
     history_uid: str = "",
@@ -113,7 +118,7 @@ async def conversation_chain(
     """
     tts_manager = TTSTaskManager()
     full_response: str = ""
-    
+
     try:
         session_emoji = np.random.choice(EMOJI_LIST)
 
@@ -153,9 +158,11 @@ async def conversation_chain(
                     filtered_sentence = tts_filter(
                         text=sentence,
                         remove_special_char=tts_preprocessor_config.remove_special_char,
+                        translator=translate_engine,
                     )
                     await tts_manager.speak(
-                        sentence_buffer=filtered_sentence,
+                        display_text=sentence,
+                        sentence_to_speak=filtered_sentence,
                         live2d_model=live2d_model,
                         tts_engine=tts_engine,
                         websocket_send=websocket_send,
@@ -166,21 +173,25 @@ async def conversation_chain(
                 async for sentence in chat_completion:
                     full_response += sentence
                     await tts_manager.speak(
-                        sentence_buffer=sentence,
+                        sentence_to_speak=sentence,
                         live2d_model=live2d_model,
                         tts_engine=tts_engine,
                         websocket_send=websocket_send,
                     )
 
             case AgentOutputType.AUDIO_TEXT:
-                chat_completion: AsyncIterator[Tuple[str, str]] = agent_engine.chat(user_input)
+                chat_completion: AsyncIterator[Tuple[str, str]] = agent_engine.chat(
+                    user_input
+                )
                 async for audio_file_path, text in chat_completion:
-                    logger.info(f"Received audio file path: {audio_file_path}, Received text: {text}")
+                    logger.info(
+                        f"Received audio file path: {audio_file_path}, Received text: {text}"
+                    )
                     full_response += text
                     audio_payload = prepare_audio_payload(
                         audio_path=audio_file_path,
                         display_text=text,
-                        expression_list=[]
+                        expression_list=[],
                     )
                     await websocket_send(json.dumps(audio_payload))
 

@@ -31,7 +31,7 @@ class TranslatorConfig(I18nMixin):
     """Configuration for translation services."""
     
     translate_audio: bool = Field(..., alias="translate_audio")
-    translate_provider: Literal["DeepLX"] = Field(..., alias="translate_provider")
+    translate_provider: Literal["deeplx"] = Field(..., alias="translate_provider")
     deeplx: Optional[DeepLXConfig] = Field(None, alias="deeplx")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
@@ -55,9 +55,9 @@ class TranslatorConfig(I18nMixin):
         translate_provider = values.translate_provider
 
         if translate_audio:
-            if translate_provider == "DeepLX" and values.deeplx is None:
+            if translate_provider == "deeplx" and values.deeplx is None:
                 raise ValueError(
-                    "DeepLX configuration must be provided when translate_audio is True and translate_provider is 'DeepLX'"
+                    "DeepLX configuration must be provided when translate_audio is True and translate_provider is 'deeplx'"
                 )
 
         return values

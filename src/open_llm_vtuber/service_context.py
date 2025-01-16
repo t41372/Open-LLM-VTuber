@@ -23,6 +23,8 @@ from .config_manager import (
     SystemConfig,
     ASRConfig,
     TTSConfig,
+    TTSPreprocessorConfig,
+    TranslatorConfig,
     read_yaml,
     validate_config,
 )
@@ -36,13 +38,12 @@ class ServiceContext:
         self.config: Config = None
         self.system_config: SystemConfig = None
         self.character_config: CharacterConfig = None
-        # self.translate_config: TranslatorConfig = None
 
         self.live2d_model: Live2dModel = None
         self.asr_engine: ASRInterface = None
         self.tts_engine: TTSInterface = None
         self.agent_engine: AgentInterface = None
-        # self.translate: TranslateInterface
+        self.translate_engine: TranslateInterface = None
 
         # the system prompt is a combination of the persona prompt and live2d expression prompt
         self.system_prompt: str = None
@@ -73,6 +74,7 @@ class ServiceContext:
         asr_engine: ASRInterface,
         tts_engine: TTSInterface,
         agent_engine: AgentInterface,
+        translate_engine: TranslateInterface,
     ) -> None:
         """
         Load the ServiceContext with the reference of the provided instances.
@@ -90,6 +92,7 @@ class ServiceContext:
         self.asr_engine = asr_engine
         self.tts_engine = tts_engine
         self.agent_engine = agent_engine
+        self.translate_engine = translate_engine
 
         logger.debug(f"Loaded service context with cache: {character_config}")
 
@@ -125,6 +128,10 @@ class ServiceContext:
         self.init_agent(
             config.character_config.agent_config,
             config.character_config.persona_prompt,
+        )
+
+        self.init_translate(
+            config.character_config.tts_preprocessor_config.translator_config
         )
 
         # store typed config references
@@ -186,17 +193,44 @@ class ServiceContext:
                 llm_configs=agent_config.llm_configs.model_dump(),
                 system_prompt=system_prompt,
             )
-            
+
             logger.debug(f"Agent choice: {agent_config.conversation_agent_choice}")
             logger.debug(f"System prompt: {system_prompt}")
 
             # Save the current configuration
             self.character_config.agent_config = agent_config
             self.system_prompt = system_prompt
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize agent: {e}")
             raise
+
+    def init_translate(self, translator_config: TranslatorConfig) -> None:
+        """Initialize or update the translation engine based on the configuration."""
+
+        if not translator_config.translate_audio:
+            logger.debug("Translation is disabled.")
+            return
+
+        if (
+            not self.translate_engine
+            or self.character_config.tts_preprocessor_config.translator_config
+            != translator_config
+        ):
+            logger.info(
+                f"Initializing Translator: {translator_config.translate_provider}"
+            )
+            self.translate_engine = TranslateFactory.get_translator(
+                translator_config.translate_provider,
+                getattr(
+                    translator_config, translator_config.translate_provider
+                ).model_dump(),
+            )
+            self.character_config.tts_preprocessor_config.translator_config = (
+                translator_config
+            )
+        else:
+            logger.info("Translation already initialized with the same config.")
 
     # ==== utils
 
