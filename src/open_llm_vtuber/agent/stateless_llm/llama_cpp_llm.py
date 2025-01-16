@@ -2,8 +2,8 @@
 This class provides a stateless interface to llama.cpp for language generation.
 """
 
-from typing import AsyncIterator, List, Dict, Any
 import asyncio
+from typing import AsyncIterator, List, Dict, Any
 from llama_cpp import Llama
 from loguru import logger
 

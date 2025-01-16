@@ -23,7 +23,6 @@ from .config_manager import (
     SystemConfig,
     ASRConfig,
     TTSConfig,
-    TTSPreprocessorConfig,
     TranslatorConfig,
     read_yaml,
     validate_config,

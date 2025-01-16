@@ -1,25 +1,24 @@
 # config_manager/translate.py
-from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
 from typing import Literal, Optional, Dict, ClassVar
-from .i18n import I18nMixin, Description, MultiLingualString
+from pydantic import ValidationInfo, Field, model_validator
+from .i18n import I18nMixin, Description
 
 # --- Sub-models for specific Translator providers ---
 
 
 class DeepLXConfig(I18nMixin):
     """Configuration for DeepLX translation service."""
-    
+
     deeplx_target_lang: str = Field(..., alias="deeplx_target_lang")
     deeplx_api_endpoint: str = Field(..., alias="deeplx_api_endpoint")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "deeplx_target_lang": Description(
             en="Target language code for DeepLX translation",
-            zh="DeepLX 翻译的目标语言代码"
+            zh="DeepLX 翻译的目标语言代码",
         ),
         "deeplx_api_endpoint": Description(
-            en="API endpoint URL for DeepLX service",
-            zh="DeepLX 服务的 API 端点 URL"
+            en="API endpoint URL for DeepLX service", zh="DeepLX 服务的 API 端点 URL"
         ),
     }
 
@@ -29,7 +28,7 @@ class DeepLXConfig(I18nMixin):
 
 class TranslatorConfig(I18nMixin):
     """Configuration for translation services."""
-    
+
     translate_audio: bool = Field(..., alias="translate_audio")
     translate_provider: Literal["deeplx"] = Field(..., alias="translate_provider")
     deeplx: Optional[DeepLXConfig] = Field(None, alias="deeplx")
@@ -37,19 +36,17 @@ class TranslatorConfig(I18nMixin):
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "translate_audio": Description(
             en="Enable audio translation (requires DeepLX deployment)",
-            zh="启用音频翻译（需要部署 DeepLX）"
+            zh="启用音频翻译（需要部署 DeepLX）",
         ),
         "translate_provider": Description(
-            en="Translation service provider to use",
-            zh="要使用的翻译服务提供者"
+            en="Translation service provider to use", zh="要使用的翻译服务提供者"
         ),
         "deeplx": Description(
-            en="Configuration for DeepLX translation service",
-            zh="DeepLX 翻译服务配置"
+            en="Configuration for DeepLX translation service", zh="DeepLX 翻译服务配置"
         ),
     }
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_translator_config(cls, values: "TranslatorConfig", info: ValidationInfo):
         translate_audio = values.translate_audio
         translate_provider = values.translate_provider
@@ -65,7 +62,7 @@ class TranslatorConfig(I18nMixin):
 
 class TTSPreprocessorConfig(I18nMixin):
     """Configuration for TTS preprocessor."""
-    
+
     remove_special_char: bool = Field(..., alias="remove_special_char")
     ignore_brackets: bool = Field(default=True, alias="ignore_brackets")
     ignore_parentheses: bool = Field(default=True, alias="ignore_parentheses")
@@ -75,10 +72,9 @@ class TTSPreprocessorConfig(I18nMixin):
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "remove_special_char": Description(
             en="Remove special characters from the input text",
-            zh="从输入文本中删除特殊字符"
+            zh="从输入文本中删除特殊字符",
         ),
         "translator_config": Description(
-            en="Configuration for translation services",
-            zh="翻译服务的配置"
+            en="Configuration for translation services", zh="翻译服务的配置"
         ),
     }

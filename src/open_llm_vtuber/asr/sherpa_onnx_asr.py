@@ -4,7 +4,6 @@ import sherpa_onnx
 from loguru import logger
 from .asr_interface import ASRInterface
 from .utils import download_and_extract
-import onnxruntime as ort
 
 
 class VoiceRecognition(ASRInterface):

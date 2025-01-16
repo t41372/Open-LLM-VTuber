@@ -1,7 +1,7 @@
 # config_manager/utils.py
 import yaml
 from pathlib import Path
-from typing import Type, Optional, Union, Dict, Any, TypeVar
+from typing import Union, Dict, Any, TypeVar
 from pydantic import BaseModel, ValidationError
 import os
 import re
@@ -9,7 +9,6 @@ import chardet
 from loguru import logger
 
 from .main import Config
-from .i18n import Description, MultiLingualString
 
 T = TypeVar("T", bound=BaseModel)
 

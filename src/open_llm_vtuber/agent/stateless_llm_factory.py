@@ -1,9 +1,7 @@
 from typing import Type
 
-import requests
 from loguru import logger
 
-from .fake_llm import LLM as FakeLLM
 from .stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from .stateless_llm.openai_compatible_llm import AsyncLLM as OpenAICompatibleLLM
 from .stateless_llm.ollama_llm import OllamaLLM
@@ -61,8 +59,6 @@ class LLMFactory:
                 model=kwargs.get("model"),
                 llm_api_key=kwargs.get("llm_api_key"),
             )
-        elif llm_provider == "fake_llm":
-            return FakeLLM()
         else:
             raise ValueError(f"Unsupported LLM provider: {llm_provider}")
 

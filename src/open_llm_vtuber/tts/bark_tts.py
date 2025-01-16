@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 import time
 import platform
 from bark import SAMPLE_RATE, generate_audio, preload_models

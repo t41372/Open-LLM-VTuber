@@ -1,9 +1,9 @@
+import os
+from typing import Callable
+import numpy as np
+from loguru import logger
 import azure.cognitiveservices.speech as speechsdk
 from .asr_interface import ASRInterface
-from typing import Callable
-import os
-from loguru import logger
-import numpy as np
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 
@@ -15,7 +15,6 @@ class VoiceRecognition(ASRInterface):
         region=os.getenv("AZURE_REGION"),
         callback: Callable = logger.info,
     ):
-
         self.subscription_key = subscription_key
         self.region = region
 
@@ -58,9 +57,13 @@ class VoiceRecognition(ASRInterface):
             logger.warning("Not recognized")
         elif result.reason == speechsdk.ResultReason.Canceled:
             cancellation_details = result.cancellation_details
-            logger.warning("Recognition Canceled: {}".format(cancellation_details.reason))
+            logger.warning(
+                "Recognition Canceled: {}".format(cancellation_details.reason)
+            )
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
-                logger.error("Error Info: {}".format(cancellation_details.error_details))
+                logger.error(
+                    "Error Info: {}".format(cancellation_details.error_details)
+                )
 
         logger.info("Speech recognition end.")
         return ""

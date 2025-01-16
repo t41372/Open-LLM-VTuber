@@ -1,12 +1,13 @@
 # config_manager/character.py
 from pydantic import Field, field_validator
 from typing import Dict, ClassVar
-from .i18n import I18nMixin, Description, MultiLingualString
+from .i18n import I18nMixin, Description
 from .asr import ASRConfig
 from .tts import TTSConfig
 from .tts_preprocessor import TTSPreprocessorConfig
 
 from .agent import AgentConfig
+
 
 class CharacterConfig(I18nMixin):
     """Character configuration settings."""
@@ -29,15 +30,13 @@ class CharacterConfig(I18nMixin):
             zh="角色配置唯一标识符",
         ),
         "live2d_model_name": Description(
-            en="Name of the Live2D model to use",
-            zh="使用的Live2D模型名称"
+            en="Name of the Live2D model to use", zh="使用的Live2D模型名称"
         ),
         "persona_prompt": Description(
             en="Persona prompt. The persona of your character.", zh="角色人设提示词"
         ),
         "agent_config": Description(
-            en="Configuration for the conversation agent",
-            zh="对话代理配置"
+            en="Configuration for the conversation agent", zh="对话代理配置"
         ),
         "asr_config": Description(
             en="Configuration for Automatic Speech Recognition", zh="语音识别配置"

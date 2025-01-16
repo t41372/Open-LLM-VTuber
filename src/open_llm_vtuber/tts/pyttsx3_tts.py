@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 import threading
 
 import pyttsx3

@@ -1,6 +1,5 @@
 import sys
 import os
-from pathlib import Path
 
 import edge_tts
 from loguru import logger
@@ -15,7 +14,6 @@ sys.path.append(current_dir)
 
 
 class TTSEngine(TTSInterface):
-
     def __init__(self, voice="en-US-AvaMultilingualNeural"):
         self.voice = voice
 

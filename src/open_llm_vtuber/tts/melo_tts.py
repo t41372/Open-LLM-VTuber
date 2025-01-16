@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 
 from melo.api import TTS
 
@@ -11,7 +10,6 @@ sys.path.append(current_dir)
 
 
 class TTSEngine(TTSInterface):
-
     def __init__(
         self,
         speaker: str = "EN-Default",
@@ -50,7 +48,9 @@ class TTSEngine(TTSInterface):
 
         """
         try:
-            file_name = self.generate_cache_file_name(file_name_no_ext, self.file_extension)
+            file_name = self.generate_cache_file_name(
+                file_name_no_ext, self.file_extension
+            )
 
             # Default accent
             self.model.tts_to_file(

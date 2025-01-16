@@ -1,6 +1,6 @@
 # config_manager/llm.py
-from pydantic import BaseModel, Field
 from typing import Dict, ClassVar, Optional
+from pydantic import BaseModel, Field
 from .i18n import I18nMixin, Description
 
 
@@ -49,7 +49,8 @@ class OllamaConfig(OpenAICompatibleConfig):
             zh="在最后一个请求之后保持模型加载的秒数。设置为 -1 以无限期保持模型加载。",
         ),
         "unload_at_exit": Description(
-            en="Unload the model when the program exits.", zh="是否在程序退出时卸载模型。"
+            en="Unload the model when the program exits.",
+            zh="是否在程序退出时卸载模型。",
         ),
     }
 

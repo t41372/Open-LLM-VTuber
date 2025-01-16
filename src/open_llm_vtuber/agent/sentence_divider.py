@@ -1,7 +1,7 @@
-from typing import List, Tuple, Optional
-from loguru import logger
-import pysbd
 import re
+from typing import List, Tuple, Optional
+import pysbd
+from loguru import logger
 from langdetect import detect
 
 # Constants for additional checks

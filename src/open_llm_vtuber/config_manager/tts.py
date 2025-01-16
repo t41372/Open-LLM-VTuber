@@ -1,7 +1,7 @@
 # config_manager/tts.py
-from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
+from pydantic import ValidationInfo, Field, model_validator
 from typing import Literal, Optional, Dict, ClassVar
-from .i18n import I18nMixin, Description, MultiLingualString
+from .i18n import I18nMixin, Description
 
 
 class AzureTTSConfig(I18nMixin):

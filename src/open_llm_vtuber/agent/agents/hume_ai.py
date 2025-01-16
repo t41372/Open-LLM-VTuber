@@ -1,15 +1,13 @@
-from typing import AsyncIterator, Tuple, Optional
 import asyncio
-import sys
-import numpy as np
-from loguru import logger
 import base64
+from typing import AsyncIterator, Tuple, Optional
+
 import json
-import requests
 import websockets
-from .agent_interface import AgentInterface, AgentOutputType
-import os
+from loguru import logger
 from pathlib import Path
+
+from .agent_interface import AgentInterface, AgentOutputType
 from ...chat_history_manager import get_metadata, update_metadate
 
 
@@ -23,7 +21,7 @@ class HumeAIAgent(AgentInterface):
         api_key: str,
         host: str = "api.hume.ai",
         config_id: Optional[str] = None,
-        idle_timeout: int = 15 
+        idle_timeout: int = 15,
     ):
         self.api_key = api_key
         self.host = host
@@ -48,38 +46,35 @@ class HumeAIAgent(AgentInterface):
             await self._ws.close()
             self._ws = None
             self._connected = False
-        
+
         # Build URL with query parameters
         socket_url = f"wss://{self.host}/v0/evi/chat?api_key={self.api_key}"
-        
+
         if self.config_id:
             socket_url += f"&config_id={self.config_id}"
-            
+
         if resume_chat_group_id:
             logger.info(f"Resuming chat group: {resume_chat_group_id}")
             socket_url += f"&resumed_chat_group_id={resume_chat_group_id}"
             self._chat_group_id = resume_chat_group_id
-            
+
         logger.info(f"Connecting to EVI with config_id: {self.config_id}")
-        
+
         self._ws = await websockets.connect(socket_url)
         self._connected = True
-        
+
         async for message in self._ws:
             data = json.loads(message)
             if data.get("type") == "chat_metadata":
                 new_chat_group_id = data.get("chat_group_id")
-                
+
                 if not resume_chat_group_id and self._current_history_uid:
                     update_metadate(
                         self._current_conf_uid,
                         self._current_history_uid,
-                        {
-                            "resume_id": new_chat_group_id,
-                            "agent_type": self.AGENT_TYPE
-                        }
+                        {"resume_id": new_chat_group_id, "agent_type": self.AGENT_TYPE},
                     )
-                        
+
                 self._chat_group_id = new_chat_group_id
                 logger.info(
                     f"{'Resumed' if resume_chat_group_id else 'Created new'} "
@@ -91,14 +86,14 @@ class HumeAIAgent(AgentInterface):
         """Reset the idle timer"""
         if self._idle_timer:
             self._idle_timer.cancel()
-        
+
         async def disconnect_after_timeout():
             await asyncio.sleep(self.idle_timeout)
             if self._ws and self._connected:
                 logger.info("Idle timeout reached, disconnecting...")
                 await self._ws.close()
                 self._connected = False
-                
+
         self._idle_timer = asyncio.create_task(disconnect_after_timeout())
 
     async def _ensure_connection(self):
@@ -110,9 +105,9 @@ class HumeAIAgent(AgentInterface):
         """Set chat group ID based on history"""
         self._current_conf_uid = conf_uid
         self._current_history_uid = history_uid
-        
+
         metadata = get_metadata(conf_uid, history_uid)
-        
+
         agent_type = metadata.get("agent_type")
         if agent_type and agent_type != self.AGENT_TYPE:
             logger.warning(
@@ -121,7 +116,7 @@ class HumeAIAgent(AgentInterface):
             )
             self._chat_group_id = None
             return
-            
+
         resume_id = metadata.get("resume_id")
         if resume_id:
             self._chat_group_id = resume_id
@@ -129,7 +124,7 @@ class HumeAIAgent(AgentInterface):
         else:
             self._chat_group_id = None
             logger.info("No resume_id found in metadata, will create new chat group")
-            
+
         # Force reconnection on next chat
         if self._ws:
             asyncio.create_task(self._ws.close())
@@ -167,11 +162,11 @@ class HumeAIAgent(AgentInterface):
                         if msg_id == self._current_id and self._current_text:
                             audio_data = base64.b64decode(response_data["data"])
                             cache_file = self.cache_dir / f"evi_audio_{msg_id}.wav"
-                            
+
                             with open(cache_file, "wb") as f:
                                 f.write(audio_data)
                                 logger.debug(f"Saved audio to cache file: {cache_file}")
-                                
+
                             yield str(cache_file), self._current_text
                             self._current_text = None
                             self._current_id = None
@@ -204,7 +199,7 @@ class HumeAIAgent(AgentInterface):
         """Cleanup WebSocket connection and cache files"""
         if self._idle_timer:
             self._idle_timer.cancel()
-            
+
         if self._ws:
             await self._ws.close()
 

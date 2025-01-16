@@ -1,20 +1,20 @@
-from abc import ABC, abstractmethod
-from typing import AsyncIterator, Union, Tuple, Optional
 from enum import Enum
+from abc import ABC, abstractmethod
+from typing import AsyncIterator, Union, Tuple
 from loguru import logger
-import numpy as np
-import asyncio
+
 
 class AgentOutputType(Enum):
     """Agent output type enumeration"""
-    RAW_LLM = "raw_llm"        
-    TEXT_FOR_TTS = "text_tts" 
-    AUDIO_TEXT = "audio_text"      
+
+    RAW_LLM = "raw_llm"
+    TEXT_FOR_TTS = "text_tts"
+    AUDIO_TEXT = "audio_text"
 
 
 class AgentInterface(ABC):
     """Base interface for all agent implementations"""
-    
+
     @property
     @abstractmethod
     def output_type(self) -> AgentOutputType:
@@ -22,11 +22,9 @@ class AgentInterface(ABC):
         pass
 
     @abstractmethod
-    async def chat(self, prompt: str) -> Union[
-        AsyncIterator[str],                    
-        AsyncIterator[str],                    
-        AsyncIterator[Tuple[str, str]]         
-    ]:
+    async def chat(
+        self, prompt: str
+    ) -> Union[AsyncIterator[str], AsyncIterator[str], AsyncIterator[Tuple[str, str]]]:
         """
         Chat with the agent asynchronously.
 
@@ -35,7 +33,7 @@ class AgentInterface(ABC):
         - RAW_LLM: AsyncIterator[str] - Raw LLM output stream
         - TEXT_FOR_TTS: AsyncIterator[str] - Text ready for TTS
         - AUDIO_TEXT: AsyncIterator[Tuple[str, str]] - (audio_file_path, text) pairs
-        
+
         Args:
             prompt: str - User input transcription
 

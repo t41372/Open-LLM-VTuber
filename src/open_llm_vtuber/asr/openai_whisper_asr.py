@@ -1,7 +1,6 @@
 import numpy as np
 import whisper
 from .asr_interface import ASRInterface
-from .asr_with_vad import VoiceRecognitionVAD
 
 
 class VoiceRecognition(ASRInterface):

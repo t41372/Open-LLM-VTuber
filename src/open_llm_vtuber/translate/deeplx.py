@@ -1,4 +1,5 @@
-import httpx, json
+import json
+import httpx
 from loguru import logger
 from .translate_interface import TranslateInterface
 

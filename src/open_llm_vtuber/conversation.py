@@ -6,7 +6,6 @@ from typing import AsyncIterator, List, Tuple
 import numpy as np
 from loguru import logger
 from fastapi import WebSocket
-import re
 
 from .live2d_model import Live2dModel
 from .config_manager.tts_preprocessor import TTSPreprocessorConfig
@@ -14,7 +13,6 @@ from .asr.asr_interface import ASRInterface
 from .agent.agents.agent_interface import AgentInterface, AgentOutputType
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
-from .translate.translate_factory import TranslateFactory
 
 from .utils.tts_preprocessor import tts_filter
 from .utils.stream_audio import prepare_audio_payload
