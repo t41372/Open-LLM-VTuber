@@ -23,7 +23,6 @@ class VoiceRecognition(ASRInterface):
             print_progress=print_progress,
             **kwargs,
         )
-        self.asr_with_vad = None
 
     def transcribe_np(self, audio: np.ndarray) -> str:
         segments = self.model.transcribe(audio, new_segment_callback=logger.info)

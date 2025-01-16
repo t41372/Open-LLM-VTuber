@@ -39,8 +39,6 @@ class VoiceRecognition(ASRInterface):
         self.use_itn = use_itn
         self.language = language
 
-        self.asr_with_vad = None
-
     def transcribe_np(self, audio: np.ndarray) -> str:
         audio_tensor = torch.tensor(audio, dtype=torch.float32)
 

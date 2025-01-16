@@ -15,7 +15,6 @@ class VoiceRecognition(ASRInterface):
             device=device,
             download_root=download_root,
         )
-        self.asr_with_vad = None
 
     def transcribe_np(self, audio: np.ndarray) -> str:
         segments = self.model.transcribe(audio)

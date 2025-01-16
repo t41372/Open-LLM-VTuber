@@ -96,7 +96,7 @@ def get_metadata(conf_uid: str, history_uid: str) -> dict:
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             history_data = json.load(f)
-            
+
         if history_data and history_data[0]["role"] == "metadata":
             return history_data[0]
     except Exception as e:
@@ -106,7 +106,7 @@ def get_metadata(conf_uid: str, history_uid: str) -> dict:
 
 def update_metadate(conf_uid: str, history_uid: str, metadata: dict) -> bool:
     """Set metadata in history file
-    
+
     Updates existing metadata with new fields, preserving existing ones.
     If no metadata exists, creates new metadata entry.
     """
@@ -128,14 +128,14 @@ def update_metadate(conf_uid: str, history_uid: str, metadata: dict) -> bool:
             # Create new metadata with timestamp if none exists
             new_metadata = {
                 "role": "metadata",
-                "timestamp": datetime.now().isoformat(timespec="seconds")
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
             }
             new_metadata.update(metadata)  # Add new fields
             history_data.insert(0, new_metadata)
 
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(history_data, f, ensure_ascii=False, indent=2)
-        
+
         logger.debug(f"Updated metadata for history {history_uid}")
         return True
     except Exception as e:
@@ -204,9 +204,11 @@ def get_history_list(conf_uid: str) -> List[dict]:
             try:
                 with open(filepath, "r", encoding="utf-8") as f:
                     messages = json.load(f)
-                    
+
                     # Filter out metadata for checking if history is empty
-                    actual_messages = [msg for msg in messages if msg["role"] != "metadata"]
+                    actual_messages = [
+                        msg for msg in messages if msg["role"] != "metadata"
+                    ]
                     if not actual_messages:
                         empty_history_uids.append(history_uid)
                         continue
@@ -286,7 +288,9 @@ def modify_latest_message(
         return False
 
 
-def rename_history_file(conf_uid: str, old_history_uid: str, new_history_uid: str) -> bool:
+def rename_history_file(
+    conf_uid: str, old_history_uid: str, new_history_uid: str
+) -> bool:
     """Rename a history file with a new history_uid"""
     if not conf_uid or not old_history_uid or not new_history_uid:
         logger.warning("Missing required parameters for rename")
@@ -298,7 +302,9 @@ def rename_history_file(conf_uid: str, old_history_uid: str, new_history_uid: st
     try:
         if os.path.exists(old_filepath):
             os.rename(old_filepath, new_filepath)
-            logger.info(f"Renamed history file from {old_history_uid} to {new_history_uid}")
+            logger.info(
+                f"Renamed history file from {old_history_uid} to {new_history_uid}"
+            )
             return True
     except Exception as e:
         logger.error(f"Failed to rename history file: {e}")

@@ -23,7 +23,6 @@ class VoiceRecognition(ASRInterface):
             device=device,
             compute_type="float32",
         )
-        self.asr_with_vad = None
 
     def transcribe_np(self, audio: np.ndarray) -> str:
         segments, info = self.model.transcribe(
