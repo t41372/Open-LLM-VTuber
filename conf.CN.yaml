@@ -216,6 +216,8 @@ character_config:
       # sample_rate: 16000 # 采样率（应与模型预期的采样率匹配）
       # feature_dim: 80       # 特征维度（应与模型预期的特征维度匹配）
       use_itn: True # 对 SenseVoice 模型启用 ITN（如果不是 SenseVoice 模型，则应设置为 False）
+      # 推理平台（cpu 或 cuda）(cuda 需要额外配置，请参考文档)
+      provider: "cpu"
 
     groq_whisper_asr:
       api_key: ""

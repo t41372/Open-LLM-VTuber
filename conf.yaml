@@ -220,6 +220,8 @@ character_config:
       # sample_rate: 16000 # Sample rate (should match the model's expected sample rate)
       # feature_dim: 80       # Feature dimension (should match the model's expected feature dimension)
       use_itn: True # Enable ITN for SenseVoice models (should set to False if not using SenseVoice models)
+      # Provider for inference (cpu or cuda) (cuda option needs additional settings. Please check our docs)
+      provider: "cpu" 
 
     groq_whisper_asr:
       api_key: ""

@@ -184,6 +184,7 @@ class SherpaOnnxASRConfig(I18nMixin):
     tokens: str = Field(..., alias="tokens")
     num_threads: int = Field(4, alias="num_threads")
     use_itn: bool = Field(True, alias="use_itn")
+    provider: Literal["cpu", "cuda"] = Field("cpu", alias="provider")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "model_type": Description(
@@ -220,6 +221,10 @@ class SherpaOnnxASRConfig(I18nMixin):
         "num_threads": Description(en="Number of threads to use", zh="使用的线程数"),
         "use_itn": Description(
             en="Enable inverse text normalization", zh="启用反向文本归一化"
+        ),
+        "provider": Description(
+            en="Provider for inference (cpu or cuda) (cuda option needs additional settings. Please check our docs)",
+            zh="推理平台（cpu 或 cuda）(cuda 需要额外配置，请参考文档)",
         ),
     }
 
