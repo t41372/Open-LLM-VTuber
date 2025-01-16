@@ -38,6 +38,8 @@ class OllamaConfig(OpenAICompatibleConfig):
     """Configuration for Ollama API."""
 
     llm_api_key: str = Field("default_api_key", alias="llm_api_key")
+    keep_alive: float = Field(-1, alias="keep_alive")
+    unload_at_exit: bool = Field(True, alias="unload_at_exit")
 
 
 class OpenAIConfig(OpenAICompatibleConfig):

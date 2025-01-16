@@ -79,7 +79,7 @@ character_config:
     llm_configs:
       # 一个配置池，用于不同代理中使用的所有无状态 llm 提供商的凭据和连接详细信息
 
-      # Ollama & OpenAI 兼容推理后端
+      # OpenAI 兼容推理后端
       openai_compatible_llm:
         base_url: "http://localhost:11434/v1" # 基础 URL
         llm_api_key: "somethingelse" # API 密钥
@@ -102,6 +102,10 @@ character_config:
         base_url: "http://localhost:11434/v1" # 基础 URL
         model: "qwen2.5:latest" # 使用的模型
         temperature: 1.0 # 温度，介于 0 到 2 之间
+        # 不活动后模型在内存中保留的时间（秒）
+        # 设置为 -1 表示模型将永远保留在内存中（即使退出 open llm vtuber 之后也是）
+        keep_alive: -1
+        unload_at_exit: True # 退出时从内存中卸载模型
 
       openai_llm:
         llm_api_key: "Your Open AI API key" # OpenAI API 密钥
