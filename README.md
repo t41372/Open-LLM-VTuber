@@ -1,4 +1,4 @@
-![](./banner.png)
+![](./banner.jpg)
 
 <h1 align="center">Open-LLM-VTuber</h1>
 <h3 align="center">
@@ -94,23 +94,6 @@ English Demo:
 
 
 
-
-
-
-
-
-
-----
-----
-
-
-
-
-
-
-
-
-
 ## Quick Start
 
 [To be complete]
@@ -120,6 +103,7 @@ Read https://open-llm-vtuber.github.io/docs/quick-start for quick start. It will
 
 
 ### Update
+> :warning: `v1.0.0` is a breaking change and requires re-deployment. You *may* still update via the method below (without the stash steps), but the configuration is incompatible and most of the dependencies needs to be reinstalled with `uv`. I recommend deploy this project again with the latest deployment guide.
 
 [To be complete]
 
@@ -135,101 +119,9 @@ git stash pop
 ```
 
 
-## Configure LLM
 
-### OpenAI compatible LLM such as Ollama, LM Studio, vLLM, groq, ZhiPu, Gemini, OpenAI, and more
-Put `ollama` into `LLM_PROVIDER` option in `conf.yaml` and fill the settings.
-
-If you use the official OpenAI API, the base_url is `https://api.openai.com/v1`.
-
-
-### Claude
-
-Claude support was added in `v0.3.1` in https://github.com/t41372/Open-LLM-VTuber/pull/35
-
-Change the `LLM_PROVIDER` to `claude` and complete the settings under `claude`
-
-
-### LLama CPP (added in `v0.5.0-alpha.2`)
-
-Provides a way to run LLM **within** this project without any external tools like ollama. A `.gguf` model file is all you need.
-
-#### Requirements
-
-According to the [project repo](https://github.com/abetlen/llama-cpp-python)
-
-Requirements:
-
-- Python 3.8+
-- C compiler
-  - Linux: gcc or clang
-  - Windows: Visual Studio or MinGW
-  - MacOS: Xcode
-
-This will also build `llama.cpp` from the source and install it alongside this Python package.
-
-If this fails, add `--verbose` to the `pip install` see the full cmake build log.
-
-
-
-### Installation
-
-Find the `pip install llama-cpp-python` command for your platform [here](https://github.com/abetlen/llama-cpp-python?tab=readme-ov-file#supported-backends). 
-
-For example:
-
-if you use an Nvidia GPU, run this.
-
-`CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python`
-
-If you use an apple silicon Mac (like I do), do this:
-
-`CMAKE_ARGS="-DGGML_METAL=on" pip install llama-cpp-python`
-
-If you use an AMD GPU that supports ROCm:
-
-`CMAKE_ARGS="-DGGML_HIPBLAS=on" pip install llama-cpp-python`
-
-If you want to use CPU (OpenBlas):
-
-`CMAKE_ARGS="-DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python`
-
-
-
-For more options, check [here](https://github.com/abetlen/llama-cpp-python?tab=readme-ov-file#supported-backends).
-
-
-
-
-
-### MemGPT (Broken) (temporily removed)
-
-> :warning: MemGPT was renamed to Letta, and they changed their API. Currently, the integration of MemGPT in this project has not been updated with the latest changes, so the integration is broken.
-> It probably won't get fixed because MemGPT (or Letta now) is quite slow and unstable for local LLMs. A new long-term memory solution is planned.
-
-However, you can still get the old version of MemGPT and try it out. Here is the documentation.
-
-> MemGPT integration is very experimental and requires quite a lot of setup. In addition, MemGPT requires a powerful LLM (larger than 7b and quantization above Q5) with a lot of token footprint, which means it's a lot slower.
-> MemGPT does have its own LLM endpoint for free, though. You can test things with it. Check their docs.
-
-This project can use [MemGPT](https://github.com/cpacker/MemGPT) as its LLM backend. MemGPT enables LLM with long-term memory.
-
-To use MemGPT, you need to have the MemGPT server configured and running. You can install it using `pip` or `docker` or run it on a different machine. Check their [GitHub repo](https://github.com/cpacker/MemGPT) and [official documentation](https://memgpt.readme.io/docs/index).
-
-> :warning:
-> I recommend you install MemGPT either in a separate Python virtual environment or in docker because there is currently a dependency conflict between this project and MemGPT (on fast API, it seems). You can check this issue [Can you please upgrade typer version in your dependancies #1382](https://github.com/cpacker/MemGPT/issues/1382).
-
-
-
-Here is a checklist:
-- Install memgpt
-- Configure memgpt
-- Run `memgpt` using `memgpt server` command. Remember to have the server running before launching Open-LLM-VTuber.
-- Set up an agent either through its cli or web UI. Add your system prompt with the Live2D Expression Prompt and the expression keywords you want to use (find them in `model_dict.json`) into MemGPT
-- Copy the `server admin password` and the `Agent id` into `./llm/memgpt_config.yaml`. *By the way, `agent id` is not the agent's name*.
-- Set the `LLM_PROVIDER` to `memgpt` in `conf.yaml`. 
-- Remember, if you use `memgpt`, all LLM-related configurations in `conf.yaml` will be ignored because `memgpt` doesn't work that way.
-
+-----
+-----
 
 
 ### Mem0 (it turns out it's not very good for our use case, but the code is here...)
@@ -249,59 +141,6 @@ Cons
 - It requires an LLM with very good function calling capability, which is quite difficult for smaller models
 - 
 
-
-## Install Speech Recognition (ASR)
-Edit the ASR_MODEL settings in the `conf.yaml` to change the provider.
-
-Here are the options you have for speech recognition:
-
-`sherpa-onnx` (local, runs very fast) (added in `v0.5.0-alpha.1` in https://github.com/t41372/Open-LLM-VTuber/pull/50)
-- Install with `pip install sherpa-onnx`. (~20MB)
-- Download your desired model from [sherpa-onnx ASR models](https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models).
-- Refer to `config_alts` in the repository for configuration examples and modify the model path in your `conf.yaml` accordingly.
-- It offers great performance and is significantly lighter than FunASR.
-
-
-`FunASR` (~~local~~) (Runs very fast even on CPU. Not sure how they did it)
-- [FunASR](https://github.com/modelscope/FunASR?tab=readme-ov-file) is a Fundamental End-to-End Speech Recognition Toolkit from ModelScope that runs many ASR models. The result and speed are pretty good with the SenseVoiceSmall from [FunAudioLLM](https://github.com/FunAudioLLM/SenseVoice) at Alibaba Group.
-- Install with `pip install -U funasr modelscope huggingface_hub`. Also, ensure you have torch (torch>=1.13) and torchaudio. Install them with `pip install torch torchaudio onnx` (FunASR now requires `onnx` as well)
-- It requires an internet connection on launch _even if the models are locally available_. See https://github.com/modelscope/FunASR/issues/1897
-
-`Faster-Whisper` (local)
-- Whisper, but faster. On macOS, it runs on CPU only, which is not so fast, but it's easy to use.
-- For Nvidia GPU users, to use GPU acceleration, you need the following NVIDIA libraries to be installed:
-  - [cuBLAS for CUDA 12](https://developer.nvidia.com/cublas)
-  - [cuDNN 8 for CUDA 12](https://developer.nvidia.com/cudnn)
-- Or if you don't need the speed, you can set the `device` setting under `Faster-Whisper` in `conf.yaml` to `cpu` to reduce headaches.
-
-
-`WhisperCPP` (local) (runs super fast on a Mac if configured correctly)
-- If you are on a Mac, read below for instructions on setting up WhisperCPP with coreML support. If you want to use CPU or Nvidia GPU, install the package by running `pip install pywhispercpp`.
-- The whisper cpp python binding. It can run on coreML with configuration, which makes it very fast on macOS.
-- On CPU or Nvidia GPU, it's probably slower than Faster-Whisper
-
-WhisperCPP coreML configuration:
-- Uninstall the original `pywhispercpp` if you have already installed it. We are building the package.
-- Run `install_coreml_whisper.py` with Python to automatically clone and build the coreML-supported `pywhispercpp` for you.
-- Prepare the appropriate coreML models.
-  - You can either convert models to coreml according to the documentation on Whisper.cpp repo
-  - ...or you can find some [magical huggingface repo](https://huggingface.co/chidiwilliams/whisper.cpp-coreml/tree/main) that happens to have those converted models. Just remember to decompress them. If the program fails to load the model, it will produce a segmentation fault.
-  - You don't need to include those weird prefixes in the model name in the `conf.yaml`. For example, if the coreML model's name looks like `ggml-base-encoder.mlmodelc`, just put `base` into the `model_name` under `WhisperCPP` settings in the `conf.yaml`.
-
-`Whisper` (local)
-- Original Whisper from OpenAI. Install it with `pip install -U openai-whisper`
-- The slowest of all. Added as an experiment to see if it can utilize macOS GPU. It didn't.
-
-`GroqWhisperASR` (online, API Key required)
-
-- Whisper endpoint from Groq. It's very fast and has a lot of free usage every day. It's pre-installed. Get an API key from [groq](https://console.groq.com/keys) and add it into the GroqWhisper setting in the `conf.yaml`.
-- API key and internet connection are required.
-
-`AzureASR` (online, API Key required)
-
-- Azure Speech Recognition. Install with `pip install azure-cognitiveservices-speech`.
-- API key and internet connection are required.
-- **⚠️ ‼️ The `api_key.py` was deprecated in `v0.2.5`. Please set api keys in `conf.yaml`.**
 
 ## Install Speech Synthesis (text to speech) (TTS)
 Install the respective package and turn it on using the `TTS_MODEL` option in `conf.yaml`.
@@ -368,21 +207,7 @@ Install the respective package and turn it on using the `TTS_MODEL` option in `c
 If you're using macOS, you need to enable the microphone permission of your terminal emulator (you run this program inside your terminal, right? Enable the microphone permission for your terminal). If you fail to do so, the speech recognition will not be able to hear you because it does not have permission to use your microphone.
 
 
-## VAD Tuning
 
-For web interface, this project utilizes client-side Voice Activity Detection (VAD) using the [ricky0123/vad-web](https://github.com/ricky0123/vad) library for efficient speech detection.
-
-**Web Interface Controls:**
-
-The following settings are available in the web interface to fine-tune the VAD:
-
-*   **Speech Prob. Threshold:** Controls the minimum speech probability for initial speech detection. Higher values require stronger speech input to trigger detection.
-*   **Negative Speech Threshold:** The probability threshold below which a frame is considered to not contain speech (i.e., part of a silence).
-*   **Redemption Frames:** Specifies how many consecutive frames of silence are required to end a speech segment. Higher values allow for more pause tolerance.
-
-**Tuning Tips:**
-
-Experiment with these parameters to find the optimal balance between sensitivity and accuracy for your environment and speaking style.
 
 ## Some other things
 
@@ -402,11 +227,6 @@ If you want to add more translation providers, they are in the `translate` direc
 
 
 
-
-# Issues
-
-`PortAudio` Missing
-- Install `libportaudio2` to your computer via your package manager like apt
 
 
 
@@ -481,24 +301,28 @@ You can assume that the sample rate is `16000` throughout this project.
 The frontend stream chunks of `Float32Array` with a sample rate of `16000` to the backend.
 
 ### Add support for new TTS providers
-1. Implement `TTSInterface` defined in `tts/tts_interface.py`.
-1. Add your new TTS provider into `tts_factory`: the factory to instantiate and return the tts instance.
-1. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your TTSEngine as kwargs.
+1. Implement `TTSInterface` defined in `src/open_llm_vtuber/tts/tts_interface.py`.
+2. Add your new TTS provider into `tts_factory`: the factory to instantiate and return the tts instance.
+3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your TTSEngine as kwargs.
+4. Modify the `src/open_llm_vtuber/config_manager/tts.py` to add the configuration into the config validation pydantic model.
 
 ### Add support for new Speech Recognition provider
-1. Implement `ASRInterface` defined in `asr/asr_interface.py`.
+1. Implement `ASRInterface` defined in `src/open_llm_vtuber/asr/asr_interface.py`.
 2. Add your new ASR provider into `asr_factory`: the factory to instantiate and return the ASR instance.
 3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your class as kwargs.
+4. Modify the `src/open_llm_vtuber/config_manager/asr.py` to add the configuration into the pydantic model.
 
-### Add support for new LLM provider
-1. Implement `LLMInterface` defined in `llm/llm_interface.py`.
+### Add support for new LLM provider (stateless)
+1. Implement `LLMInterface` defined in `src/open_llm_vtuber/agent/stateless_llm/stateless_llm_interface.py`.
 2. Add your new LLM provider into `llm_factory`: the factory to instantiate and return the LLM instance.
 3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your class as kwargs.
+4. Modify the `src/open_llm_vtuber/config_manager/stateless_llm.py` to add the configuration into the config validation pydantic model.
 
 ### Add support for new Translation providers
-1. Implement `TranslateInterface` defined in `translate/translate_interface.py`.
-1. Add your new TTS provider into `translate_factory`: the factory to instantiate and return the tts instance.
-1. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your translator as kwargs.
+1. Implement `TranslateInterface` defined in `src/open_llm_vtuber/translate/translate_interface.py`.
+2. Add your new translation provider into `translate_factory`: the factory to instantiate and return the translator instance.
+3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your translator as kwargs.
+4. Modify the `src/open_llm_vtuber/config_manager/tts_preprocessor.py` to add the configuration into the config validation pydantic model.
 
 
 # Acknowledgement
