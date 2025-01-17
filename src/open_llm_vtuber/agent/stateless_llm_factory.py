@@ -26,6 +26,7 @@ class LLMFactory:
             or llm_provider == "zhipu_llm"
             or llm_provider == "deepseek_llm"
             or llm_provider == "groq_llm"
+            or llm_provider == "mistral_llm"
         ):
             return OpenAICompatibleLLM(
                 model=kwargs.get("model"),

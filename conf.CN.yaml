@@ -40,6 +40,7 @@ character_config:
         # 例如：
         # "openai_compatible_llm", "llama_cpp_llm", "claude_llm", "ollama_llm"
         # "openai_llm", "gemini_llm", "zhipu_llm", "deepseek_llm", "groq_llm"
+        # "mistral_llm"
         llm_provider: "openai_compatible_llm" # 使用的 LLM 提供商
         # 是否在第一句回应时遇上逗号就直接生成音频以减少首句延迟（默认：True）
         faster_first_response: True
@@ -128,6 +129,11 @@ character_config:
         llm_api_key: "Your DeepSeek API key" # DeepSeek API 密钥
         model: "deepseek-chat" # 使用的模型
         temperature: 0.7 # 注意，DeepSeek 的温度范围是 0 到 1
+
+      mistral_llm:
+        llm_api_key: "Your Mistral API key" # Mistral API 密钥
+        model: "pixtral-large-latest" # 使用的模型
+        temperature: 1.0 # 温度，介于 0 到 2 之间
 
       groq_llm:
         llm_api_key: "your groq API key" # Groq API 密钥

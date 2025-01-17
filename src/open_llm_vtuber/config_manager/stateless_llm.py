@@ -69,6 +69,12 @@ class GeminiConfig(OpenAICompatibleConfig):
     )
 
 
+class MistralConfig(OpenAICompatibleConfig):
+    """Configuration for Mistral API."""
+
+    base_url: str = Field("https://api.mistral.ai/v1", alias="base_url")
+
+
 class ZhipuConfig(OpenAICompatibleConfig):
     """Configuration for Zhipu API."""
 
@@ -132,6 +138,7 @@ class StatelessLLMConfigs(I18nMixin, BaseModel):
     groq_llm: Optional[GroqConfig] = Field(None, alias="groq_llm")
     claude_llm: Optional[ClaudeConfig] = Field(None, alias="claude_llm")
     llama_cpp_llm: Optional[LlamaCppConfig] = Field(None, alias="llama_cpp_llm")
+    mistral_llm: Optional[MistralConfig] = Field(None, alias="mistral_llm")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "openai_compatible_llm": Description(
@@ -144,6 +151,9 @@ class StatelessLLMConfigs(I18nMixin, BaseModel):
         ),
         "gemini_llm": Description(
             en="Configuration for Gemini API", zh="Gemini API 配置"
+        ),
+        "mistral_llm": Description(
+            en="Configuration for Mistral API", zh="Mistral API 配置"
         ),
         "zhipu_llm": Description(en="Configuration for Zhipu API", zh="Zhipu API 配置"),
         "deepseek_llm": Description(
