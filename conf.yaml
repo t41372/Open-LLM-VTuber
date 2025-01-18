@@ -236,7 +236,6 @@ character_config:
 
   # =================== Text to Speech ===================
   tts_config:
-    tts_on: True
     tts_model: "edge_tts"
     # text to speech model options:
     #   "azure_tts", "pyttsx3_tts", "edge_tts", "bark_tts",

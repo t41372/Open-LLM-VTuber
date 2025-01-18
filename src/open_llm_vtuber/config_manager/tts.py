@@ -280,7 +280,6 @@ class SherpaOnnxTTSConfig(I18nMixin):
 class TTSConfig(I18nMixin):
     """Configuration for Text-to-Speech."""
 
-    tts_on: bool = Field(..., alias="tts_on")
     tts_model: Literal[
         "azure_tts",
         "bark_tts",
@@ -310,7 +309,6 @@ class TTSConfig(I18nMixin):
     )
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "tts_on": Description(en="Enable Text-to-Speech", zh="启用文本转语音"),
         "tts_model": Description(
             en="Text-to-speech model to use", zh="要使用的文本转语音模型"
         ),
@@ -337,8 +335,6 @@ class TTSConfig(I18nMixin):
 
     @model_validator(mode="after")
     def check_tts_config(cls, values: "TTSConfig", info: ValidationInfo):
-        if not values.tts_on:
-            return values
 
         tts_model = values.tts_model
 

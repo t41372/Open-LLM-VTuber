@@ -232,7 +232,6 @@ character_config:
 
   # =================== 文本转语音 ===================
   tts_config:
-    tts_on: True # 是否启用 TTS
     tts_model: "edge_tts" # 使用的文本转语音模型
     # 文本转语音模型选项：
     #   "azure_tts", "pyttsx3_tts", "edge_tts", "bark_tts",
