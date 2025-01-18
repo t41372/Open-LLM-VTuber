@@ -7,17 +7,18 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/t41372/Open-LLM-VTuber)](https://github.com/t41372/Open-LLM-VTuber/releases) 
 [![license](https://img.shields.io/github/license/t41372/Open-LLM-VTuber)](https://github.com/t41372/Open-LLM-VTuber/blob/master/LICENSE) 
+[![FOSSA Status](https://fossa.app/api/projects/custom%2B50595%2Fgithub.com%2Ft41372%2FOpen-LLM-VTuber.svg?type=shield&issueType=security)](https://fossa.app/projects/custom%2B50595%2Fgithub.com%2Ft41372%2FOpen-LLM-VTuber?ref=badge_shield&issueType=security)
 [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) 
 [![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)
 
-[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/yi.ting)
 
+[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/yi.ting)
 [![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)
 
 </h3>
 
 (QQ群: 792615362）<- way more active than Discord group with over 900 population and majority of the contributors
-> 常见问题 Common Issues doc (Written in Chinese): https://docs.qq.com/doc/DTHR6WkZ3aU9JcXpy
+> 常见问题 Common Issues doc (Written in Chinese): https://docs.qq.com/pdf/DTFZGQXdTUXhIYWRq
 >
 > User Survey: https://forms.gle/w6Y6PiHTZr1nzbtWA
 >
@@ -30,17 +31,8 @@
 > :warning: If you want to run the server remotely and access it on a different machine, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you should configure https with a reverse proxy to access the page on a remote machine (non-localhost).
 
 
-### !!!! Warning for potential contributors !!!!
-This project is currently under a **major refactoring**, which involves breaking changes in configurations, architectual changes in the backend, a complete rewritten frontend, and many more. You can check out the progress and roadmap [here](https://github.com/users/t41372/projects/1).
 
-The refactored version, which is planned to release in version `v1.0.0`, is being worked on the `superb-refactoring` branch. The changes in `superb-refactoring` branch will be merged to main branch once we are ready to release `v1.0.0`. The new frontend is in the [Open-LLM-VTuber-Web](https://github.com/t41372/open-llm-vtuber-web) repository (on the dev branch). 
-
-If you want to contribute to this project, please do the modifications based on the newest `superb-refactoring` branch. You can talk to me via discord or qq or email something else and make sure we are on the same page.
-
-This project is the first open source project I have that involves real human opening PRs to my repo. I really love and appreciate all the work from the community and I want to make this project awesome and accessible for others to achieve what they want, but it takes time (and my hairs) for me to learn and start doing things right.
-
-
-### ❓ What is this project?
+## What is this project?
 
 
 Open-LLM-VTuber is a voice to voice agent with voice interruption capability and a Live2D talking face running locally on your computer (offline mode available). 
@@ -79,12 +71,12 @@ English Demo:
 
 
 
-### Why this project and not other similar projects on GitHub?
+## Why this project and not other similar projects on GitHub?
 - It works on macOS and Linux
   - We care about macOS and Linux! And we also care about people who don't happen to use Nvidia GPU. Even if you don't have a GPU, you can choose to run things on CPU or offload demanding tasks to online APIs.
 - Offline mode available
-  - If you choose only the offline solutions, you don't have to connect to the internet - and we have a lot of them!
-- You can interrupt the LLM anytime with your voice without wearing headphones. No, the LLM won't hear itself.
+  - If you choose only the offline solutions, you don't have to connect to the internet. Just turn off your internet and be confident that nobody sees your chat log.
+- You can interrupt the AI anytime with your voice without wearing headphones (or you may, of course). No, the AI won't heard itself.
 
 
 
@@ -92,15 +84,15 @@ English Demo:
 
 
 ### Some features we have
-- [x] Chat with any LLM (Ollama, OpenAI, OpenAI compatible format, Gemini, DeepSeek, Zhipu, running gguf directly, LM Studio, vLLM, and more!) by voice
-- [x] A beautiful frontend with pet mode. Web frontend and app frontend are both available.
+- [x] Chat with any LLM (Ollama, OpenAI, OpenAI compatible format, Gemini, Claude, Mistral, DeepSeek, Zhipu, running gguf directly, LM Studio, vLLM, and more!) by voice
+- [x] A beautiful frontend with pet mode. Web and app frontend are both available.
 - [x] Interrupt LLM with voice at any time
 - [x] The AI can speak proactively (configurable)
 - [x] Choose your own LLM backend, Speech Recognition, and TTS
 - [x] Chat history persistence. You can resume old conversations.
 - [x] Audio translation feature so that you can chat with AI in English while hearing a Japanese voice!
 - [x] Works on macOS, Linux, and Windows
-- [x] A rewritten codebase with a lot of great features planned ahead! 
+- [x] A rewritten codebase with many great features planned ahead! 
 
 
 
@@ -134,22 +126,7 @@ git stash pop
 -----
 
 
-### Mem0 (it turns out it's not very good for our use case, but the code is here...)
 
-Another long-term memory solution. Still in development. Highly experimental.
-
-Pro
-
-- It's easier to set up compared to MemGPT
-- It's a bit faster than MemGPT (but still would take quite a lot more LLM tokens to process)
-
-Cons
-
-- It remembers your preferences and thoughts, nothing else. It doesn't remember what the LLM said.
-- It doesn't always put stuff into memory.
-- It sometimes remembers wrong stuff
-- It requires an LLM with very good function calling capability, which is quite difficult for smaller models
-- 
 
 
 ## Install Speech Synthesis (text to speech) (TTS)
