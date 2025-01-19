@@ -3,21 +3,25 @@
 <h1 align="center">Open-LLM-VTuber</h1>
 <h3 align="center">
 
-[中文](https://github.com/t41372/Open-LLM-VTuber/blob/main/README.CN.md)
-
 [![GitHub release](https://img.shields.io/github/v/release/t41372/Open-LLM-VTuber)](https://github.com/t41372/Open-LLM-VTuber/releases) 
 [![license](https://img.shields.io/github/license/t41372/Open-LLM-VTuber)](https://github.com/t41372/Open-LLM-VTuber/blob/master/LICENSE) 
 [![FOSSA Status](https://fossa.app/api/projects/custom%2B50595%2Fgithub.com%2Ft41372%2FOpen-LLM-VTuber.svg?type=shield&issueType=security)](https://fossa.app/projects/custom%2B50595%2Fgithub.com%2Ft41372%2FOpen-LLM-VTuber?ref=badge_shield&issueType=security)
 [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) 
 [![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)
+[![Static Badge](https://img.shields.io/badge/QQ群-792615362-white?style=flat&logo=qq&logoColor=white)](https://qm.qq.com/q/ngvNUQpuKI)
+[![Static Badge](https://img.shields.io/badge/QQ频道(开发)-pd93364606-white?style=flat&logo=qq&logoColor=white)](https://pd.qq.com/s/tt54r3bu)
 
 
 [![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/yi.ting)
 [![](https://dcbadge.limes.pink/api/server/3UDA8YFDXx)](https://discord.gg/3UDA8YFDXx)
 
+English README | [中文README](https://github.com/t41372/Open-LLM-VTuber/blob/main/README.CN.md)
+
+[Documentation](https://open-llm-vtuber.github.io/docs/quick-start)
+
 </h3>
 
-(QQ群: 792615362）<- way more active than Discord group with over 900 population and majority of the contributors
+
 > 常见问题 Common Issues doc (Written in Chinese): https://docs.qq.com/pdf/DTFZGQXdTUXhIYWRq
 >
 > User Survey: https://forms.gle/w6Y6PiHTZr1nzbtWA
@@ -32,7 +36,7 @@
 
 
 
-## What is this project?
+## ⭐️ What is this project?
 
 
 Open-LLM-VTuber is a voice to voice agent with voice interruption capability and a Live2D talking face running locally on your computer (offline mode available). 
@@ -51,7 +55,7 @@ This project started as an attempt to recreate the closed-source AI VTuber `neur
 | ![](assets/i3_browser_world_fun.jpg) | ![](assets/i4_pet_desktop.jpg) |
 
 
-### Demo
+### 👀 Demo
 
 English demo:
 
@@ -72,43 +76,35 @@ English Demo:
 
 
 
-## What's special about this project?
-- It works on macOS and Linux, not just Windows
-  - We care about macOS and Linux! And we also care about people who don't happen to use Nvidia GPU. Even if you don't have a GPU, you can choose to run things on CPU or offload demanding tasks to online APIs.
-- Offline mode available
-  - If you choose only the offline solutions, you don't have to connect to the internet. Just turn off your internet and be confident that nobody sees your chat log.
-- You can interrupt the AI anytime with your voice without wearing headphones (or you may, of course). No, the AI won't heard itself.
-- Pet mode
-  - Transparent background pet mode. Just drag it anywhere on your screen while your are doing other stuff.
+## ✨ Features & Highlights
+
+- 🖥️ **Cross-Platform Support**: Works seamlessly on macOS, Linux, and Windows. We support both Nvidia and non-Nvidia GPUs, with options to run on CPU or use cloud APIs for resource-intensive tasks. macOS GPU acceleration are available on some components.
+
+- 🔒 **Offline mode available**: Run completely offline with local models - no internet required. Your conversations stay private and secure on your machine.
+
+- 🎯 **Advanced Interaction**:
+  - 🎤 Voice interruption without headphones (AI won't hear itself)
+  - 🐱 Pet mode with transparent background - drag your companion anywhere on screen
+  - 🗣️ Proactive AI speech capabilities
+  - 💾 Chat history persistence to resume conversations
+  - 🌍 Audio translation support (e.g., chat in English, hear Japanese speech)
+
+- 🧠 **Extensive Model Support**:
+  - 🤖 LLMs: Ollama, OpenAI (and any OpenAI Compatible API), Gemini, Claude, Mistral, DeepSeek, Zhipu, GGUF, LM Studio, vLLM, and more
+  - 🎵 Customizable Speech Recognition and TTS backends
+  - 🖥️ Web and desktop frontends with beautiful UI
+
+The project is actively developed with a rewritten codebase after `v1.0.0` and many exciting features planned ahead! 🚀
 
 
-
-
-
-
-### Some features we have
-- [x] Chat with any LLM (Ollama, OpenAI, OpenAI compatible format, Gemini, Claude, Mistral, DeepSeek, Zhipu, running gguf directly, LM Studio, vLLM, and more!) by voice
-- [x] A beautiful frontend with pet mode. Web and app frontend are both available.
-- [x] Interrupt LLM with voice at any time
-- [x] The AI can speak proactively (configurable)
-- [x] Choose your own LLM backend, Speech Recognition, and TTS
-- [x] Chat history persistence. You can resume old conversations.
-- [x] Audio translation feature so that you can chat with AI in English while hearing a Japanese voice!
-- [x] Works on macOS, Linux, and Windows
-- [x] A rewritten codebase with many great features planned ahead! 
-
-
-
-## Quick Start
-
-[To be complete]
+## 🚀 Quick Start
 
 Read https://open-llm-vtuber.github.io/docs/quick-start for quick start. It will be translated to English once things are more stable.
 
 
 
-### Update
-> :warning: `v1.0.0` is a breaking change and requires re-deployment. You *may* still update via the method below (without the stash steps), but the configuration is incompatible and most of the dependencies needs to be reinstalled with `uv`. I recommend deploy this project again with the latest deployment guide.
+## ☝ Update
+> :warning: `v1.0.0` has breaking changes and requires re-deployment. You *may* still update via the method below, but the `conf.yaml` file is incompatible and most of the dependencies needs to be reinstalled with `uv`. I recommend deploy this project again with the [latest deployment guide](https://open-llm-vtuber.github.io/docs/quick-start).
 
 [To be complete]
 
