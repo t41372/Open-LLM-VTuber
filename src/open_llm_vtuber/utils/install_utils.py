@@ -1,4 +1,5 @@
 """
+DEPRECATED: This module is no longer used in the project after v1.0.0.
 This module contains the InstallationManager class, which is used to manage
 the installation of dependencies.
 """

@@ -41,7 +41,7 @@ It's your virtual girlfriend/boyfriend/pet/something_else running locally on mac
 
 Long-term memory is temporily removed (will be added back very soon), but chat history persistence allows you to resume old conversations at any time.
 
-This project supports a wide range of LLM backend, text-to-speech models, and speech recognition models. You can use your custom Live2D model by following the doc in `doc/live2d.md`. 
+This project supports a wide range of LLM backend, text-to-speech models, and speech recognition models. You can use your custom Live2D model by following the [documentation](https://open-llm-vtuber.github.io/docs/user-guide/live2d). 
 
 This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run offline on platforms other than Windows.
 

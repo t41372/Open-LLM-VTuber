@@ -1,10 +1,15 @@
+import os
 import atexit
+from pathlib import Path
 import tomli
 import uvicorn
 from loguru import logger
 import sys
 from src.open_llm_vtuber.server import WebSocketServer
 from src.open_llm_vtuber.config_manager import Config, read_yaml, validate_config
+
+os.environ["HF_HOME"] = str(Path(__file__).parent / "models")
+os.environ["MODELSCOPE_CACHE"] = str(Path(__file__).parent / "models")
 
 
 @logger.catch
