@@ -68,7 +68,7 @@ def tts_filter(
             logger.critical(f"Text: {text}")
             logger.warning("Skipping...")
 
-    logger.warning(f"Filtered text: {text}")
+    logger.debug(f"Filtered text: {text}")
     return text
 
 
@@ -194,8 +194,3 @@ def filter_asterisks(text):
 
     filtered_text = re.sub(r"\*([^*]+)\*", "", text)
     return filtered_text
-
-
-if __name__ == "__main__":
-    while True:
-        print(remove_special_characters(input(">> ")))
