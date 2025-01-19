@@ -28,7 +28,6 @@ class BasicMemoryAgentConfig(I18nMixin, BaseModel):
     ] = Field(..., alias="llm_provider")
 
     faster_first_response: Optional[bool] = Field(True, alias="faster_first_response")
-
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
         "llm_provider": Description(
             en="LLM provider to use for this agent",

@@ -3,10 +3,8 @@ from typing import AsyncIterator, List, Dict, Any, Callable
 from loguru import logger
 
 from ..sentence_divider import (
-    contains_comma,
-    comma_splitter,
-    process_text_stream,
-    END_PUNCTUATIONS,
+
+    SentenceDivider
 )
 from .agent_interface import AgentInterface, AgentOutputType
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
@@ -32,7 +30,9 @@ class BasicMemoryAgent(AgentInterface):
         faster_first_response: bool = True,
     ):
         super().__init__()
-        self.faster_first_response = faster_first_response
+        self.sentence_divider = SentenceDivider(
+            faster_first_response=faster_first_response,
+        )
         self._memory = []
         self._set_llm(llm)
         self.set_system(system)
@@ -147,46 +147,18 @@ class BasicMemoryAgent(AgentInterface):
             self._add_message(prompt, "user")
             logger.critical(f"Memory Agent: Sending: '''{self._memory}'''")
 
-            full_response = []
-            buffer = ""
-            # flag to keep track of the first sentence
-            first_sentence = self.faster_first_response
-            logger.critical(f"Memory Agent: Faster first response: {first_sentence}")
+            # Reset sentence divider state
+            self.sentence_divider.reset()
 
-            async for token in chat_func(self._memory, self._system):
-                buffer += token
-                full_response.append(token)
-
-                # process buffer right away when it contains a comma in the first sentence
-                if first_sentence and contains_comma(buffer):
-                    sentence, remaining = comma_splitter(buffer)
-                    if sentence.strip():
-                        yield sentence.strip()
-                    buffer = remaining
-                    first_sentence = False
-
-                # Process buffer when it gets long enough or contains any ending punctuation
-                if len(buffer) >= 25 or any(
-                    punct in buffer for punct in END_PUNCTUATIONS
-                ):
-                    sentences, remaining = process_text_stream(buffer)
-                    for sentence in sentences:
-                        if sentence.strip():
-                            yield sentence.strip()
-                    buffer = remaining
-                    first_sentence = False
-
-            # Process any remaining text
-            if buffer.strip():
-                sentences, remaining = process_text_stream(buffer)
-                for sentence in sentences:
-                    if sentence.strip():
-                        yield sentence.strip()
-                if remaining.strip():
-                    yield remaining.strip()
+            # Process the response stream
+            token_stream = chat_func(self._memory, self._system)
+            complete_response = ""
+            
+            async for sentence in self.sentence_divider.process_stream(token_stream):
+                yield sentence
+                complete_response = sentence
 
             # Add the complete response to memory
-            complete_response = "".join(full_response)
             self._add_message(complete_response, "assistant")
 
         return chat_with_memory
@@ -194,7 +166,7 @@ class BasicMemoryAgent(AgentInterface):
     @property
     def output_type(self) -> AgentOutputType:
         """Return the output type of this agent"""
-        return AgentOutputType.RAW_LLM
+        return AgentOutputType.TEXT
 
     async def chat(self, prompt: str) -> AsyncIterator[str]:
         """Placeholder for the chat method that will be replaced at runtime"""

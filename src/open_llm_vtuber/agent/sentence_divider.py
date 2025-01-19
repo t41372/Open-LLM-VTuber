@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, AsyncIterator
 import pysbd
 from loguru import logger
 from langdetect import detect
@@ -23,7 +23,7 @@ SUPPORTED_LANGUAGES = {
     'pl', 'ru', 'sk', 'ur', 'zh'
 }
 
-def extract_sentence_regex(text: str) -> Tuple[Optional[str], str]:
+def extract_sentence_by_regex(text: str) -> Tuple[Optional[str], str]:
     """
     Extract the first complete sentence using regex pattern matching.
     Useful as a fallback method when other segmenters fail.
@@ -101,13 +101,13 @@ def contains_comma(text: str) -> bool:
 def comma_splitter(text: str) -> Tuple[str, str]:
     """
     Process text and split it at the first comma.
-    Returns the split text and the remaining text.
+    Returns the split text (including the comma) and the remaining text.
     
     Args:
         text: Text to split
         
     Returns:
-        Tuple[str, str]: (split text, remaining text)
+        Tuple[str, str]: (split text with comma, remaining text)
     """
     if not text:
         return [], ""
@@ -115,13 +115,20 @@ def comma_splitter(text: str) -> Tuple[str, str]:
     for comma in COMMAS:
         if comma in text:
             split_text = text.split(comma, 1)
-            return split_text[0].strip(), split_text[1].strip()
+            # Return first part with the comma
+            return split_text[0].strip() + comma, split_text[1].strip()
     return text, ""
 
-def process_text_stream(text: str) -> Tuple[List[str], str]:
+def segment_text_by_pysbd(text: str) -> Tuple[List[str], str]:
     """
-    Process text stream and return complete sentences and remaining text.
+    Segment text into complete sentences and remaining text.
     Uses pysbd for supported languages, falls back to regex for others.
+
+    Args:
+        text: Text to segment into sentences
+
+    Returns:
+        Tuple[List[str], str]: (list of complete sentences, remaining incomplete text)
     """
     if not text:
         return [], ""
@@ -155,7 +162,7 @@ def process_text_stream(text: str) -> Tuple[List[str], str]:
                 
         else:
             # Use regex for unsupported languages
-            sentence, remaining = extract_sentence_regex(text)
+            sentence, remaining = extract_sentence_by_regex(text)
             if sentence:
                 return [sentence], remaining
             return [], text
@@ -166,7 +173,76 @@ def process_text_stream(text: str) -> Tuple[List[str], str]:
     except Exception as e:
         logger.error(f"Error in sentence segmentation: {e}")
         # Fallback to regex on any error
-        sentence, remaining = extract_sentence_regex(text)
+        sentence, remaining = extract_sentence_by_regex(text)
         if sentence:
             return [sentence], remaining
         return [], text
+
+class SentenceDivider:
+    """
+    A class to handle sentence division logic for streaming text responses.
+    Supports faster first response by splitting on commas and regular sentence segmentation.
+    """
+
+    def __init__(self, faster_first_response: bool = True):
+        """
+        Initialize the SentenceDivider.
+
+        Args:
+            faster_first_response (bool): Whether to split the first sentence at commas for faster response
+        """
+        self.faster_first_response = faster_first_response
+        self._is_first_sentence = True
+        self._buffer = ""
+
+    def reset(self):
+        """Reset the divider state for a new conversation"""
+        self._is_first_sentence = True
+        self._buffer = ""
+
+    async def process_stream(self, token_stream) -> AsyncIterator[str]:
+        """
+        Process a stream of tokens and yield complete sentences.
+
+        Args:
+            token_stream: An async iterator yielding tokens
+
+        Yields:
+            str: Complete sentences as they are formed
+        """
+        self._full_response = []
+
+        async for token in token_stream:
+            self._buffer += token
+            self._full_response.append(token)
+
+            # Process first sentence with comma if enabled
+            if self._is_first_sentence and self.faster_first_response and contains_comma(self._buffer):
+                sentence, remaining = comma_splitter(self._buffer)
+                if sentence.strip():
+                    yield sentence.strip()
+                self._buffer = remaining
+                self._is_first_sentence = False
+
+            # Process buffer when it gets long enough or contains ending punctuation
+            if len(self._buffer) >= 25 or any(punct in self._buffer for punct in END_PUNCTUATIONS):
+                sentences, remaining = segment_text_by_pysbd(self._buffer)
+                for sentence in sentences:
+                    if sentence.strip():
+                        yield sentence.strip()
+                self._buffer = remaining
+                self._is_first_sentence = False
+
+        # Process any remaining text
+        if self._buffer.strip():
+            sentences, remaining = segment_text_by_pysbd(self._buffer)
+            for sentence in sentences:
+                if sentence.strip():
+                    yield sentence.strip()
+            if remaining.strip():
+                yield remaining.strip()
+
+    @property
+    def complete_response(self) -> str:
+        """Get the complete response accumulated so far"""
+        return "".join(self._full_response)
