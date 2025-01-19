@@ -72,12 +72,14 @@ English Demo:
 
 
 
-## Why this project and not other similar projects on GitHub?
-- It works on macOS and Linux
+## What's special about this project?
+- It works on macOS and Linux, not just Windows
   - We care about macOS and Linux! And we also care about people who don't happen to use Nvidia GPU. Even if you don't have a GPU, you can choose to run things on CPU or offload demanding tasks to online APIs.
 - Offline mode available
   - If you choose only the offline solutions, you don't have to connect to the internet. Just turn off your internet and be confident that nobody sees your chat log.
 - You can interrupt the AI anytime with your voice without wearing headphones (or you may, of course). No, the AI won't heard itself.
+- Pet mode
+  - Transparent background pet mode. Just drag it anywhere on your screen while your are doing other stuff.
 
 
 
