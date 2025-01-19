@@ -101,13 +101,13 @@ def contains_comma(text: str) -> bool:
 def comma_splitter(text: str) -> Tuple[str, str]:
     """
     Process text and split it at the first comma.
-    Returns the split text and the remaining text.
+    Returns the split text (including the comma) and the remaining text.
     
     Args:
         text: Text to split
         
     Returns:
-        Tuple[str, str]: (split text, remaining text)
+        Tuple[str, str]: (split text with comma, remaining text)
     """
     if not text:
         return [], ""
@@ -115,7 +115,8 @@ def comma_splitter(text: str) -> Tuple[str, str]:
     for comma in COMMAS:
         if comma in text:
             split_text = text.split(comma, 1)
-            return split_text[0].strip(), split_text[1].strip()
+            # Return first part with the comma
+            return split_text[0].strip() + comma, split_text[1].strip()
     return text, ""
 
 def segment_text_by_pysbd(text: str) -> Tuple[List[str], str]:

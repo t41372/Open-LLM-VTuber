@@ -7,9 +7,8 @@ from loguru import logger
 class AgentOutputType(Enum):
     """Agent output type enumeration"""
 
-    RAW_LLM = "raw_llm"
-    TEXT_FOR_TTS = "text_tts"
-    AUDIO_TEXT = "audio_text"
+    TEXT = "text"  # Sentence text
+    AUDIO = "audio"  # Sentence audio + corresponding text
 
 
 class AgentInterface(ABC):
@@ -24,15 +23,14 @@ class AgentInterface(ABC):
     @abstractmethod
     async def chat(
         self, prompt: str
-    ) -> Union[AsyncIterator[str], AsyncIterator[str], AsyncIterator[Tuple[str, str]]]:
+    ) -> Union[AsyncIterator[str], AsyncIterator[Tuple[str, str]]]:
         """
         Chat with the agent asynchronously.
 
         This function should be implemented by the agent.
         Output type depends on the agent's output_type:
-        - RAW_LLM: AsyncIterator[str] - Raw LLM output stream
-        - TEXT_FOR_TTS: AsyncIterator[str] - Text ready for TTS
-        - AUDIO_TEXT: AsyncIterator[Tuple[str, str]] - (audio_file_path, text) pairs
+        - TEXT: AsyncIterator[str] - Sentence text stream that will be processed by filter and TTS
+        - AUDIO: AsyncIterator[Tuple[str, str]] - (audio_file_path, text) pairs
 
         Args:
             prompt: str - User input transcription
