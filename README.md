@@ -123,75 +123,6 @@ git stash pop
 
 
 
-## Some other things
-
-### Translation
-
-Translation was implemented to let the program speak in a language different from the conversation language. For example, the LLM might be thinking in English, the subtitle is in English, and you are speaking English, but the voice of the LLM is in Japanese. This is achieved by translating the sentence before it's sent for audio generation.
-
-[DeepLX](https://github.com/OwO-Network/DeepLX) is the only supported translation backend for now. You will need to deploy the deeplx service and set the configuration in `conf.yaml` to use it.
-
-If you want to add more translation providers, they are in the `translate` directory, and the steps are very similar to adding new TTS or ASR providers.
-
-
-### Enable Audio Translation
-
-1. Set `TRANSLATE_AUDIO` in `conf.yaml` to True
-2. Set `DEEPLX_TARGET_LANG` to your desired language. Make sure this language matches the language of the TTS speaker (for example, if the `DEEPLX_TARGET_LANG` is "JA", which is Japanese, the TTS should also be speaking Japanese.).
-
-
-
-
-
-
-# Running in a Container [highly experimental]
-
-:warning: This is highly experimental, but I think it works. Most of the time.
-
-You can either build the image yourself or pull it from the docker hub. [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber)
-
-- (but the image size is crazy large)
-- The image on the docker hub might not updated as regularly as it can be. GitHub action can't build an image as big as this. I might look into other options.
-
-
-
-Current issues:
-
-- Large image size (~13GB) and will require more space because some models are optional and will be downloaded only when used.
-- Nvidia GPU required (GPU passthrough limitation)
-- [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) needs to be configured for GPU passthrough.
-- Some models will have to be downloaded again if you stop the container. (will be fixed)
-- Don't build the image on an Arm machine. One of the dependencies (grpc, to be exact) will fail for some reason https://github.com/grpc/grpc/issues/34998. 
-- As mentioned before, you can't run it on a remote server unless the web page has https. That's because the web mic on the front end will only launch in a secure context (which means localhost or https environment only). 
-
-Most of the ASR and TTS will be pre-installed. However, bark TTS and the original OpenAI Whisper (`Whisper`, not WhisperCPP) are NOT included in the default build process because they are huge (~8GB, which makes the whole container about 25GB). In addition, they don't deliver the best performance either. To include bark and/or whisper in the image, add the argument `--build-arg INSTALL_ORIGINAL_WHISPER=true --build-arg INSTALL_BARK=true` to the image build command.
-
-Setup guide:
-
-1. Review `conf.yaml` before building (currently burned into the image, I'm sorry):
-
-2. Build the image:
-
- ```
- docker build -t open-llm-vtuber .
- ```
-
- (Grab a drink, this will take a while)
-
-3. Grab a `conf.yaml` configuration file.
- Grab a `conf.yaml` file from this repo. Or you can get it directly from this [link](https://raw.githubusercontent.com/t41372/Open-LLM-VTuber/main/conf.yaml).
-
-4. Run the container:
-
-`$(pwd)/conf.yaml` should be the path of your `conf.yaml` file.
-
- ```
- docker run -it --net=host --rm -v $(pwd)/conf.yaml:/app/conf.yaml -p 12393:12393 open-llm-vtuber
- ```
-
-5. Open localhost:12393 to test
-
-
 # 🎉🎉🎉 Related Projects
 
 [ylxmf2005/LLM-Live2D-Desktop-Assitant](https://github.com/ylxmf2005/LLM-Live2D-Desktop-Assitant)
@@ -199,44 +130,7 @@ Setup guide:
 
 
 
-# 🛠️ Development
-(this project is in the active prototyping stage, so many things will change)
 
-Some abbreviations used in this project:
-
-- LLM: Large Language Model
-- TTS: Text-to-speech, Speech Synthesis, Voice Synthesis
-- ASR: Automatic Speech Recognition, Speech recognition, Speech to text, STT
-- VAD: Voice Activation Detection
-
-### Regarding sample rates
-
-You can assume that the sample rate is `16000` throughout this project.
-The frontend stream chunks of `Float32Array` with a sample rate of `16000` to the backend.
-
-### Add support for new TTS providers
-1. Implement `TTSInterface` defined in `src/open_llm_vtuber/tts/tts_interface.py`.
-2. Add your new TTS provider into `tts_factory`: the factory to instantiate and return the tts instance.
-3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your TTSEngine as kwargs.
-4. Modify the `src/open_llm_vtuber/config_manager/tts.py` to add the configuration into the config validation pydantic model.
-
-### Add support for new Speech Recognition provider
-1. Implement `ASRInterface` defined in `src/open_llm_vtuber/asr/asr_interface.py`.
-2. Add your new ASR provider into `asr_factory`: the factory to instantiate and return the ASR instance.
-3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your class as kwargs.
-4. Modify the `src/open_llm_vtuber/config_manager/asr.py` to add the configuration into the pydantic model.
-
-### Add support for new LLM provider (stateless)
-1. Implement `LLMInterface` defined in `src/open_llm_vtuber/agent/stateless_llm/stateless_llm_interface.py`.
-2. Add your new LLM provider into `llm_factory`: the factory to instantiate and return the LLM instance.
-3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your class as kwargs.
-4. Modify the `src/open_llm_vtuber/config_manager/stateless_llm.py` to add the configuration into the config validation pydantic model.
-
-### Add support for new Translation providers
-1. Implement `TranslateInterface` defined in `src/open_llm_vtuber/translate/translate_interface.py`.
-2. Add your new translation provider into `translate_factory`: the factory to instantiate and return the translator instance.
-3. Add configuration to `conf.yaml`. The dict with the same name will be passed into the constructor of your translator as kwargs.
-4. Modify the `src/open_llm_vtuber/config_manager/tts_preprocessor.py` to add the configuration into the config validation pydantic model.
 
 
 # Acknowledgement
