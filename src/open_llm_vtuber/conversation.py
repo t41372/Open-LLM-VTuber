@@ -149,7 +149,7 @@ async def conversation_chain(
 
         # Process output based on agent's output type
         match agent_engine.output_type:
-            case AgentOutputType.RAW_LLM:
+            case AgentOutputType.TEXT:
                 chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
                 async for sentence in chat_completion:
                     full_response += sentence
@@ -169,18 +169,7 @@ async def conversation_chain(
                         websocket_send=websocket_send,
                     )
 
-            case AgentOutputType.TEXT_FOR_TTS:
-                chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
-                async for sentence in chat_completion:
-                    full_response += sentence
-                    await tts_manager.speak(
-                        sentence_to_speak=sentence,
-                        live2d_model=live2d_model,
-                        tts_engine=tts_engine,
-                        websocket_send=websocket_send,
-                    )
-
-            case AgentOutputType.AUDIO_TEXT:
+            case AgentOutputType.AUDIO:
                 chat_completion: AsyncIterator[Tuple[str, str]] = agent_engine.chat(
                     user_input
                 )
