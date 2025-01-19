@@ -7,7 +7,7 @@
 [![license](https://img.shields.io/github/license/t41372/Open-LLM-VTuber)](https://github.com/t41372/Open-LLM-VTuber/blob/master/LICENSE) 
 [![FOSSA Status](https://fossa.app/api/projects/custom%2B50595%2Fgithub.com%2Ft41372%2FOpen-LLM-VTuber.svg?type=shield&issueType=security)](https://fossa.app/projects/custom%2B50595%2Fgithub.com%2Ft41372%2FOpen-LLM-VTuber?ref=badge_shield&issueType=security)
 [![](https://img.shields.io/badge/t41372%2FOpen--LLM--VTuber-%25230db7ed.svg?logo=docker&logoColor=blue&labelColor=white&color=blue)](https://hub.docker.com/r/t41372/open-llm-vtuber) 
-[![](https://img.shields.io/badge/todo_list-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/1)
+[![](https://img.shields.io/badge/Roadmap-GitHub_Project-blue)](https://github.com/users/t41372/projects/1/views/5)
 [![Static Badge](https://img.shields.io/badge/QQ群-792615362-white?style=flat&logo=qq&logoColor=white)](https://qm.qq.com/q/ngvNUQpuKI)
 [![Static Badge](https://img.shields.io/badge/QQ频道(开发)-pd93364606-white?style=flat&logo=qq&logoColor=white)](https://pd.qq.com/s/tt54r3bu)
 
@@ -32,16 +32,16 @@ English README | [中文README](https://github.com/t41372/Open-LLM-VTuber/blob/m
 
 > :warning: This project is in its early stages and is currently under **active development**.
 
-> :warning: If you want to run the server remotely and access it on a different machine, the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you should configure https with a reverse proxy to access the page on a remote machine (non-localhost).
+> :warning: If you want to run the server remotely and access it on a different machine, such as running the server on your computer and access it on your phone, you will need to configure `https`, because the microphone on the front end will only launch in a secure context (a.k.a. https or localhost). See [MDN Web Doc](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia). Therefore, you should configure https with a reverse proxy to access the page on a remote machine (non-localhost).
 
 
 
 ## ⭐️ What is this project?
 
 
-Open-LLM-VTuber is a voice to voice agent with voice interruption capability and a Live2D talking face running locally on your computer (offline mode available). 
+**Open-LLM-VTuber** is a voice to voice agent with voice interruption capability and a Live2D talking face running locally on your computer (offline mode available). 
 
-It's your virtual girlfriend/boyfriend/pet/something_else running locally on macOS/Linux/Windows. Web frontend and electron frontend (with transparent background!) are available.
+It's your `virtual girlfriend`/`boyfriend`/`pet`/`something_else` running locally on `macOS`/`Linux`/`Windows`. Web frontend and electron frontend (with transparent background!) are available.
 
 Long-term memory is temporily removed (will be added back very soon), but chat history persistence allows you to resume old conversations at any time.
 
@@ -94,7 +94,7 @@ English Demo:
   - 🎵 Customizable Speech Recognition and TTS backends
   - 🖥️ Web and desktop frontends with beautiful UI
 
-The project is actively developed with a rewritten codebase after `v1.0.0` and many exciting features planned ahead! 🚀
+The project is actively developed with a rewritten codebase after `v1.0.0` and many exciting features planned ahead! 🚀 Feel free to check out our [Roadmap](https://github.com/users/t41372/projects/1/views/5) to what's ahead.
 
 
 ## 🚀 Quick Start
@@ -104,7 +104,7 @@ Read https://open-llm-vtuber.github.io/docs/quick-start for quick start. It will
 
 
 ## ☝ Update
-> :warning: `v1.0.0` has breaking changes and requires re-deployment. You *may* still update via the method below, but the `conf.yaml` file is incompatible and most of the dependencies needs to be reinstalled with `uv`. I recommend deploy this project again with the [latest deployment guide](https://open-llm-vtuber.github.io/docs/quick-start).
+> :warning: `v1.0.0` has breaking changes and requires re-deployment. You *may* still update via the method below, but the `conf.yaml` file is incompatible and most of the dependencies needs to be reinstalled with `uv`. For those who came from versions before `v1.0.0`, I recommend deploy this project again with the [latest deployment guide](https://open-llm-vtuber.github.io/docs/quick-start).
 
 [To be complete]
 
