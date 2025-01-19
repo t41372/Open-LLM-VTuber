@@ -289,7 +289,7 @@ class TTSConfig(I18nMixin):
         "piper_tts",
         "coqui_tts",
         "x_tts",
-        "gpt_sovits",
+        "gpt_sovits_tts",
         "fish_api_tts",
         "sherpa_onnx_tts",
     ] = Field(..., alias="tts_model")
@@ -302,7 +302,7 @@ class TTSConfig(I18nMixin):
     piper_tts: Optional[PiperTTSConfig] = Field(None, alias="piper_tts")
     coqui_tts: Optional[CoquiTTSConfig] = Field(None, alias="coqui_tts")
     x_tts: Optional[XTTSConfig] = Field(None, alias="x_tts")
-    gpt_sovits: Optional[GPTSoVITSConfig] = Field(None, alias="gpt_sovits")
+    gpt_sovits_tts: Optional[GPTSoVITSConfig] = Field(None, alias="gpt_sovits")
     fish_api_tts: Optional[FishAPITTSConfig] = Field(None, alias="fish_api_tts")
     sherpa_onnx_tts: Optional[SherpaOnnxTTSConfig] = Field(
         None, alias="sherpa_onnx_tts"
@@ -322,7 +322,7 @@ class TTSConfig(I18nMixin):
         "piper_tts": Description(en="Configuration for Piper TTS", zh="Piper TTS 配置"),
         "coqui_tts": Description(en="Configuration for Coqui TTS", zh="Coqui TTS 配置"),
         "x_tts": Description(en="Configuration for XTTS", zh="XTTS 配置"),
-        "gpt_sovits": Description(
+        "gpt_sovits_tts": Description(
             en="Configuration for GPT-SoVITS", zh="GPT-SoVITS 配置"
         ),
         "fish_api_tts": Description(
@@ -355,8 +355,8 @@ class TTSConfig(I18nMixin):
             values.coqui_tts.model_validate(values.coqui_tts.model_dump())
         elif tts_model == "x_tts" and values.x_tts is not None:
             values.x_tts.model_validate(values.x_tts.model_dump())
-        elif tts_model == "gpt_sovits_tts" and values.gpt_sovits is not None:
-            values.gpt_sovits.model_validate(values.gpt_sovits.model_dump())
+        elif tts_model == "gpt_sovits_tts" and values.gpt_sovits_tts is not None:
+            values.gpt_sovits_tts.model_validate(values.gpt_sovits_tts.model_dump())
         elif tts_model == "fish_api_tts" and values.fish_api_tts is not None:
             values.fish_api_tts.model_validate(values.fish_api_tts.model_dump())
         elif tts_model == "sherpa_onnx_tts" and values.sherpa_onnx_tts is not None:

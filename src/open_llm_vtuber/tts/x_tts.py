@@ -1,6 +1,6 @@
 import requests
 from loguru import logger
-from tts.tts_interface import TTSInterface
+from .tts_interface import TTSInterface
 
 
 class TTSEngine(TTSInterface):
