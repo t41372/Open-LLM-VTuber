@@ -1,4 +1,4 @@
-![](./banner.jpg)
+![](./assets/banner.jpg)
 
 <h1 align="center">Open-LLM-VTuber</h1>
 <h3 align="center">
@@ -46,8 +46,9 @@ This project supports a wide range of LLM backend, text-to-speech models, and sp
 This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run offline on platforms other than Windows.
 
 
-<img width="500" alt="demo-image" src="https://github.com/t41372/Open-LLM-VTuber/assets/36402030/fa363492-7c01-47d8-915f-f12a3a95942c"/>
-
+| ![](assets/i1_app_mode.jpg) | ![](assets/i2_pet_vscode.jpg) |
+|:---:|:---:|
+| ![](assets/i3_browser_world_fun.jpg) | ![](assets/i4_pet_desktop.jpg) |
 
 
 ### Demo
