@@ -44,6 +44,8 @@ character_config:
         # let ai speak as soon as the first comma is received on the first sentence
         # to reduced latency.
         faster_first_response: True
+        # Method for segmenting sentences: "regex" or "pysbd"
+        segment_method: "pysbd"
 
       mem0_agent:
         vector_store:

@@ -44,6 +44,8 @@ character_config:
         llm_provider: "openai_compatible_llm" # 使用的 LLM 提供商
         # 是否在第一句回应时遇上逗号就直接生成音频以减少首句延迟（默认：True）
         faster_first_response: True
+        # 句子分割方法："regex" 或 "pysbd"
+        segment_method: "pysbd"
 
       mem0_agent:
         vector_store:
