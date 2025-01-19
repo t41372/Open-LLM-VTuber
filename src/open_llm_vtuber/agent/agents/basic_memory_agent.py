@@ -28,10 +28,12 @@ class BasicMemoryAgent(AgentInterface):
         llm: StatelessLLMInterface,
         system: str,
         faster_first_response: bool = True,
+        segment_method: str = "pysbd",
     ):
         super().__init__()
         self.sentence_divider = SentenceDivider(
             faster_first_response=faster_first_response,
+            segment_method=segment_method
         )
         self._memory = []
         self._set_llm(llm)
