@@ -44,6 +44,7 @@ def init_logger(console_log_level: str = "INFO") -> None:
 def parse_args():
     parser = argparse.ArgumentParser(description="Open-LLM-VTuber Server")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    parser.add_argument("--hf_mirror", action="store_true", help="Use Hugging Face mirror")
     return parser.parse_args()
 
 
@@ -71,4 +72,7 @@ def run(console_log_level: str):
 
 if __name__ == "__main__":
     console_log_level = "DEBUG"
+    args = parse_args()
+    if args.hf_mirror:
+        os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
     run(console_log_level=console_log_level)
