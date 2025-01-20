@@ -1,5 +1,5 @@
 
-![](./assets/banner.jpg)
+![](./assets/banner.cn.jpg)
 
 <h1 align="center">Open-LLM-VTuber</h1>
 <h3 align="center">
