@@ -278,15 +278,14 @@ class ServiceContext:
                 )
             else:
                 # Load alternative config and merge with base config
-                config_alts_dir = self.system_config.config_alts_dir
-                file_path = os.path.join(config_alts_dir, config_file_name)
+                characters_dir = self.system_config.config_alts_dir
+                file_path = os.path.join(characters_dir, config_file_name)
 
                 alt_config_data = read_yaml(file_path).get("character_config")
 
                 # Start with original config data and perform a deep merge
-                new_character_config_data = self.config.character_config.model_dump()
                 new_character_config_data = deep_merge(
-                    new_character_config_data, alt_config_data
+                    self.config.character_config.model_dump(), alt_config_data
                 )
 
             if new_character_config_data:
@@ -297,6 +296,7 @@ class ServiceContext:
                 new_config = validate_config(new_config)
                 self.load_from_config(new_config)
                 logger.debug(f"New config: {self}")
+                logger.debug(f"New character config: {self.character_config.model_dump()}")
 
                 # Send responses to client
                 await websocket.send_text(

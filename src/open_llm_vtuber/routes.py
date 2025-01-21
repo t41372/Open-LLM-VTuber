@@ -59,8 +59,6 @@ def create_routes(default_context_cache: ServiceContext):
         # start mic
         await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
 
-        conf_uid = session_service_context.character_config.conf_uid
-
         current_conversation_task: asyncio.Task | None = None
 
         try:
@@ -82,7 +80,9 @@ def create_routes(default_context_cache: ServiceContext):
                     )
 
                 elif data.get("type") == "fetch-history-list":
-                    histories = get_history_list(conf_uid)
+                    histories = get_history_list(
+                        session_service_context.character_config.conf_uid
+                    )
                     await websocket.send_text(
                         json.dumps({"type": "history-list", "histories": histories})
                     )
@@ -92,11 +92,15 @@ def create_routes(default_context_cache: ServiceContext):
                     if history_uid:
                         current_history_uid = history_uid
                         session_service_context.agent_engine.set_memory_from_history(
-                            conf_uid=conf_uid, history_uid=history_uid
+                            conf_uid=session_service_context.character_config.conf_uid,
+                            history_uid=history_uid,
                         )
                         messages = [
                             msg
-                            for msg in get_history(conf_uid, history_uid)
+                            for msg in get_history(
+                                session_service_context.character_config.conf_uid,
+                                history_uid,
+                            )
                             if msg["role"] != "system"
                         ]
                         await websocket.send_text(
@@ -104,9 +108,12 @@ def create_routes(default_context_cache: ServiceContext):
                         )
 
                 elif data.get("type") == "create-new-history":
-                    current_history_uid = create_new_history(conf_uid)
+                    current_history_uid = create_new_history(
+                        session_service_context.character_config.conf_uid
+                    )
                     session_service_context.agent_engine.set_memory_from_history(
-                        conf_uid=conf_uid, history_uid=current_history_uid
+                        conf_uid=session_service_context.character_config.conf_uid,
+                        history_uid=current_history_uid,
                     )
                     await websocket.send_text(
                         json.dumps(
@@ -120,7 +127,10 @@ def create_routes(default_context_cache: ServiceContext):
                 elif data.get("type") == "delete-history":
                     history_uid = data.get("history_uid")
                     if history_uid:
-                        success = delete_history(conf_uid, history_uid)
+                        success = delete_history(
+                            session_service_context.character_config.conf_uid,
+                            history_uid,
+                        )
                         await websocket.send_text(
                             json.dumps(
                                 {
@@ -163,7 +173,7 @@ def create_routes(default_context_cache: ServiceContext):
                         logger.error(f"Error handling interrupt: {e}")
 
                     if not modify_latest_message(
-                        conf_uid=conf_uid,
+                        conf_uid=session_service_context.character_config.conf_uid,
                         history_uid=current_history_uid,
                         role="ai",
                         new_content=heard_ai_response,
@@ -174,7 +184,7 @@ def create_routes(default_context_cache: ServiceContext):
                     )
 
                     store_message(
-                        conf_uid=conf_uid,
+                        conf_uid=session_service_context.character_config.conf_uid,
                         history_uid=current_history_uid,
                         role="system",
                         content="[Interrupted by user]",
@@ -226,7 +236,7 @@ def create_routes(default_context_cache: ServiceContext):
                             tts_preprocessor_config=session_service_context.character_config.tts_preprocessor_config,
                             translate_engine=session_service_context.translate_engine,
                             websocket_send=websocket.send_text,
-                            conf_uid=conf_uid,
+                            conf_uid=session_service_context.character_config.conf_uid,
                             history_uid=current_history_uid,
                         )
                     )
