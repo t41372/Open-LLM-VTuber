@@ -302,8 +302,9 @@ class ServiceContext:
                 await websocket.send_text(
                     json.dumps(
                         {
-                            "type": "config-switched",
-                            "message": f"Switched to config: {config_file_name}",
+                            "type": "config-info",
+                            "conf_name": self.character_config.conf_name,
+                            "conf_uid": self.character_config.conf_uid,
                         }
                     )
                 )
@@ -311,9 +312,8 @@ class ServiceContext:
                 await websocket.send_text(
                     json.dumps(
                         {
-                            "type": "config-info",
-                            "conf_name": self.character_config.conf_name,
-                            "conf_uid": self.character_config.conf_uid,
+                            "type": "config-switched",
+                            "message": f"Switched to config: {config_file_name}",
                         }
                     )
                 )
