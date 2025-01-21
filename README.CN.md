@@ -52,22 +52,7 @@
 | ![](assets/i3_browser_world_fun.jpg) | ![](assets/i4_pet_desktop.jpg) |
 
 ### 👀 效果演示
-
-英文演示：
-
-
-
-
-
-https://github.com/user-attachments/assets/f13b2f8e-160c-4e59-9bdb-9cfb6e57aca9
-
-英文演示：
-[YouTube](https://youtu.be/gJuPM_2qEZc)
-
-中文演示：
-
-[BiliBili](https://www.bilibili.com/video/BV1krHUeRE98/), [YouTube](https://youtu.be/cb5anPTNklw)
-
+[待完善]
 
 
 ## ✨ 功能和亮点
