@@ -46,7 +46,7 @@ class TTSTaskManager:
             return
 
         logger.debug(f"🏃Generating audio for '''{sentence_to_speak}'''...")
-        emotion = live2d_model.extract_emotion(str_to_check=sentence_to_speak)
+        emotion = live2d_model.extract_emotion(str_to_check=display_text)
         logger.debug(f"emotion: {emotion}, content: {sentence_to_speak}")
 
         current_task_index = len(self.task_list)
@@ -67,8 +67,8 @@ class TTSTaskManager:
             try:
                 audio_payload = prepare_audio_payload(
                     audio_path=audio_file_path,
+                    expression_list=emotion,
                     display_text=display_text,
-                    expression_list=[emotion],
                 )
                 logger.debug("Sending Audio payload.")
                 await websocket_send(json.dumps(audio_payload))
