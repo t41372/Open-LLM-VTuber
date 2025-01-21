@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 
 from loguru import logger
 from fastapi import WebSocket
@@ -302,7 +303,8 @@ class ServiceContext:
                 await websocket.send_text(
                     json.dumps(
                         {
-                            "type": "config-info",
+                            "type": "set-model-and-conf",
+                            "model_info": self.live2d_model.model_info,
                             "conf_name": self.character_config.conf_name,
                             "conf_uid": self.character_config.conf_uid,
                         }
@@ -318,14 +320,6 @@ class ServiceContext:
                     )
                 )
 
-                await websocket.send_text(
-                    json.dumps(
-                        {
-                            "type": "set-model",
-                            "model_info": self.live2d_model.model_info,
-                        }
-                    )
-                )
                 logger.info(f"Configuration switched to {config_file_name}")
             else:
                 raise ValueError(

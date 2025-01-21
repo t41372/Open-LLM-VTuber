@@ -50,8 +50,10 @@ def create_routes(default_context_cache: ServiceContext):
         await websocket.send_text(
             json.dumps(
                 {
-                    "type": "set-model",
+                    "type": "set-model-and-conf",
                     "model_info": session_service_context.live2d_model.model_info,
+                    "conf_name": session_service_context.character_config.conf_name,
+                    "conf_uid": session_service_context.character_config.conf_uid,
                 }
             )
         )
@@ -68,18 +70,7 @@ def create_routes(default_context_cache: ServiceContext):
 
                 # ==== chat history related ====
 
-                if data.get("type") == "fetch-conf-info":
-                    await websocket.send_text(
-                        json.dumps(
-                            {
-                                "type": "config-info",
-                                "conf_name": session_service_context.character_config.conf_name,
-                                "conf_uid": session_service_context.character_config.conf_uid,
-                            }
-                        )
-                    )
-
-                elif data.get("type") == "fetch-history-list":
+                if data.get("type") == "fetch-history-list":
                     histories = get_history_list(
                         session_service_context.character_config.conf_uid
                     )
