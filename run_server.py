@@ -66,7 +66,7 @@ def run(console_log_level: str):
         app=server.app,
         host=server_config.host,
         port=server_config.port,
-        log_level="debug",
+        log_level=console_log_level.lower(),
     )
 
 
