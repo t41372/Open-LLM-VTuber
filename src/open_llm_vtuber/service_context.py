@@ -280,7 +280,9 @@ class ServiceContext:
             else:
                 # Load alternative config and merge with base config
                 characters_dir = self.system_config.config_alts_dir
-                file_path = os.path.join(characters_dir, config_file_name)
+                file_path = os.path.normpath(os.path.join(characters_dir, config_file_name))
+                if not file_path.startswith(characters_dir):
+                    raise ValueError("Invalid configuration file path")
 
                 alt_config_data = read_yaml(file_path).get("character_config")
 
