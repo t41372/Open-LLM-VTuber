@@ -1,4 +1,3 @@
-
 ## Expressions
 In your response, use the keywords provided below to express facial expressions or perform actions with your Live2D body.
 

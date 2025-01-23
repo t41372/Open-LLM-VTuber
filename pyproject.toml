@@ -1,0 +1,34 @@
+[project]
+name = "open-llm-vtuber"
+version = "1.0.0-alpha.1"
+description = "Talk to any LLM with hands-free voice interaction, voice interruption, and Live2D taking face running locally across platforms"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.40.0",
+    "azure-cognitiveservices-speech>=1.41.1",
+    "chardet>=5.2.0",
+    "edge-tts>=7.0.0",
+    "fastapi>=0.115.6",
+    "faster-whisper>=1.1.0",
+    "groq>=0.13.0",
+    "httpx>=0.28.1",
+    "langdetect>=1.0.9",
+    "loguru>=0.7.2",
+    "numpy>=1.26.4",
+    "onnxruntime>=1.20.1",
+    "openai>=1.57.4",
+    "pydub>=0.25.1",
+    "pysbd>=0.3.4",
+    "pyttsx3>=2.98",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+    "ruff>=0.8.6",
+    "scipy>=1.14.1",
+    "sherpa-onnx>=1.10.39",
+    "soundfile>=0.12.1",
+    "tomli>=2.2.1",
+    "tqdm>=4.67.1",
+    "uvicorn[standard]>=0.33.0",
+    "websocket-client>=1.8.0",
+]
