@@ -39,50 +39,63 @@ English README | [中文README](https://github.com/t41372/Open-LLM-VTuber/blob/m
 ## ⭐️ What is this project?
 
 
-**Open-LLM-VTuber** is a voice to voice agent with voice interruption capability and a Live2D talking face running locally on your computer (offline mode available). 
+**Open-LLM-VTuber** is a unique **voice-interactive AI companion** that not only supports **real-time voice conversations** but also features a lively **Live2D avatar**. All functionalities can run completely offline on your computer!
 
-It's your `virtual girlfriend`/`boyfriend`/`pet`/`something_else` running locally on `macOS`/`Linux`/`Windows`. Web frontend and electron frontend (with transparent background!) are available.
+You can treat it as your personal AI companion — whether you want a `virtual girlfriend`, `boyfriend`, `cute pet`, or any other character, it can meet your expectations. The project fully supports `Windows`, `macOS`, and `Linux`, and offers two usage modes: web version and desktop client (with special support for **transparent background desktop pet mode**, allowing the AI companion to accompany you anywhere on your screen).
 
-Long-term memory is temporily removed (will be added back very soon), but chat history persistence allows you to resume old conversations at any time.
+Although the long-term memory feature is temporarily removed (coming back soon), thanks to the persistent storage of chat logs, you can always continue your previous unfinished conversations without losing any precious interactive moments.
 
-This project supports a wide range of LLM backend, text-to-speech models, and speech recognition models. You can use your custom Live2D model by following the [documentation](https://open-llm-vtuber.github.io/docs/user-guide/live2d). 
+In terms of backend support, we have integrated a rich variety of LLM inference, text-to-speech, and speech recognition solutions. If you want to customize your AI companion, you can refer to the [Character Customization Guide](https://open-llm-vtuber.github.io/docs/user-guide/live2d) to customize your AI companion's appearance and persona.
 
-This project started as an attempt to recreate the closed-source AI VTuber `neuro-sama` with open-source alternatives that can run offline on platforms other than Windows.
+The reason it's called `Open-LLM-Vtuber` instead of `Open-LLM-Companion` or `Open-LLM-Waifu` is because the project's initial development goal was to use open-source solutions that can run offline on platforms other than Windows to recreate the closed-source AI Vtuber `neuro-sama`.
 
-
-| ![](assets/i1_app_mode.jpg) | ![](assets/i2_pet_vscode.jpg) |
-|:---:|:---:|
-| ![](assets/i3_browser_world_fun.jpg) | ![](assets/i4_pet_desktop.jpg) |
+This project underwent code refactoring after version `v1.0.0` and is currently in active development, with many exciting features coming soon! 🚀 Check out our [Roadmap](https://github.com/users/t41372/projects/1/views/5) to learn about update plans.
 
 
 ### 👀 Demo
-[To be compelted]
+| ![](assets/i1.jpg) | ![](assets/i2.jpg) |
+|:---:|:---:|
+| ![](assets/i3.jpg) | ![](assets/i4.jpg) |
 
 
 ## ✨ Features & Highlights
 
-- 🖥️ **Cross-Platform Support**: Works seamlessly on macOS, Linux, and Windows. We support both Nvidia and non-Nvidia GPUs, with options to run on CPU or use cloud APIs for resource-intensive tasks. macOS GPU acceleration are available on some components.
+- 🖥️ **Cross-platform support**: Perfect compatibility with macOS, Linux, and Windows. We support NVIDIA and non-NVIDIA GPUs, with options to run on CPU or use cloud APIs for resource-intensive tasks. Some components support GPU acceleration on macOS.
 
-- 🔒 **Offline mode available**: Run completely offline with local models - no internet required. Your conversations stay private and secure on your machine.
+- 🔒 **Offline mode support**: Run completely offline using local models - no internet required. Your conversations stay on your device, ensuring privacy and security.
 
-- 🎯 **Advanced Interaction**:
-  - 🎤 Voice interruption without headphones (AI won't hear itself)
-  - 🐱 Pet mode with transparent background - drag your companion anywhere on screen
-  - 🗣️ Proactive AI speech capabilities
-  - 💾 Chat history persistence to resume conversations
-  - 🌍 Audio translation support (e.g., chat in English, hear Japanese speech)
+- 💻 **Attractive and powerful web and desktop clients**: Offers both web version and desktop client usage modes, supporting rich interactive features and personalization settings. The desktop client can switch freely between window mode and desktop pet mode, allowing the AI companion to be by your side at all times.
 
-- 🧠 **Extensive Model Support**:
-  - 🤖 LLMs: Ollama, OpenAI (and any OpenAI Compatible API), Gemini, Claude, Mistral, DeepSeek, Zhipu, GGUF, LM Studio, vLLM, and more
-  - 🎵 Customizable Speech Recognition and TTS backends
-  - 🖥️ Web and desktop frontends with beautiful UI
+- 🎯 **Advanced interaction features**:
+  - 🎤 Voice interruption without headphones (AI won't hear its own voice)
+  - 🫱 Touch feedback, interact with your AI companion through clicks or drags
+  - 😊 Live2D expressions, set emotion mapping to control model expressions from the backend
+  - 🐱 Pet mode, supporting transparent background, global top-most, and mouse click-through - drag your AI companion anywhere on the screen
+  - 🗣️ AI proactive speaking feature
+  - 💾 Chat log persistence, switch to previous conversations anytime
+  - 🌍 TTS translation support (e.g., chat in Chinese while AI uses Japanese voice)
 
-The project is actively developed with a rewritten codebase after `v1.0.0` and many exciting features planned ahead! 🚀 Feel free to check out our [Roadmap](https://github.com/users/t41372/projects/1/views/5) to what's ahead.
+- 🧠 **Extensive model support**:
+  - 🤖 Large Language Models (LLM): Ollama, OpenAI (and any OpenAI-compatible API), Gemini, Claude, Mistral, DeepSeek, Zhipu AI, GGUF, LM Studio, vLLM, etc.
+  - 🎙️ Automatic Speech Recognition (ASR): sherpa-onnx, FunASR, Faster-Whisper, Whisper.cpp, Whisper, Groq Whisper, Azure ASR, etc.
+  - 🔊 Text-to-Speech (TTS): sherpa-onnx, pyttsx3, MeloTTS, Coqui-TTS, GPTSoVITS, Bark, CosyVoice, Edge TTS, Fish Audio, Azure TTS, etc.
+
+- 🔧 **Highly customizable**:
+  - ⚙️ **Simple module configuration**: Switch various functional modules through simple configuration file modifications, without delving into the code
+  - 🎨 **Character customization**: Import custom Live2D models to give your AI companion a unique appearance. Shape your AI companion's persona by modifying the Prompt. Perform voice cloning to give your AI companion the voice you desire
+  - 🧩 **Flexible Agent implementation**: Inherit and implement the Agent interface to integrate any Agent architecture, such as HumeAI EVI, OpenAI Her, Mem0, etc.
+  - 🔌 **Good extensibility**: Modular design allows you to easily add your own LLM, ASR, TTS, and other module implementations, extending new features at any time
+
+
+## 👥 User Reviews
+> Thanks to the developer for open-sourcing and sharing the girlfriend for everyone to use
+> 
+> This girlfriend has been used over 100,000 times
 
 
 ## 🚀 Quick Start
 
-Read https://open-llm-vtuber.github.io/docs/quick-start for quick start. It will be translated to English once things are more stable.
+Read https://open-llm-vtuber.github.io/docs/quick-start for quick start. For pages that havn't yet received an English translation, please use your browser translation for now.
 
 
 

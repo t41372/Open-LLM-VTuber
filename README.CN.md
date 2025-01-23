@@ -21,11 +21,11 @@
 
 </h3>
 
-> 常见问题文档：https://docs.qq.com/pdf/DTFZGQXdTUXhIYWRq
+> [常见问题文档](https://docs.qq.com/pdf/DTFZGQXdTUXhIYWRq)
 >
-> 用户调查问卷 (英文)：https://forms.gle/w6Y6PiHTZr1nzbtWA
+> [用户调查问卷(英文)](https://forms.gle/w6Y6PiHTZr1nzbtWA)
 >
-> 用户调查问卷 (中文)：https://wj.qq.com/s2/16150415/f50a/
+> [用户调查问卷(中文)](https://wj.qq.com/s2/16150415/f50a/)
 
 
 
@@ -35,24 +35,27 @@
 
 
 
-## ⭐️ 项目简介
+# ⭐️ 项目简介
 
-**Open-LLM-VTuber** 是一款**语音交互 AI**，支持**语音打断**，并拥有 **Live2D 形象**，所有功能都可以在你的电脑上本地运行（支持离线模式）。
 
-你可以把它当作你的`虚拟女友`/`男友`/`宠物`/`或者别的`，支持在 `macOS`/`Linux`/`Windows` 上本地运行。同时提供网页前端和 Electron 前端（支持透明背景的桌宠模式！）
+**Open-LLM-VTuber** 是一款独特的**语音交互 AI 伴侣**，它不仅支持**实时语音对话**，还配备了生动的 **Live2D 形象**。所有功能都可以在你的电脑上完全离线运行！
 
-长期记忆功能暂时被移除（将很快加回），但聊天记录持久化功能可以让你随时继续之前的对话。
+你可以把它当作你的专属 AI 伴侣 —— 无论你想要一个`虚拟女友`、`男友`、`萌宠`还是其他角色，它都能满足你的期待。项目完美支持 `Windows`、`macOS` 和 `Linux` 系统，并提供两种使用方式：网页版和桌面客户端（特别支持**透明背景的桌宠模式**，让 AI 伴侣在屏幕上的任意位置时刻陪伴着你）。
 
-本项目支持广泛的 LLM 后端、文本转语音模型和语音识别模型。你也可以按照[文档](https://open-llm-vtuber.github.io/docs/user-guide/live2d)的指引使用自定义的 Live2D 模型。
+虽然长期记忆功能暂时下线（即将回归），但得益于聊天记录的持久化存储，你随时都能继续之前未完的对话，不会丢失任何珍贵的互动瞬间。
 
-本项目的初衷是尝试使用可在 Windows 以外平台离线运行的开源方案复现闭源的 AI 虚拟主播 `neuro-sama`。
+在后端支持方面，我们集成了丰富多样的 LLM 对话引擎、文本转语音模型和语音识别方案。如果你想让 AI 伴侣更有个性，还可以参考 [角色定制指南](https://open-llm-vtuber.github.io/docs/user-guide/live2d) 来自定义专属的 AI 伴侣形象和人设。
 
-| ![](assets/i1_app_mode.jpg) | ![](assets/i2_pet_vscode.jpg) |
+关于为什么叫 `Open-LLM-Vtuber` 而不是 `Open-LLM-Companion` 或者 `Open-LLM-Waifu`，是因为项目的开发初衷是采用可在 Windows 以外平台离线运行的开源方案，复现闭源的 AI Vtuber `neuro-sama`。
+
+本项目在 `v1.0.0` 版本后进行了代码重构，目前正处于积极开发阶段，未来还有许多令人兴奋的功能即将推出！🚀 查看我们的 [Roadmap](https://github.com/users/t41372/projects/1/views/5)，了解更新计划。
+
+
+## 👀 效果演示
+
+| ![](assets/i1.jpg) | ![](assets/i2.jpg) |
 |:---:|:---:|
-| ![](assets/i3_browser_world_fun.jpg) | ![](assets/i4_pet_desktop.jpg) |
-
-### 👀 效果演示
-[待完善]
+| ![](assets/i3.jpg) | ![](assets/i4.jpg) |
 
 
 ## ✨ 功能和亮点
@@ -61,19 +64,33 @@
 
 - 🔒 **支持离线模式**：使用本地模型完全离线运行 - 无需联网。你的对话只会待在你的设备上，确保隐私安全。
 
+- 💻 **好看且功能强大的网页和桌面客户端**：提供网页版和桌面客户端两种使用方式，支持丰富的交互功能和个性化设置，桌面客户端还可以在窗口模式和桌宠模式之间自由切换，让 AI 伴侣随时陪伴在身边
+
 - 🎯 **高级交互功能**：
   - 🎤 语音打断，无需耳机（AI 不会听到自己的声音）
-  - 🐱 宠物模式，支持透明背景 - 可以将你的 AI 伙伴拖到屏幕上的任意位置
+  - 🫱 触摸反馈，可以通过点击或拖拽与 AI 伙伴互动
+  - 😊 Live2D 表情，设置情绪映射让后端控制模型表情
+  - 🐱 宠物模式，支持透明背景全局置顶和鼠标穿透 - 可以将你的 AI 伙伴拖到屏幕上的任意位置
   - 🗣️ AI 主动说话功能
-  - 💾 聊天记录持久化，可以随时继续之前的对话
-  - 🌍 音频翻译支持（例如，用中文聊天的同时，AI语音是日文的）
+  - 💾 聊天记录持久化，可以随时切换到以前的对话
+  - 🌍 TTS 翻译支持（例如，用中文聊天的同时，AI 使用日语声音）
 
 - 🧠 **广泛的模型支持**：
   - 🤖 大语言模型 (LLM)：Ollama、OpenAI（以及任何与 OpenAI 兼容的 API）、Gemini、Claude、Mistral、DeepSeek、智谱、GGUF、LM Studio、vLLM 等
-  - 🎵 多种语音识别和 TTS 后端可供选择
-  - 🖥️ 好看的网页和桌面客户端
+  - 🎙️ 语音识别 (ASR)：sherpa-onnx、FunASR、Faster-Whisper、Whisper.cpp、Whisper、Groq Whisper、Azure ASR等
+  - 🔊 语音合成 (TTS)：sherpa-onnx、pyttsx3、MeloTTS、Coqui-TTS、GPTSoVITS、Bark、CosyVoice、Edge TTS、Fish Audio、Azure TTS等
 
-本项目在 `v1.0.0` 版本后进行了代码重构，目前正处于积极开发阶段，未来还有许多令人兴奋的功能即将推出！🚀 你可以看看我们的 [Roadmap](https://github.com/users/t41372/projects/1/views/5)，了解更新计划。
+- 🔧 **高度可定制**:
+  - ⚙️ **简单的模块配置**：通过简单的配置文件修改，即可切换各种功能模块，无需深入代码
+  - 🎨 **角色随心定制**：导入自定义 Live2D 模型，让你的 AI 伴侣拥有独特外观。通过修改 Prompt，塑造你 AI 伴侣的人设。进行音色克隆，让你的 AI 伴侣有着你想要的声线
+  - 🧩 **Agent自由实现**：继承并实现 Agent 接口，接入任何架构的 Agent，如 HumeAI EVI、OpenAI Her、Mem0 等
+  - 🔌 **良好的可扩展性**：模块化设计让你能轻松添加自己的 LLM、ASR、TTS 等模块实现，随时扩展新特性
+
+
+## 👥 用户评价
+> 感谢开发者把女朋友开源分享出来让大家一起使用
+> 
+> 该女友使用次数已达 10w+
 
 ## 🚀 快速上手
 
