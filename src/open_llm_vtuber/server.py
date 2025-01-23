@@ -10,6 +10,14 @@ from .service_context import ServiceContext
 from .config_manager.utils import Config
 
 
+class CustomStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if path.endswith(".js"):
+            response.headers["Content-Type"] = "application/javascript"
+        return response
+
+
 class WebSocketServer:
     def __init__(self, config: Config):
         self.app = FastAPI()
@@ -44,7 +52,7 @@ class WebSocketServer:
             name="backgrounds",
         )
         self.app.mount(
-            "/", StaticFiles(directory="./frontend", html=True), name="frontend"
+            "/", CustomStaticFiles(directory="./frontend", html=True), name="frontend"
         )
 
     def run(self):
