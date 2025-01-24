@@ -82,13 +82,14 @@ class BasicMemoryAgent(AgentInterface):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
         messages = get_history(conf_uid, history_uid)
-
-        system_message = next(
-            (msg for msg in self._memory if msg["role"] == "system"), None
-        )
+        
         self._memory = []
-        if system_message:
-            self._memory.append(system_message)
+        self._memory.append(
+            {
+                "role": "system",
+                "content": self._system,
+            }
+        )
 
         for msg in messages:
             self._memory.append(
