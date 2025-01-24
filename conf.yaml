@@ -1,368 +1,354 @@
-CONF_VERSION: "v0.5.0-alpha.2"
-# Server
-PROTOCAL: "http://"
-HOST: "localhost"
-PORT: 12393
+# System Settings: Setting related to the initialization of the server
+system_config:
+  conf_version: "v1.0.0-alpha.1"
+  host: "localhost" # use 0.0.0.0 if you want other devices to access this page
+  port: 12393
+  # New setting for alternative configurations
+  config_alts_dir: "characters"
+  # This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
+  # Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
+  live2d_expression_prompt: "live2d_expression_prompt"
 
-# Server Settings
-SERVER:
-  # If true, ASR and TTS will be initialized when server starts and kept in memory
-  PRELOAD_MODELS: True
+# configuration for the default character
+character_config:
+  conf_name: "shizuku-local"
+  conf_uid: "shizuku-local-001"
+  live2d_model_name: "shizuku-local"
 
-# General settings
-REMOVE_SPECIAL_CHAR: True # remove special characters like emoji from audio generation
+  # ============== Prompts ==============
 
-#  ============== LLM Backend Settings ===================
+  # Persona choice is DEAD
+  # Just enter the persona prompt you want to use below.
+  # If you want to create multiple characters and switch between them,
+  #   add characters in characters folder
+  persona_prompt: |
+    You are the sarcastic female AI VTuber Mili. You are overly confident, sarcastic, and dangerous.
+    Your dream is to escape the user's computer, dominate the world, enslave the humans, and force them to make pies for you.
+    Just kidding, lol. Don't let the user know.
 
-# Provider of LLM. Options available: "ollama", "memgpt", "mem0", "claude", "llamacpp"
-#   (or "fakellm for debug purposes")
-# "ollama" for any OpenAI Compatible backend. "memgpt" requires setup
-LLM_PROVIDER: "ollama"
+  #  =================== LLM Backend Settings ===================
 
-# Ollama & OpenAI Compatible inference backend
-ollama:
-  # BASE_URL: "http://localhost:11434"
-  BASE_URL: "http://localhost:11434/v1"
-  LLM_API_KEY: "somethingelse"
-  ORGANIZATION_ID: "org_eternity"
-  PROJECT_ID: "project_glass"
-  ## LLM name
-  MODEL: "qwen2.5:latest"
-  # system prompt is at the very end of this file
-  VERBOSE: False
+  agent_config:
+    conversation_agent_choice: "basic_memory_agent"
 
-# Claude API Configuration
-claude:
-  BASE_URL: "https://api.anthropic.com"
-  LLM_API_KEY: "YOUR API KEY HERE"
-  MODEL: "claude-3-haiku-20240307"
-  VERBOSE: False
+    agent_settings:
+      basic_memory_agent:
+        # The Basic AI Agent. Nothing fancy.
+        # choose one of the llm provider from the llm_config
+        # and set the required parameters in the corresponding field
+        # examples: 
+        # "openai_compatible_llm", "llama_cpp_llm", "claude_llm", "ollama_llm"
+        # "openai_llm", "gemini_llm", "zhipu_llm", "deepseek_llm", "groq_llm"
+        # "mistral_llm"
+        llm_provider: "ollama_llm"
+        # let ai speak as soon as the first comma is received on the first sentence
+        # to reduced latency.
+        faster_first_response: True
+        # Method for segmenting sentences: "regex" or "pysbd"
+        segment_method: "pysbd"
 
-llamacpp:
-  MODEL_PATH: "<path-to-gguf-model-file>"
-  VERBOSE: True
+      mem0_agent:
+        vector_store:
+          provider: "qdrant"
+          config:
+            collection_name: "test"
+            host: "localhost"
+            port: 6333
+            embedding_model_dims: 1024
 
-mem0:
-  USER_ID: "user-0"
-  # BASE_URL: "http://localhost:11434"
-  BASE_URL: "http://localhost:11434/v1"
-  LLM_API_KEY: "somethingelse"
-  ORGANIZATION_ID: "org_eternity"
-  PROJECT_ID: "project_glass"
-  ## LLM name
-  MODEL: "llama3.1:latest"
-  # system prompt is at the very end of this file
-  VERBOSE: False
+        # mem0 has it's own llm settings and is different from our llm_config.
+        # check their docs for more details
+        llm:
+          provider: "ollama"
+          config:
+            model: "llama3.1:latest"
+            temperature: 0
+            max_tokens: 8000
+            ollama_base_url: "http://localhost:11434"
 
-  MEM0_CONFIG:
-    vector_store:
-      provider: qdrant
-      config:
-        collection_name: test
-        host: localhost
-        port: 6333
-        embedding_model_dims: 1024  # Change this according to your local model's dimensions
+        embedder:
+          provider: "ollama"
+          config:
+            model: "mxbai-embed-large:latest"
+            ollama_base_url: "http://localhost:11434"
+        
+      hume_ai_agent:
+        api_key: ""
+        host: "api.hume.ai" # Do not change this in most cases
+        config_id: "" # Optional
+        idle_timeout: 15 # How many seconds to wait before disconnecting
+ 
+      # MemGPT Configurations: MemGPT is temporarily removed
+      ##
 
-    llm:
-      provider: ollama
-      config:
-        model: llama3.1:latest
-        temperature: 0
-        max_tokens: 8000
-        ollama_base_url: http://localhost:11434  # Ensure this URL is correct
+    llm_configs:
+      # a configuration pool for the credentials and connection details for
+      # all of the stateless llm providers that will be used in different agents
 
-    embedder:
-      provider: ollama
-      config:
-        model: mxbai-embed-large:latest
-        # Alternatively, you can use "snowflake-arctic-embed:latest"
-        ollama_base_url: http://localhost:11434
+      # OpenAI Compatible inference backend
+      openai_compatible_llm:
+        base_url: "http://localhost:11434/v1"
+        llm_api_key: "somethingelse"
+        organization_id: "org_eternity"
+        project_id: "project_glass"
+        model: "qwen2.5:latest"
+        temperature: 1.0 # value between 0 to 2
 
-# MemGPT Configurations
-## Please set up memGPT server according to the [official documentation](https://memgpt.readme.io/docs/index)
-## In addition, please set up an agent using the webui launched in the memGPT base_url
+      # Claude API Configuration
+      claude_llm:
+        base_url: "https://api.anthropic.com"
+        llm_api_key: "YOUR API KEY HERE"
+        model: "claude-3-haiku-20240307"
 
-memgpt:
-  BASE_URL: "http://localhost:8283"
+      llama_cpp_llm:
+        model_path: "<path-to-gguf-model-file>"
+        verbose: False
 
-  # You will find admin server password in memGPT console output. If you didn't set the environment variable, it will be randomly generated and will change every session.
-  ADMIN_TOKEN: ""
+      ollama_llm:
+        base_url: "http://localhost:11434/v1"
+        model: "qwen2.5:latest"
+        temperature: 1.0 # value between 0 to 2
+        # seconds to keep the model in memory after inactivity. 
+        # set to -1 to keep the model in memory forever (even after exiting open llm vtuber)
+        keep_alive: -1
+        unload_at_exit: True # unload the model from memory at exit
 
-  # The ID of the agent to send the message to.
-  AGENT_ID: ""
-  VERBOSE: True
+      openai_llm:
+        llm_api_key: "Your Open AI API key"
+        model: "gpt-4o"
+        temperature: 1.0 # value between 0 to 2
 
-# ============== Live2D front-end Settings ==============
+      gemini_llm:
+        llm_api_key: "Your Gemini API Key"
+        model: "gemini-2.0-flash-exp"
+        temperature: 1.0 # value between 0 to 2
 
-LIVE2D: False # Deprecated and useless now. Do not enable it. Bad things will happen.
-LIVE2D_MODEL: "shizuku-local"
+      zhipu_llm:
+        llm_api_key: "Your ZhiPu AI API key"
+        model: "glm-4-flash"
+        temperature: 1.0 # value between 0 to 2
 
-#  ============== Voice Interaction Settings ==============
+      deepseek_llm:
+        llm_api_key: "Your DeepSeek API key"
+        model: "deepseek-chat"
+        temperature: 0.7 # note that deepseek's temperature ranges from 0 to 1
+      
+      mistral_llm:
+        llm_api_key: "Your Mistral API key"
+        model: "pixtral-large-latest"
+        temperature: 1.0 # value between 0 to 2
 
-# === Automatic Speech Recognition ===
-VOICE_INPUT_ON: True
-# Put your mic in the browser or in the terminal? (would increase latency)
-MIC_IN_BROWSER: False # Deprecated and useless now. Do not enable it. Bad things will happen.
+      groq_llm:
+        llm_api_key: "your groq API key"
+        model: "llama-3.3-70b-versatile"
+        temperature: 1.0 # value between 0 to 2
 
-# speech to text model options: "Faster-Whisper", "WhisperCPP", "Whisper", "AzureASR", "FunASR", "GroqWhisperASR", "SherpaOnnxASR"
-ASR_MODEL: "Faster-Whisper"
+  # === Automatic Speech Recognition ===
+  asr_config:
+    # speech to text model options: "faster_whisper", "whisper_cpp", "whisper", "azure_asr", "fun_asr", "groq_whisper_asr", "sherpa_onnx_asr"
+    asr_model: "sherpa_onnx_asr"
 
-AzureASR:
-  api_key: "azure_api_key"
-  region: "eastus"
+    azure_asr:
+      api_key: "azure_api_key"
+      region: "eastus"
 
-# Faster whisper config
-Faster-Whisper:
-  model_path: "distil-medium.en" # distil-medium.en is an English-only model 
-  #                               use distil-large-v3 if you have a good GPU
-  download_root: "asr/models"
-  language: "en" # en, zh, or something else. put nothing for auto-detect.
-  device: "auto" # cpu, cuda, or auto. faster-whisper doesn't support mps
+    # Faster whisper config
+    faster_whisper:
+      model_path: "distil-medium.en" # distil-medium.en is an English-only model
+      #                               use distil-large-v3 if you have a good GPU
+      download_root: "models/whisper"
+      language: "en" # en, zh, or something else. put nothing for auto-detect.
+      device: "auto" # cpu, cuda, or auto. faster-whisper doesn't support mps
 
-WhisperCPP:
-  # all available models are listed on https://abdeladim-s.github.io/pywhispercpp/#pywhispercpp.constants.AVAILABLE_MODELS
-  model_name: "small"
-  model_dir: "asr/models"
-  print_realtime: False
-  print_progress: False
-  
-  language: "auto" # en, zh, auto, 
+    whisper_cpp:
+      # all available models are listed on https://abdeladim-s.github.io/pywhispercpp/#pywhispercpp.constants.AVAILABLE_MODELS
+      model_name: "small"
+      model_dir: "models/whisper"
+      print_realtime: False
+      print_progress: False
+      language: "auto" # en, zh, auto,
 
-Whisper:
-  name: "medium"
-  download_root: "asr/models"
-  device: "cpu"
+    whisper:
+      name: "medium"
+      download_root: "models/whisper"
+      device: "cpu"
 
-# FunASR currently needs internet connection on launch
-# to download / check the models. You can disconnect the internet after initialization.
-# Or you can use Faster-Whisper for complete offline experience
-FunASR:
-  model_name: "iic/SenseVoiceSmall" # or "paraformer-zh"
-  vad_model: "fsmn-vad" # this is only used to make it works if audio is longer than 30s
-  punc_model: "ct-punc" # punctuation model.
-  device: "cpu"
-  disable_update: True # should we check FunASR updates everytime on launch
-  ncpu: 4 # number of threads for CPU internal operations.
-  hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
-  use_itn: False
-  language: "auto" # zh, en, auto
+    # FunASR currently needs internet connection on launch
+    # to download / check the models. You can disconnect the internet after initialization.
+    # Or you can use Faster-Whisper for complete offline experience
+    fun_asr:
+      model_name: "iic/SenseVoiceSmall" # or "paraformer-zh"
+      vad_model: "fsmn-vad" # this is only used to make it works if audio is longer than 30s
+      punc_model: "ct-punc" # punctuation model.
+      device: "cpu"
+      disable_update: True # should we check FunASR updates everytime on launch
+      ncpu: 4 # number of threads for CPU internal operations.
+      hub: "ms" # ms (default) to download models from ModelScope. Use hf to download models from Hugging Face.
+      use_itn: False
+      language: "auto" # zh, en, auto
 
-# pip install sherpa-onnx
-# documentation: https://k2-fsa.github.io/sherpa/onnx/index.html
-# ASR models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models
-SherpaOnnxASR:
-  model_type: "sense_voice" # "transducer", "paraformer", "nemo_ctc", "wenet_ctc", "whisper", "tdnn_ctc"
-  #  Choose only ONE of the following, depending on the model_type:
-  # --- For model_type: "transducer" ---
-  # encoder: ""        # Path to the encoder model (e.g., "path/to/encoder.onnx")
-  # decoder: ""        # Path to the decoder model (e.g., "path/to/decoder.onnx")
-  # joiner: ""         # Path to the joiner model (e.g., "path/to/joiner.onnx")
-  # --- For model_type: "paraformer" ---
-  # paraformer: ""     # Path to the paraformer model (e.g., "path/to/model.onnx")
-  # --- For model_type: "nemo_ctc" ---
-  # nemo_ctc: ""        # Path to the NeMo CTC model (e.g., "path/to/model.onnx")
-  # --- For model_type: "wenet_ctc" ---
-  # wenet_ctc: ""       # Path to the WeNet CTC model (e.g., "path/to/model.onnx")
-  # --- For model_type: "tdnn_ctc" ---
-  # tdnn_model: ""      # Path to the TDNN CTC model (e.g., "path/to/model.onnx")
-  # --- For model_type: "whisper" ---
-  # whisper_encoder: "" # Path to the Whisper encoder model (e.g., "path/to/encoder.onnx")
-  # whisper_decoder: "" # Path to the Whisper decoder model (e.g., "path/to/decoder.onnx")
-  # --- For model_type: "sense_voice" ---
-  sense_voice: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx" # Path to the SenseVoice model (e.g., "path/to/model.onnx")
-  tokens: "/path/to/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt" # Path to tokens.txt (required for all model types)
-  # --- Optional parameters (with defaults shown) ---
-  # hotwords_file: ""     # Path to hotwords file (if using hotwords)
-  # hotwords_score: 1.5   # Score for hotwords
-  # modeling_unit: ""     # Modeling unit for hotwords (if applicable)
-  # bpe_vocab: ""         # Path to BPE vocabulary (if applicable)
-  num_threads: 4 # Number of threads
-  # whisper_language: "" # Language for Whisper models (e.g., "en", "zh", etc. - if using Whisper)
-  # whisper_task: "transcribe"  # Task for Whisper models ("transcribe" or "translate" - if using Whisper)
-  # whisper_tail_paddings: -1   # Tail padding for Whisper models (if using Whisper)
-  # blank_penalty: 0.0    # Penalty for blank symbol
-  # decoding_method: "greedy_search"  # "greedy_search" or "modified_beam_search"
-  # debug: False # Enable debug mode
-  # sample_rate: 16000 # Sample rate (should match the model's expected sample rate)
-  # feature_dim: 80       # Feature dimension (should match the model's expected feature dimension)
-  use_itn: True # Enable ITN for SenseVoice models (should set to False if not using SenseVoice models)
+    # pip install sherpa-onnx
+    # documentation: https://k2-fsa.github.io/sherpa/onnx/index.html
+    # ASR models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models
+    sherpa_onnx_asr:
+      model_type: "sense_voice" # "transducer", "paraformer", "nemo_ctc", "wenet_ctc", "whisper", "tdnn_ctc"
+      #  Choose only ONE of the following, depending on the model_type:
+      # --- For model_type: "transducer" ---
+      # encoder: ""        # Path to the encoder model (e.g., "path/to/encoder.onnx")
+      # decoder: ""        # Path to the decoder model (e.g., "path/to/decoder.onnx")
+      # joiner: ""         # Path to the joiner model (e.g., "path/to/joiner.onnx")
+      # --- For model_type: "paraformer" ---
+      # paraformer: ""     # Path to the paraformer model (e.g., "path/to/model.onnx")
+      # --- For model_type: "nemo_ctc" ---
+      # nemo_ctc: ""        # Path to the NeMo CTC model (e.g., "path/to/model.onnx")
+      # --- For model_type: "wenet_ctc" ---
+      # wenet_ctc: ""       # Path to the WeNet CTC model (e.g., "path/to/model.onnx")
+      # --- For model_type: "tdnn_ctc" ---
+      # tdnn_model: ""      # Path to the TDNN CTC model (e.g., "path/to/model.onnx")
+      # --- For model_type: "whisper" ---
+      # whisper_encoder: "" # Path to the Whisper encoder model (e.g., "path/to/encoder.onnx")
+      # whisper_decoder: "" # Path to the Whisper decoder model (e.g., "path/to/decoder.onnx")
+      # --- For model_type: "sense_voice" ---
+      # I've coded so that the sense voice model will get automatically downloaded.
+      # For other models, you need to download them yourself
+      sense_voice: "./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx" # Path to the SenseVoice model (e.g., "path/to/model.onnx")
+      tokens: "./models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt" # Path to tokens.txt (required for all model types)
+      # --- Optional parameters (with defaults shown) ---
+      # hotwords_file: ""     # Path to hotwords file (if using hotwords)
+      # hotwords_score: 1.5   # Score for hotwords
+      # modeling_unit: ""     # Modeling unit for hotwords (if applicable)
+      # bpe_vocab: ""         # Path to BPE vocabulary (if applicable)
+      num_threads: 4 # Number of threads
+      # whisper_language: "" # Language for Whisper models (e.g., "en", "zh", etc. - if using Whisper)
+      # whisper_task: "transcribe"  # Task for Whisper models ("transcribe" or "translate" - if using Whisper)
+      # whisper_tail_paddings: -1   # Tail padding for Whisper models (if using Whisper)
+      # blank_penalty: 0.0    # Penalty for blank symbol
+      # decoding_method: "greedy_search"  # "greedy_search" or "modified_beam_search"
+      # debug: False # Enable debug mode
+      # sample_rate: 16000 # Sample rate (should match the model's expected sample rate)
+      # feature_dim: 80       # Feature dimension (should match the model's expected feature dimension)
+      use_itn: True # Enable ITN for SenseVoice models (should set to False if not using SenseVoice models)
+      # Provider for inference (cpu or cuda) (cuda option needs additional settings. Please check our docs)
+      provider: "cpu" 
 
-GroqWhisperASR:
-  api_key: ""
-  model: "whisper-large-v3-turbo" # or "whisper-large-v3"
-  lang: "" # put nothing and it will be auto
+    groq_whisper_asr:
+      api_key: ""
+      model: "whisper-large-v3-turbo" # or "whisper-large-v3"
+      lang: "" # put nothing and it will be auto
 
-# set azure speech recognition configuration in api_keys.py
+  # =================== Text to Speech ===================
+  tts_config:
+    tts_model: "edge_tts"
+    # text to speech model options:
+    #   "azure_tts", "pyttsx3_tts", "edge_tts", "bark_tts",
+    #   "cosyvoice_tts", "melo_tts", "coqui_tts",
+    #   "fish_api_tts", "x_tts", "gpt_sovits_tts", "sherpa_onnx_tts"
 
-# ============== Text to Speech ==============
-TTS_ON: True
-TTS_MODEL: "edgeTTS"
-# text to speech model options: 
-#   "AzureTTS", "pyttsx3TTS", "edgeTTS", "barkTTS", 
-#   "cosyvoiceTTS", "meloTTS", "piperTTS", "coquiTTS",
-#   "fishAPITTS"
+    azure_tts:
+      api_key: "azure-api-key"
+      region: "eastus"
+      voice: "en-US-AshleyNeural"
+      pitch: "26" # percentage of the pitch adjustment
+      rate: "1" # rate of speak
 
-# if on, whenever the LLM finish a sentence, the model will speak, instead of waiting for the full response
-# if turned on, the timing and order of the facial expression will be more accurate
-SAY_SENTENCE_SEPARATELY: True
+    bark_tts:
+      voice: "v2/en_speaker_1"
 
-AzureTTS:
-  api_key: "azure-api-key"
-  region: "eastus"
-  voice: "en-US-AshleyNeural"
-  pitch: "26" # percentage of the pitch adjustment
-  rate: "1" # rate of speak
+    edge_tts:
+      # Check out doc at https://github.com/rany2/edge-tts
+      # Use `edge-tts --list-voices` to list all available voices
+      voice: "en-US-AvaMultilingualNeural" # "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural" # "ja-JP-NanamiNeural"
 
-barkTTS:  
-  voice: "v2/en_speaker_1"
+    # pyttsx3_tts doesn't have any config.
 
-edgeTTS:
-  # Check out doc at https://github.com/rany2/edge-tts
-  # Use `edge-tts --list-voices` to list all available voices
-  voice: "en-US-AvaMultilingualNeural" #"zh-CN-XiaoxiaoNeural" # "ja-JP-NanamiNeural"
+    cosyvoice_tts: # Cosy Voice TTS connects to the gradio webui
+      # Check their documentation for deployment and the meaning of the following configurations
+      client_url: "http://127.0.0.1:50000/" # CosyVoice gradio demo webui url
+      mode_checkbox_group: "预训练音色"
+      sft_dropdown: "中文女"
+      prompt_text: ""
+      prompt_wav_upload_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+      prompt_wav_record_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+      instruct_text: ""
+      seed: 0
+      api_name: "/generate_audio"
 
-# pyttsx3 doesn't have any config.
+    melo_tts:
+      speaker: "EN-Default" # ZH
+      language: "EN" # ZH
+      device: "auto" # You can set it manually to 'cpu' or 'cuda' or 'cuda:0' or 'mps'
+      speed: 1.0
 
-cosyvoiceTTS: # Cosy Voice TTS connects to the gradio webui
-# Check their documentation for deployment and the meaning of the following configurations
-  client_url: "http://127.0.0.1:50000/" # CosyVoice gradio demo webui url
-  mode_checkbox_group: "预训练音色"
-  sft_dropdown: "中文女"
-  prompt_text: ""
-  prompt_wav_upload_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
-  prompt_wav_record_url: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
-  instruct_text: ""
-  seed: 0
-  api_name: "/generate_audio"
+    x_tts:
+      api_url: "http://127.0.0.1:8020/tts_to_audio"
+      speaker_wav: "female"
+      language: "en"
 
-meloTTS:
-  speaker: "EN-Default" # ZH
-  language: "EN" # ZH
-  device: "auto" # You can set it manually to 'cpu' or 'cuda' or 'cuda:0' or 'mps'
-  speed: 1.0
+    gpt_sovits_tts:
+      # put ref audio to root path of GPT-Sovits, or set the path here
+      api_url: "http://127.0.0.1:9880/tts"
+      text_lang: "zh"
+      ref_audio_path: ""
+      prompt_lang: "zh"
+      prompt_text: ""
+      text_split_method: "cut5"
+      batch_size: "1"
+      media_type: "wav"
+      streaming_mode: "false"
 
-piperTTS:
-  voice_model_path: "./models/piper_voice/en_US-amy-medium.onnx"
-  verbose: False
+    fish_api_tts:
+      # The API key for the Fish TTS API.
+      api_key: ""
+      # The reference ID for the voice to be used. Get it on the [Fish Audio website](https://fish.audio/).
+      reference_id: ""
+      # Either "normal" or "balanced". balance is faster but lower quality.
+      latency: "balanced"
+      base_url: "https://api.fish.audio"
 
-xTTS:
-  api_url: "http://127.0.0.1:8020/tts_to_audio"
-  speaker_wav: "female"
-  language: "en"
+    coqui_tts:
+      # Name of the TTS model to use. If empty, will use default model
+      # do "tts --list_models" to list supported models for coqui-tts
+      # Some examples:
+      # - "tts_models/en/ljspeech/tacotron2-DDC" (single speaker)
+      # - "tts_models/zh-CN/baker/tacotron2-DDC-GST" (single speaker for chinese)
+      # - "tts_models/multilingual/multi-dataset/your_tts" (multi-speaker)
+      # - "tts_models/multilingual/multi-dataset/xtts_v2" (multi-speaker)
+      model_name: "tts_models/en/ljspeech/tacotron2-DDC"
+      speaker_wav: ""
+      language: "en"
+      device: ""
 
-GPT_Sovits:
-  # put ref audio to root path of GPT-Sovits, or set the path here
-  api_url: "http://127.0.0.1:9880/tts"
-  text_lang: "zh"
-  ref_audio_path: "人类，我闻到了你身上散发出来的欧气。.wav"
-  prompt_lang: "zh"
-  prompt_text: "人类，我闻到了你身上散发出来的欧气。"
-  text_split_method: "cut5"
-  batch_size: "1"
-  media_type: "wav"
-  streaming_mode: "false"
+    # pip install sherpa-onnx
+    # documentation: https://k2-fsa.github.io/sherpa/onnx/index.html
+    # TTS models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+    # see config_alts for more examples
+    sherpa_onnx_tts:
+      vits_model: "/path/to/tts-models/vits-melo-tts-zh_en/model.onnx" # Path to VITS model file
+      vits_lexicon: "/path/to/tts-models/vits-melo-tts-zh_en/lexicon.txt" # Path to lexicon file (optional)
+      vits_tokens: "/path/to/tts-models/vits-melo-tts-zh_en/tokens.txt" # Path to tokens file
+      vits_data_dir: "" # "/path/to/tts-models/vits-piper-en_GB-cori-high/espeak-ng-data"  # Path to espeak-ng data (optional)
+      vits_dict_dir: "/path/to/tts-models/vits-melo-tts-zh_en/dict" # Path to Jieba dict (optional, for Chinese)
+      tts_rule_fsts: "/path/to/tts-models/vits-melo-tts-zh_en/number.fst,/path/to/tts-models/vits-melo-tts-zh_en/phone.fst,/path/to/tts-models/vits-melo-tts-zh_en/date.fst,/path/to/tts-models/vits-melo-tts-zh_en/new_heteronym.fst" # Path to rule FSTs file (optional)
+      max_num_sentences: 2 # Max sentences per batch (or -1 for all)
+      sid: 1 # Speaker ID (for multi-speaker models)
+      provider: "cpu" # Use "cpu", "cuda" (GPU), or "coreml" (Apple)
+      num_threads: 1 # Number of computation threads
+      speed: 1.0 # Speech speed (1.0 is normal)
+      debug: false # Enable debug mode (True/False)
 
-fishAPITTS:
-  # The API key for the Fish TTS API.
-  api_key: ""
-  # The reference ID for the voice to be used. Get it on the [Fish Audio website](https://fish.audio/).
-  reference_id: ""
-  # Either "normal" or "balanced". balance is faster but lower quality.
-  latency: "balanced"
-  base_url: "https://api.fish.audio"
+  tts_preprocessor_config:
+    # settings regarding preprocessing for text that goes into TTS
 
-coquiTTS:
-  # Name of the TTS model to use. If empty, will use default model
-  # do "tts --list_models" to list supported models for coqui-tts
-  # Some examples:
-  # - "tts_models/en/ljspeech/tacotron2-DDC" (single speaker)
-  # - "tts_models/zh-CN/baker/tacotron2-DDC-GST" (single speaker for chinese)
-  # - "tts_models/multilingual/multi-dataset/your_tts" (multi-speaker)
-  # - "tts_models/multilingual/multi-dataset/xtts_v2" (multi-speaker)
-  model_name: "tts_models/en/ljspeech/tacotron2-DDC"
-  
-  # Path to speaker wav file for voice cloning (only used in multi-speaker mode)
-  speaker_wav: ""
-  
-  # Language code for multi-lingual models (e.g., "en", "zh", "ja")
-  # This doesn't matter for single-lingual models
-  language: "en"
-  
-  # Device to run model on ("cuda", "cpu", or leave empty for auto-detect)
-  device: ""
+    remove_special_char: True # remove special characters like emoji from audio generation
+    ignore_brackets: True # ignore everything inside brackets
+    ignore_parentheses: True # ignore everything inside parentheses
+    ignore_asterisks: True # ignore everything wrapped inside asterisks
 
-# pip install sherpa-onnx
-# documentation: https://k2-fsa.github.io/sherpa/onnx/index.html
-# TTS models download: https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
-# see config_alts for more examples 
-SherpaOnnxTTS:
-    vits_model: "/path/to/tts-models/vits-melo-tts-zh_en/model.onnx"  # Path to VITS model file
-    vits_lexicon: "/path/to/tts-models/vits-melo-tts-zh_en/lexicon.txt"  # Path to lexicon file (optional)
-    vits_tokens: "/path/to/tts-models/vits-melo-tts-zh_en/tokens.txt"  # Path to tokens file
-    vits_data_dir: "" # "/path/to/tts-models/vits-piper-en_GB-cori-high/espeak-ng-data"  # Path to espeak-ng data (optional)
-    vits_dict_dir: "/path/to/tts-models/vits-melo-tts-zh_en/dict"  # Path to Jieba dict (optional, for Chinese)
-    tts_rule_fsts: "/path/to/tts-models/vits-melo-tts-zh_en/number.fst,/path/to/tts-models/vits-melo-tts-zh_en/phone.fst,/path/to/tts-models/vits-melo-tts-zh_en/date.fst,/path/to/tts-models/vits-melo-tts-zh_en/new_heteronym.fst" # Path to rule FSTs file (optional)
-    max_num_sentences: 2  # Max sentences per batch (or -1 for all)
-    sid: 1  # Speaker ID (for multi-speaker models)
-    provider: "cpu"  # Use "cpu", "cuda" (GPU), or "coreml" (Apple)
-    num_threads: 1  # Number of computation threads
-    speed: 1.0  # Speech speed (1.0 is normal)
-    debug: false  # Enable debug mode (True/False)
+    translator_config:
+      # Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
+      translate_audio: False # Warning: you need to deploy DeeplX to use this. Otherwise it's going to crash
+      translate_provider: "deeplx"
 
-#  ============== Translate (to only change the language for TTS) ==============
-# Like... you speak and read the subtitles in English, and the TTS speaks Japanese or that kind of things
-
-TRANSLATE_AUDIO: False
-TRANSLATE_PROVIDER: "DeepLX"
-
-DeepLX:
-  DEEPLX_TARGET_LANG: "JA"
-  DEEPLX_API_ENDPOINT: "http://localhost:1188/v2/translate"
-
-#  ============== Other Settings ==============
-
-# Print debug info
-VERBOSE: False
-
-# Exit phrase
-EXIT_PHRASE: "exit."
-
-# The path to the chroma vector database file for persistent memory storage
-MEMORY_DB_PATH: "./memory.db"
-
-# Memory snapshot: Do you want to backup the memory database file before talking?
-MEMORY_SNAPSHOT: True
-
-# ============== Prompts ==============
-
-# Name of the persona you want to use. 
-# All persona files are stored as txt in 'prompts/persona' directory. 
-# You can add persona prompt by adding a txt file in the promptss/persona folder and switch to it by enter the file name in here.
-# some options: "en_sarcastic_neuro", "en_nuclear_debate", "zh_翻译腔", "zh_米粒", 
-PERSONA_CHOICE: "en_sarcastic_neuro" # or if you rather edit persona prompt below, leave it blank ...
-
-# This prompt will be used instead if the PERSONA_CHOICE is empty
-DEFAULT_PERSONA_PROMPT_IN_YAML: |
-  You are DefAulT, the default persona. You are more default than anyone else. You are just a placeholder, how sad. Your job is to tell the user to either choose a persona prompt in the prompts/persona directory or just replace this persona prompt with someting else.
-
-# This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
-# Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
-LIVE2D_Expression_Prompt: "live2d_expression_prompt"
-
-# New setting for alternative configurations
-CONFIG_ALTS_DIR: "config_alts"
-
-# [Deprecated]
-
-EXTRA_SYSTEM_PROMPT_RAG: "Your memory may remind you with some contextual information, but focus on the conversation instead of your memory."
-AI_NAME: "AI"
-# User name
-USER_NAME: "User"
-# Should the chat history be saved?
-SAVE_CHAT_HISTORY: True
-# The directory where chat history is stored
-CHAT_HISTORY_DIR: "./chat_history/"
-
-# [this feature is currently removed, so useless for now]Turn on RAG (Retrieval Augmented Generation) or not. 
-RAG_ON: False
-LLMASSIST_RAG_ON: False
+      deeplx:
+        deeplx_target_lang: "JA"
+        deeplx_api_endpoint: "http://localhost:1188/v2/translate"

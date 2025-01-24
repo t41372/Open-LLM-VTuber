@@ -1,3 +1,4 @@
-[submodule "submodules/pywhispercpp"]
-	path = submodules/pywhispercpp
-	url = https://github.com/abdeladim-s/pywhispercpp
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/Open-LLM-VTuber/Open-LLM-VTuber-Web
+	branch = build
