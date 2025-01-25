@@ -14,6 +14,7 @@ class AgentFactory:
         agent_settings: dict,
         llm_configs: dict,
         system_prompt: str,
+        live2d_model=None,
         **kwargs,
     ) -> Type[AgentInterface]:
         """Create an agent based on the configuration.
@@ -23,6 +24,7 @@ class AgentFactory:
             agent_settings: Settings for different types of agents
             llm_configs: Pool of LLM configurations
             system_prompt: The system prompt to use
+            live2d_model: Live2D model instance for expression extraction
             **kwargs: Additional arguments
         """
         logger.info(f"Initializing agent: {conversation_agent_choice}")
@@ -47,10 +49,11 @@ class AgentFactory:
                 llm_provider=llm_provider, system_prompt=system_prompt, **llm_config
             )
 
-            # Create the agent with the LLM
+            # Create the agent with the LLM and live2d_model
             return BasicMemoryAgent(
                 llm=llm,
                 system=system_prompt,
+                live2d_model=live2d_model,
                 faster_first_response=basic_memory_settings.get(
                     "faster_first_response", True
                 ),
@@ -77,6 +80,7 @@ class AgentFactory:
             return Mem0LLM(
                 user_id=kwargs.get("user_id", "default"),
                 system=system_prompt,
+                live2d_model=live2d_model,
                 **mem0_settings,
             )
 

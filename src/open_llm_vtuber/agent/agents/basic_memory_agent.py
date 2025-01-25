@@ -1,20 +1,17 @@
 from typing import AsyncIterator, List, Dict, Any, Callable
-
 from loguru import logger
 
-from ..sentence_divider import (
-
-    SentenceDivider
-)
-from .agent_interface import AgentInterface, AgentOutputType
+from ..sentence_divider import SentenceDivider
+from .agent_interface import AgentInterface
+from ..output_types import SentenceOutput, Actions
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from ...chat_history_manager import get_history
-
+from ..transformers import sentence_divider, action_extractor, tts_filter, display_processor
 
 class BasicMemoryAgent(AgentInterface):
     """
-    Agent with the most Basic Chat Memory.
-    This class provides a simple memory based on list for chat agents to store messages.
+    Agent with basic chat memory using a list to store messages.
+    Implements text-based responses with sentence processing pipeline.
     """
 
     _system: str = """You are an error message repeater. 
@@ -27,24 +24,26 @@ class BasicMemoryAgent(AgentInterface):
         self,
         llm: StatelessLLMInterface,
         system: str,
+        live2d_model,
         faster_first_response: bool = True,
         segment_method: str = "pysbd",
     ):
+        """
+        Initialize the agent with LLM, system prompt and configuration
+        
+        Args:
+            llm: StatelessLLMInterface - The LLM to use
+            system: str - System prompt
+            live2d_model: Live2dModel - Model for expression extraction
+            faster_first_response: bool - Whether to enable faster first response
+            segment_method: str - Method for sentence segmentation
+        """
         super().__init__()
-        self.sentence_divider = SentenceDivider(
-            faster_first_response=faster_first_response,
-            segment_method=segment_method
-        )
         self._memory = []
+        self._live2d_model = live2d_model
         self._set_llm(llm)
         self.set_system(system)
         logger.info("BasicMemoryAgent initialized.")
-
-    # chat function will be set by set_llm.
-    # The default chat function (which handles error when not override) is in
-    # the base class.
-
-    # ============== Setter ==============
 
     def _set_llm(self, llm: StatelessLLMInterface):
         """
@@ -82,7 +81,7 @@ class BasicMemoryAgent(AgentInterface):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
         messages = get_history(conf_uid, history_uid)
-        
+
         self._memory = []
         self._memory.append(
             {
@@ -125,52 +124,44 @@ class BasicMemoryAgent(AgentInterface):
 
     def _chat_function_factory(
         self, chat_func: Callable[[List[Dict[str, Any]], str], AsyncIterator[str]]
-    ) -> Callable[[str], AsyncIterator[str]]:
+    ) -> Callable[..., AsyncIterator[SentenceOutput]]:
         """
-        A factory to build async chat functions that uses memory and splits
-        responses into sentences.
+        Create the chat pipeline with transformers
+        
+        The pipeline:
+        LLM tokens -> sentence_divider -> action_extractor -> tts_filter -> display_processor
         """
 
+        @display_processor()
+        @tts_filter()
+        @action_extractor(self._live2d_model)
+        @sentence_divider()
         async def chat_with_memory(prompt: str) -> AsyncIterator[str]:
             """
-            Sends a user prompt (asynchronously) to the chat function
-            and returns an iterator to the response sentences.
-
-            This method is stateful and stores messages in the conversation
-            memory.
-
-            Parameters:
-                prompt : str
-                    The user prompt to send to the chat function.
-
-            Yields:
-                str
-                    A chunk of the response from the chat function.
+            Chat implementation with memory and processing pipeline
+            
+            Args:
+                prompt: str - User input
+                
+            Returns:
+                AsyncIterator[str] - Token stream from LLM
             """
             self._add_message(prompt, "user")
-            logger.critical(f"Memory Agent: Sending: '''{self._memory}'''")
+            logger.debug(f"Memory Agent: Sending: '''{self._memory}'''")
 
-            # Reset sentence divider state
-            self.sentence_divider.reset()
-
-            # Process the response stream
+            # Get token stream from LLM
             token_stream = chat_func(self._memory, self._system)
             complete_response = ""
-            
-            async for sentence in self.sentence_divider.process_stream(token_stream):
-                yield sentence
-                complete_response = sentence
 
-            # Add the complete response to memory
+            async for token in token_stream:
+                yield token
+                complete_response += token
+
+            # Store complete response
             self._add_message(complete_response, "assistant")
 
         return chat_with_memory
 
-    @property
-    def output_type(self) -> AgentOutputType:
-        """Return the output type of this agent"""
-        return AgentOutputType.TEXT
-
-    async def chat(self, prompt: str) -> AsyncIterator[str]:
-        """Placeholder for the chat method that will be replaced at runtime"""
+    async def chat(self, prompt: str) -> AsyncIterator[SentenceOutput]:
+        """Placeholder chat method that will be replaced at runtime"""
         return self.chat(prompt)

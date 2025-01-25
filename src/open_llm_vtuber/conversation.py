@@ -10,49 +10,60 @@ from fastapi import WebSocket
 from .live2d_model import Live2dModel
 from .config_manager.tts_preprocessor import TTSPreprocessorConfig
 from .asr.asr_interface import ASRInterface
-from .agent.agents.agent_interface import AgentInterface, AgentOutputType
+from .agent.agents.agent_interface import AgentInterface
+from .agent.output_types import AgentOutputBase, SentenceOutput, AudioOutput, Actions
 from .tts.tts_interface import TTSInterface
 from .translate.translate_interface import TranslateInterface
 
-from .utils.tts_preprocessor import tts_filter
 from .utils.stream_audio import prepare_audio_payload
 from .chat_history_manager import store_message
 
 
 class TTSTaskManager:
+    """Manages TTS tasks and their sequential execution"""
+    
     def __init__(self):
         self.task_list: List[asyncio.Task] = []
         self.next_index_to_play: int = 0
 
     def clear(self):
+        """Clear all tasks and reset counter"""
         self.task_list.clear()
         self.next_index_to_play = 0
 
     async def speak(
         self,
-        sentence_to_speak: str,
+        tts_text: str,
         live2d_model: Live2dModel,
         tts_engine: TTSInterface,
         websocket_send: WebSocket.send,
         display_text: str | None = None,
+        actions: Actions | None = None,
     ) -> None:
+        """
+        Generate and send audio for a sentence
+        
+        Args:
+            tts_text: Text to be spoken
+            live2d_model: Live2D model instance
+            tts_engine: TTS engine instance
+            websocket_send: WebSocket send function
+            display_text: Text to display (defaults to tts_text)
+            actions: Actions object
+        """
         if not display_text:
-            display_text = sentence_to_speak
+            display_text = tts_text
 
-        if not sentence_to_speak or not sentence_to_speak.strip():
-            logger.error(
-                f'TTS receives "{sentence_to_speak}", which is empty. So nothing to be spoken.'
-            )
+        if not tts_text or not tts_text.strip():
+            logger.error(f'TTS receives "{tts_text}", which is empty. Nothing to speak.')
             return
 
-        logger.debug(f"🏃Generating audio for '''{sentence_to_speak}'''...")
-        emotion = live2d_model.extract_emotion(str_to_check=display_text)
-        logger.debug(f"emotion: {emotion}, content: {sentence_to_speak}")
+        logger.debug(f"🏃Generating audio for '''{tts_text}'''...")
 
         current_task_index = len(self.task_list)
         tts_task = asyncio.create_task(
             tts_engine.async_generate_audio(
-                text=sentence_to_speak,
+                text=tts_text,
                 file_name_no_ext=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}",
             )
         )
@@ -67,7 +78,7 @@ class TTSTaskManager:
             try:
                 audio_payload = prepare_audio_payload(
                     audio_path=audio_file_path,
-                    expression_list=emotion,
+                    actions=actions,
                     display_text=display_text,
                 )
                 logger.debug("Sending Audio payload.")
@@ -102,17 +113,22 @@ async def conversation_chain(
     history_uid: str = "",
 ) -> str:
     """
-    One iteration of the main conversation.
-    1. Transcribe the user input (or use the input if it's already a string)
-    2. Call the LLM with the user input
-    3. Text to speech
-    4. Send the audio via the websocket
-
-    Parameters:
-    - user_input (str, numpy array): The user input to be used in the conversation. If it's string, it will be considered as user input. If it's a numpy array, it will be transcribed. If it's None, we'll request input from the user.
+    One iteration of the main conversation chain.
+    
+    Args:
+        user_input: User input (string or audio array)
+        asr_engine: ASR engine instance
+        agent_engine: Agent instance
+        tts_engine: TTS engine instance
+        live2d_model: Live2D model instance
+        tts_preprocessor_config: TTS preprocessor config
+        translate_engine: Optional translator instance
+        websocket_send: WebSocket send function
+        conf_uid: Configuration ID
+        history_uid: History ID
 
     Returns:
-    - str: The full response from the LLM
+        str: Complete response from the agent
     """
     tts_manager = TTSTaskManager()
     full_response: str = ""
@@ -129,14 +145,9 @@ async def conversation_chain(
             )
         )
 
-        # Apply the color to the console output
         logger.info(f"New Conversation Chain {session_emoji} started!")
 
-        # Process input based on agent's input type
-        if user_input is None:
-            logger.warning("❓User input is None. Aborting conversation.")
-            return ""
-
+        # Handle audio input
         if isinstance(user_input, np.ndarray):
             logger.info("Transcribing audio input...")
             user_input = await asr_engine.async_transcribe_np(user_input)
@@ -147,41 +158,28 @@ async def conversation_chain(
         store_message(conf_uid, history_uid, "human", user_input)
         logger.info(f"User input: {user_input}")
 
-        # Process output based on agent's output type
-        match agent_engine.output_type:
-            case AgentOutputType.TEXT:
-                chat_completion: AsyncIterator[str] = agent_engine.chat(user_input)
-                async for sentence in chat_completion:
-                    full_response += sentence
-                    filtered_sentence = tts_filter(
-                        text=sentence,
-                        ignore_brackets=tts_preprocessor_config.ignore_brackets,
-                        ignore_parentheses=tts_preprocessor_config.ignore_parentheses,
-                        ignore_asterisks=tts_preprocessor_config.ignore_asterisks,
-                        remove_special_char=tts_preprocessor_config.remove_special_char,
-                        translator=translate_engine,
-                    )
+        # Process agent output
+        agent_output: AsyncIterator[AgentOutputBase] = agent_engine.chat(user_input)
+        
+        async for output in agent_output:
+            if isinstance(output, SentenceOutput):
+                async for display_text, tts_text, actions in output:
+                    full_response += display_text
                     await tts_manager.speak(
-                        display_text=sentence,
-                        sentence_to_speak=filtered_sentence,
+                        tts_text=tts_text,
+                        display_text=display_text,
+                        actions=actions,
                         live2d_model=live2d_model,
                         tts_engine=tts_engine,
                         websocket_send=websocket_send,
                     )
-
-            case AgentOutputType.AUDIO:
-                chat_completion: AsyncIterator[Tuple[str, str]] = agent_engine.chat(
-                    user_input
-                )
-                async for audio_file_path, text in chat_completion:
-                    logger.info(
-                        f"Received audio file path: {audio_file_path}, Received text: {text}"
-                    )
-                    full_response += text
+            elif isinstance(output, AudioOutput):
+                async for audio_path, display_text, transcript, actions in output:
+                    full_response += display_text
                     audio_payload = prepare_audio_payload(
-                        audio_path=audio_file_path,
-                        display_text=text,
-                        expression_list=[],
+                        audio_path=audio_path,
+                        display_text=display_text,
+                        actions=actions,
                     )
                     await websocket_send(json.dumps(audio_payload))
 
@@ -190,9 +188,6 @@ async def conversation_chain(
 
     except asyncio.CancelledError:
         logger.info(f"🤡👍 Conversation {session_emoji} cancelled because interrupted.")
-        # We need to store the partial response outside this function (because it's
-        # a part of the interruption-signal from the frontend and we don't
-        # have access to it here)
 
     finally:
         logger.debug(f"🧹 Clearing up conversation {session_emoji}.")

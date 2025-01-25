@@ -1,7 +1,7 @@
 import base64
 from pydub import AudioSegment
 from pydub.utils import make_chunks
-
+from ..agent.output_types import Actions
 
 def _get_volume_by_chunks(audio: AudioSegment, chunk_length_ms: int) -> list:
     """
@@ -26,7 +26,7 @@ def prepare_audio_payload(
     audio_path: str,
     chunk_length_ms: int = 20,
     display_text: str = None,
-    expression_list: list = None,
+    actions: Actions = None,
 ) -> dict[str, any]:
     """
     Prepares the audio payload for sending to a broadcast endpoint.
@@ -35,7 +35,7 @@ def prepare_audio_payload(
         audio_path (str): The path to the audio file to be processed.
         chunk_length_ms (int): The length of each audio chunk in milliseconds.
         display_text (str, optional): Text to be displayed with the audio.
-        expression_list (list, optional): List of expressions associated with the audio.
+        actions (Actions, optional): Actions associated with the audio.
 
     Returns:
         dict: The audio payload to be sent.
@@ -59,7 +59,7 @@ def prepare_audio_payload(
         "volumes": volumes,
         "slice_length": chunk_length_ms,
         "text": display_text,
-        "expressions": expression_list,
+        "actions": actions.to_dict() if actions else None,
     }
 
     return payload
