@@ -2,7 +2,7 @@ from datetime import datetime
 import uuid
 import json
 import asyncio
-from typing import AsyncIterator, List, Tuple
+from typing import AsyncIterator, List
 import numpy as np
 from loguru import logger
 from fastapi import WebSocket

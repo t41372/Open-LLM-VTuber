@@ -1,12 +1,11 @@
 from typing import AsyncIterator, List, Dict, Any, Callable
 from loguru import logger
 
-from ..sentence_divider import SentenceDivider
 from .agent_interface import AgentInterface
-from ..output_types import SentenceOutput, Actions
+from ..output_types import SentenceOutput
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from ...chat_history_manager import get_history
-from ..transformers import sentence_divider, action_extractor, tts_filter, display_processor
+from ..transformers import sentence_divider, actions_extractor, tts_filter, display_processor
 
 class BasicMemoryAgent(AgentInterface):
     """
@@ -41,6 +40,8 @@ class BasicMemoryAgent(AgentInterface):
         super().__init__()
         self._memory = []
         self._live2d_model = live2d_model
+        self._faster_first_response = faster_first_response
+        self._segment_method = segment_method
         self._set_llm(llm)
         self.set_system(system)
         logger.info("BasicMemoryAgent initialized.")
@@ -130,13 +131,13 @@ class BasicMemoryAgent(AgentInterface):
         Create the chat pipeline with transformers
         
         The pipeline:
-        LLM tokens -> sentence_divider -> action_extractor -> tts_filter -> display_processor
+        LLM tokens -> sentence_divider -> actions_extractor -> tts_filter -> display_processor
         """
 
         @display_processor()
         @tts_filter()
-        @action_extractor(self._live2d_model)
-        @sentence_divider()
+        @actions_extractor(self._live2d_model)
+        @sentence_divider(faster_first_response=self._faster_first_response, segment_method=self._segment_method)
         async def chat_with_memory(prompt: str) -> AsyncIterator[str]:
             """
             Chat implementation with memory and processing pipeline

@@ -7,7 +7,7 @@ from loguru import logger
 from pathlib import Path
 
 from .agent_interface import AgentInterface
-from ..output_types import AgentOutputBase, AudioOutput, Actions
+from ..output_types import AudioOutput, Actions
 from ...chat_history_manager import get_metadata, update_metadate
 
 
@@ -51,11 +51,6 @@ class HumeAIAgent(AgentInterface):
         # Create cache directory if it doesn't exist
         self.cache_dir = Path("./cache")
         self.cache_dir.mkdir(exist_ok=True)
-
-    @property
-    def output_type(self) -> type[AgentOutputBase]:
-        """Return AudioOutput as this agent's output type"""
-        return AudioOutput
 
     async def connect(self, resume_chat_group_id: Optional[str] = None):
         """
@@ -158,7 +153,7 @@ class HumeAIAgent(AgentInterface):
             asyncio.create_task(self._ws.close())
             self._connected = False
 
-    async def chat(self, prompt: str) -> AsyncIterator[AgentOutputBase]:
+    async def chat(self, prompt: str) -> AsyncIterator[AudioOutput]:
         """
         Chat with Hume AI and get audio response
         
@@ -166,7 +161,7 @@ class HumeAIAgent(AgentInterface):
             prompt: User input text
             
         Returns:
-            AsyncIterator[AgentOutputBase]: Stream of AudioOutput objects
+            AsyncIterator[AudioOutput]: Stream of AudioOutput objects
         """
         try:
             self._reset_idle_timer()

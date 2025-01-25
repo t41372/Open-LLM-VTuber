@@ -3,20 +3,23 @@ from functools import wraps
 from .output_types import Actions, SentenceOutput
 from ..utils.tts_preprocessor import tts_filter as filter_text
 from ..live2d_model import Live2dModel
+from .sentence_divider import SentenceDivider
 
-def sentence_divider(segment_method: str = "pysbd"):
+def sentence_divider(faster_first_response: bool = True, segment_method: str = "pysbd"):
     """
     Decorator that transforms token stream into sentences
     
     Args:
+        faster_first_response: Whether to respond faster
         segment_method: Method to use for sentence segmentation
     """
     def decorator(func: Callable[..., AsyncIterator[str]]) -> Callable[..., AsyncIterator[str]]:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> AsyncIterator[str]:
-            from ..agent.sentence_divider import SentenceDivider
-            
-            divider = SentenceDivider(segment_method=segment_method)
+            divider = SentenceDivider(
+                faster_first_response=faster_first_response,
+                segment_method=segment_method
+            )
             token_stream = func(*args, **kwargs)
             
             async for sentence in divider.process_stream(token_stream):
@@ -25,7 +28,7 @@ def sentence_divider(segment_method: str = "pysbd"):
         return wrapper
     return decorator
 
-def action_extractor(live2d_model: Live2dModel):
+def actions_extractor(live2d_model: Live2dModel):
     """
     Decorator that extracts actions from sentences
     
