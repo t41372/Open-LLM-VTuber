@@ -173,24 +173,27 @@ def filter_parentheses(text: str) -> str:
 
 def filter_asterisks(text):
     """
-    Removes text enclosed within single asterisks (*) from a string.
+    Removes text enclosed within both single (*) and double (**) asterisks from a string.
 
     Args:
       text: The input string.
 
     Returns:
       The string with asterisk-enclosed text removed.
+
+    Examples:
+        >>> filter_asterisks("Mix of *single* and **double** asterisks")
+        'Mix of  and  asterisks'
     """
-
-    # Use a regular expression to find and replace text within asterisks.
-    # The regex pattern `\*([^*]+)\*` matches:
-    #   \*     - A literal asterisk
-    #   (      - Start of a capturing group
-    #   [^*]+ - One or more characters that are NOT asterisks
-    #   )      - End of the capturing group
-    #   \*     - A literal asterisk
-    # The replacement string is an empty string, effectively removing the matched text.
-    # re.DOTALL flag is not needed here as we explicitly exclude asterisks in the character set.
-
-    filtered_text = re.sub(r"\*([^*]+)\*", "", text)
+    # First remove double asterisks pattern
+    # \*\*([^*]+)\*\* matches text between double asterisks
+    filtered_text = re.sub(r"\*\*([^*]+)\*\*", "", text)
+    
+    # Then remove single asterisks pattern
+    # \*([^*]+)\* matches text between single asterisks
+    filtered_text = re.sub(r"\*([^*]+)\*", "", filtered_text)
+    
+    # Clean up any extra spaces
+    filtered_text = re.sub(r"\s+", " ", filtered_text).strip()
+    
     return filtered_text

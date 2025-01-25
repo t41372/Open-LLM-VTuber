@@ -191,6 +191,8 @@ class ServiceContext:
                 agent_settings=agent_config.agent_settings.model_dump(),
                 llm_configs=agent_config.llm_configs.model_dump(),
                 system_prompt=system_prompt,
+                live2d_model=self.live2d_model,
+                tts_preprocessor_config=self.character_config.tts_preprocessor_config,
             )
 
             logger.debug(f"Agent choice: {agent_config.conversation_agent_choice}")

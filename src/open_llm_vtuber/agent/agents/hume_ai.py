@@ -1,18 +1,21 @@
 import asyncio
 import base64
-from typing import AsyncIterator, Tuple, Optional
-
+from typing import AsyncIterator, Optional
 import json
 import websockets
 from loguru import logger
 from pathlib import Path
 
-from .agent_interface import AgentInterface, AgentOutputType
+from .agent_interface import AgentInterface
+from ..output_types import AudioOutput, Actions
 from ...chat_history_manager import get_metadata, update_metadate
 
 
 class HumeAIAgent(AgentInterface):
-    """Hume AI Agent that handles text input and audio output"""
+    """
+    Hume AI Agent that handles text input and audio output.
+    Uses AudioOutput type to provide audio responses with transcripts.
+    """
 
     AGENT_TYPE = "hume_ai_agent"
 
@@ -23,6 +26,15 @@ class HumeAIAgent(AgentInterface):
         config_id: Optional[str] = None,
         idle_timeout: int = 15,
     ):
+        """
+        Initialize Hume AI agent
+        
+        Args:
+            api_key: Hume AI API key
+            host: API host
+            config_id: Optional configuration ID
+            idle_timeout: Connection idle timeout in seconds
+        """
         self.api_key = api_key
         self.host = host
         self.config_id = config_id
@@ -41,7 +53,12 @@ class HumeAIAgent(AgentInterface):
         self.cache_dir.mkdir(exist_ok=True)
 
     async def connect(self, resume_chat_group_id: Optional[str] = None):
-        """Establish WebSocket connection with optional chat group resumption"""
+        """
+        Establish WebSocket connection with optional chat group resumption
+        
+        Args:
+            resume_chat_group_id: Optional chat group ID to resume
+        """
         if self._ws:
             await self._ws.close()
             self._ws = None
@@ -102,7 +119,13 @@ class HumeAIAgent(AgentInterface):
             await self.connect(self._chat_group_id)
 
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
-        """Set chat group ID based on history"""
+        """
+        Set chat group ID based on history
+        
+        Args:
+            conf_uid: Configuration ID
+            history_uid: History ID
+        """
         self._current_conf_uid = conf_uid
         self._current_history_uid = history_uid
 
@@ -130,12 +153,16 @@ class HumeAIAgent(AgentInterface):
             asyncio.create_task(self._ws.close())
             self._connected = False
 
-    @property
-    def output_type(self) -> AgentOutputType:
-        return AgentOutputType.AUDIO_TEXT
-
-    async def chat(self, prompt: str) -> AsyncIterator[Tuple[str, str]]:
-        """Chat with Hume AI and get audio response"""
+    async def chat(self, prompt: str) -> AsyncIterator[AudioOutput]:
+        """
+        Chat with Hume AI and get audio response
+        
+        Args:
+            prompt: User input text
+            
+        Returns:
+            AsyncIterator[AudioOutput]: Stream of AudioOutput objects
+        """
         try:
             self._reset_idle_timer()
             await self._ensure_connection()
@@ -167,7 +194,14 @@ class HumeAIAgent(AgentInterface):
                                 f.write(audio_data)
                                 logger.debug(f"Saved audio to cache file: {cache_file}")
 
-                            yield str(cache_file), self._current_text
+                            # Create AudioOutput with empty Actions
+                            yield AudioOutput(
+                                audio_path=str(cache_file),
+                                display_text=self._current_text,
+                                transcript=self._current_text,
+                                actions=Actions()
+                            )
+                            
                             self._current_text = None
                             self._current_id = None
 
@@ -193,6 +227,7 @@ class HumeAIAgent(AgentInterface):
             raise
 
     def handle_interrupt(self, heard_response: str) -> None:
+        """Handle user interruption (not implemented for Hume AI)"""
         pass
 
     async def __del__(self):
