@@ -15,6 +15,7 @@ class AgentFactory:
         llm_configs: dict,
         system_prompt: str,
         live2d_model=None,
+        tts_preprocessor_config=None,
         **kwargs,
     ) -> Type[AgentInterface]:
         """Create an agent based on the configuration.
@@ -25,6 +26,7 @@ class AgentFactory:
             llm_configs: Pool of LLM configurations
             system_prompt: The system prompt to use
             live2d_model: Live2D model instance for expression extraction
+            tts_preprocessor_config: Configuration for TTS preprocessing
             **kwargs: Additional arguments
         """
         logger.info(f"Initializing agent: {conversation_agent_choice}")
@@ -54,6 +56,7 @@ class AgentFactory:
                 llm=llm,
                 system=system_prompt,
                 live2d_model=live2d_model,
+                tts_preprocessor_config=tts_preprocessor_config,
                 faster_first_response=basic_memory_settings.get(
                     "faster_first_response", True
                 ),

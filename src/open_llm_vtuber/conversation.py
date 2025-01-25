@@ -8,12 +8,10 @@ from loguru import logger
 from fastapi import WebSocket
 
 from .live2d_model import Live2dModel
-from .config_manager.tts_preprocessor import TTSPreprocessorConfig
 from .asr.asr_interface import ASRInterface
 from .agent.agents.agent_interface import AgentInterface
 from .agent.output_types import AgentOutputBase, SentenceOutput, AudioOutput, Actions
 from .tts.tts_interface import TTSInterface
-from .translate.translate_interface import TranslateInterface
 
 from .utils.stream_audio import prepare_audio_payload
 from .chat_history_manager import store_message
@@ -106,8 +104,6 @@ async def conversation_chain(
     agent_engine: AgentInterface,
     tts_engine: TTSInterface,
     live2d_model: Live2dModel,
-    tts_preprocessor_config: TTSPreprocessorConfig,
-    translate_engine: TranslateInterface | None,
     websocket_send: WebSocket.send,
     conf_uid: str = "",
     history_uid: str = "",

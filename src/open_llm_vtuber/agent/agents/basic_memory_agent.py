@@ -6,6 +6,7 @@ from ..output_types import SentenceOutput
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from ...chat_history_manager import get_history
 from ..transformers import sentence_divider, actions_extractor, tts_filter, display_processor
+from ...config_manager import TTSPreprocessorConfig
 
 class BasicMemoryAgent(AgentInterface):
     """
@@ -24,6 +25,7 @@ class BasicMemoryAgent(AgentInterface):
         llm: StatelessLLMInterface,
         system: str,
         live2d_model,
+        tts_preprocessor_config: TTSPreprocessorConfig = None,
         faster_first_response: bool = True,
         segment_method: str = "pysbd",
     ):
@@ -34,12 +36,14 @@ class BasicMemoryAgent(AgentInterface):
             llm: StatelessLLMInterface - The LLM to use
             system: str - System prompt
             live2d_model: Live2dModel - Model for expression extraction
+            tts_preprocessor_config: TTSPreprocessorConfig - Configuration for TTS preprocessing
             faster_first_response: bool - Whether to enable faster first response
             segment_method: str - Method for sentence segmentation
         """
         super().__init__()
         self._memory = []
         self._live2d_model = live2d_model
+        self._tts_preprocessor_config = tts_preprocessor_config
         self._faster_first_response = faster_first_response
         self._segment_method = segment_method
         self._set_llm(llm)
@@ -82,7 +86,6 @@ class BasicMemoryAgent(AgentInterface):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
         messages = get_history(conf_uid, history_uid)
-
 
         self._memory = []
         self._memory.append(
@@ -131,13 +134,16 @@ class BasicMemoryAgent(AgentInterface):
         Create the chat pipeline with transformers
         
         The pipeline:
-        LLM tokens -> sentence_divider -> actions_extractor -> tts_filter -> display_processor
+        LLM tokens -> sentence_divider -> actions_extractor -> display_processor -> tts_filter
         """
-
+        
+        @tts_filter(self._tts_preprocessor_config)
         @display_processor()
-        @tts_filter()
         @actions_extractor(self._live2d_model)
-        @sentence_divider(faster_first_response=self._faster_first_response, segment_method=self._segment_method)
+        @sentence_divider(
+            faster_first_response=self._faster_first_response,
+            segment_method=self._segment_method,
+        )
         async def chat_with_memory(prompt: str) -> AsyncIterator[str]:
             """
             Chat implementation with memory and processing pipeline
