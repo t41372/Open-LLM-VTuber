@@ -6,15 +6,13 @@ from loguru import logger
 
 
 class TTSInterface(metaclass=abc.ABCMeta):
-    
-    
     async def async_generate_audio(self, text: str, file_name_no_ext=None) -> str:
         """
         Asynchronously generate speech audio file using TTS.
-        
+
         By default, this runs the synchronous generate_audio in a coroutine.
         Subclasses can override this method to provide true async implementation.
-        
+
         text: str
             the text to speak
         file_name_no_ext (optional and deprecated): str
@@ -59,7 +57,6 @@ class TTSInterface(metaclass=abc.ABCMeta):
             os.remove(filepath)
         except Exception as e:
             logger.error(f"Failed to remove file {filepath}: {e}")
-        
 
     def generate_cache_file_name(self, file_name_no_ext=None, file_extension="wav"):
         """

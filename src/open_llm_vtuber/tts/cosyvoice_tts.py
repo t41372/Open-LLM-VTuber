@@ -4,7 +4,6 @@ from .tts_interface import TTSInterface
 
 
 class TTSEngine(TTSInterface):
-
     def __init__(
         self,
         client_url="http://127.0.0.1:50000/",
@@ -29,7 +28,6 @@ class TTSEngine(TTSInterface):
         self.api_name = api_name
 
     def generate_audio(self, text, file_name_no_ext=None):
-
         if file_name_no_ext is not None:
             logger.warning(
                 "Warning: customizing the temp file name with file_name_no_ext is not supported by cosyvoiceTTS and will be ignored."

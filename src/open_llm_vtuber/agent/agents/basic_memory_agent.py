@@ -2,10 +2,7 @@ from typing import AsyncIterator, List, Dict, Any, Callable
 
 from loguru import logger
 
-from ..sentence_divider import (
-
-    SentenceDivider
-)
+from ..sentence_divider import SentenceDivider
 from .agent_interface import AgentInterface, AgentOutputType
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from ...chat_history_manager import get_history
@@ -32,8 +29,7 @@ class BasicMemoryAgent(AgentInterface):
     ):
         super().__init__()
         self.sentence_divider = SentenceDivider(
-            faster_first_response=faster_first_response,
-            segment_method=segment_method
+            faster_first_response=faster_first_response, segment_method=segment_method
         )
         self._memory = []
         self._set_llm(llm)
@@ -82,7 +78,7 @@ class BasicMemoryAgent(AgentInterface):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
         messages = get_history(conf_uid, history_uid)
-        
+
         self._memory = []
         self._memory.append(
             {
@@ -156,7 +152,7 @@ class BasicMemoryAgent(AgentInterface):
             # Process the response stream
             token_stream = chat_func(self._memory, self._system)
             complete_response = ""
-            
+
             async for sentence in self.sentence_divider.process_stream(token_stream):
                 yield sentence
                 complete_response = sentence

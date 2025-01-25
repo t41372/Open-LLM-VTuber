@@ -335,7 +335,6 @@ class TTSConfig(I18nMixin):
 
     @model_validator(mode="after")
     def check_tts_config(cls, values: "TTSConfig", info: ValidationInfo):
-
         tts_model = values.tts_model
 
         # Only validate the selected TTS model

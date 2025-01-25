@@ -13,6 +13,7 @@ import urllib.request
 
 class InstallationManager:
     """Class to manage the installation of dependencies"""
+
     def __init__(self):
         self.root_dir = Path.cwd()
         self.conda_dir = self.root_dir / "conda"

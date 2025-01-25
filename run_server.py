@@ -44,7 +44,9 @@ def init_logger(console_log_level: str = "INFO") -> None:
 def parse_args():
     parser = argparse.ArgumentParser(description="Open-LLM-VTuber Server")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
-    parser.add_argument("--hf_mirror", action="store_true", help="Use Hugging Face mirror")
+    parser.add_argument(
+        "--hf_mirror", action="store_true", help="Use Hugging Face mirror"
+    )
     return parser.parse_args()
 
 

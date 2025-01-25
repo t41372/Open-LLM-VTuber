@@ -83,7 +83,7 @@ def download_and_extract(url: str, output_dir: str) -> Path:
     response = requests.get(url, stream=True)
     response.raise_for_status()  # Raise an error for bad status codes
     total_size = int(response.headers.get("content-length", 0))
-    logger.debug(f"Total file size: {total_size/1024/1024:.2f} MB")
+    logger.debug(f"Total file size: {total_size / 1024 / 1024:.2f} MB")
 
     with (
         open(file_path, "wb") as f,

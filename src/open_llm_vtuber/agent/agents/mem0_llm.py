@@ -9,6 +9,7 @@ from mem0 import Memory
 from .agent_interface import AgentInterface, AgentOutputType
 from ...chat_history_manager import get_history
 
+
 class LLM(AgentInterface):
     def __init__(
         self,
@@ -29,7 +30,7 @@ class LLM(AgentInterface):
         self.mem0_config = mem0_config
         self.user_id = user_id
         self.verbose = verbose
-        
+
         self.client = OpenAI(
             base_url=base_url,
             organization=organization_id,
@@ -48,7 +49,7 @@ class LLM(AgentInterface):
         self.mem0 = Memory.from_config(self.mem0_config)
         logger.debug("Memory Initialized...")
 
-    @property 
+    @property
     def output_type(self) -> AgentOutputType:
         return AgentOutputType.RAW_LLM
 
@@ -60,7 +61,7 @@ class LLM(AgentInterface):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load agent memory from chat history"""
         messages = get_history(conf_uid, history_uid)
-        
+
         # Keep system message
         system_message = next(
             (msg for msg in self.conversation_memory if msg["role"] == "system"), None
@@ -71,19 +72,25 @@ class LLM(AgentInterface):
 
         # Add history messages
         for msg in messages:
-            self.conversation_memory.append({
-                "role": "user" if msg["role"] == "human" else "assistant",
-                "content": msg["content"]
-            })
-            
+            self.conversation_memory.append(
+                {
+                    "role": "user" if msg["role"] == "human" else "assistant",
+                    "content": msg["content"],
+                }
+            )
+
             # Also add to mem0
-            self.mem0.add([{
-                "role": "user" if msg["role"] == "human" else "assistant",
-                "content": msg["content"]
-            }], user_id=self.user_id)
+            self.mem0.add(
+                [
+                    {
+                        "role": "user" if msg["role"] == "human" else "assistant",
+                        "content": msg["content"],
+                    }
+                ],
+                user_id=self.user_id,
+            )
 
     def chat_iter(self, prompt: str) -> Iterator[str]:
-
         logger.debug("All Mem:")
         logger.debug(self.mem0.get_all(user_id=self.user_id))
 

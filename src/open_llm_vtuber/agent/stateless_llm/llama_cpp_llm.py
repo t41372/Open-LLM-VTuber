@@ -32,9 +32,7 @@ class LLM(StatelessLLMInterface):
             raise
 
     async def chat_completion(
-        self, 
-        messages: List[Dict[str, Any]],
-        system: str = None
+        self, messages: List[Dict[str, Any]], system: str = None
     ) -> AsyncIterator[str]:
         """
         Generates a chat completion using llama.cpp asynchronously.
@@ -54,7 +52,7 @@ class LLM(StatelessLLMInterface):
             if system:
                 messages_with_system = [
                     {"role": "system", "content": system},
-                    *messages
+                    *messages,
                 ]
 
             # Create chat completion in a separate thread to avoid blocking

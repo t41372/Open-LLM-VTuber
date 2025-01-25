@@ -1,6 +1,5 @@
 import os
 import json
-import asyncio
 
 from loguru import logger
 from fastapi import WebSocket
@@ -280,7 +279,9 @@ class ServiceContext:
             else:
                 # Load alternative config and merge with base config
                 characters_dir = self.system_config.config_alts_dir
-                file_path = os.path.normpath(os.path.join(characters_dir, config_file_name))
+                file_path = os.path.normpath(
+                    os.path.join(characters_dir, config_file_name)
+                )
                 if not file_path.startswith(characters_dir):
                     raise ValueError("Invalid configuration file path")
 
@@ -299,7 +300,9 @@ class ServiceContext:
                 new_config = validate_config(new_config)
                 self.load_from_config(new_config)
                 logger.debug(f"New config: {self}")
-                logger.debug(f"New character config: {self.character_config.model_dump()}")
+                logger.debug(
+                    f"New character config: {self.character_config.model_dump()}"
+                )
 
                 # Send responses to client
                 await websocket.send_text(

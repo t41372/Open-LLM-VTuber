@@ -34,9 +34,9 @@ class VoiceRecognition(ASRInterface):
 
     def _create_speech_recognizer(self, uses_default_microphone: bool = True):
         logger.debug(f"Sub: {self.subscription_key}, Reg: {self.region}")
-        assert isinstance(
-            self.subscription_key, str
-        ), "subscription_key must be a string"
+        assert isinstance(self.subscription_key, str), (
+            "subscription_key must be a string"
+        )
 
         audio_config = speechsdk.AudioConfig(
             use_default_microphone=uses_default_microphone
