@@ -81,14 +81,14 @@ class TTSFactory:
 
         elif engine_type == "coqui_tts":
             from .coqui_tts import TTSEngine as CoquiTTSEngine
-            
+
             return CoquiTTSEngine(
                 model_name=kwargs.get("model_name"),
                 speaker_wav=kwargs.get("speaker_wav"),
                 language=kwargs.get("language"),
                 device=kwargs.get("device"),
             )
-            
+
         elif engine_type == "fish_api_tts":
             from .fish_api_tts import TTSEngine as FishAPITTSEngine
 
@@ -102,7 +102,7 @@ class TTSFactory:
             from .sherpa_onnx_tts import TTSEngine as SherpaOnnxTTSEngine
 
             return SherpaOnnxTTSEngine(**kwargs)
-            
+
         else:
             raise ValueError(f"Unknown TTS engine type: {engine_type}")
 

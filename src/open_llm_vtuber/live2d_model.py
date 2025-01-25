@@ -45,7 +45,9 @@ class Live2dModel:
         """
 
         self.model_info: dict = self._lookup_model_info(model_name)
-        self.emo_map: dict = {k.lower(): v for k, v in self.model_info["emotionMap"].items()}
+        self.emo_map: dict = {
+            k.lower(): v for k, v in self.model_info["emotionMap"].items()
+        }
         self.emo_str: str = " ".join([f"[{key}]," for key in self.emo_map.keys()])
         # emo_str is a string of the keys in the emoMap dictionary. The keys are enclosed in square brackets.
         # example: `"[fear], [anger], [disgust], [sadness], [joy], [neutral], [surprise]"`

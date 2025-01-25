@@ -24,7 +24,7 @@ class TTSEngine(TTSInterface):
         Args:
             api_key (str): The API key for the Fish TTS API.
 
-            reference_id (str): The reference ID for the voice to be used. 
+            reference_id (str): The reference ID for the voice to be used.
                 Get it on the [Fish Audio website](https://fish.audio/).
 
             latency (str): Either "normal" or "balanced". balance is faster but lower quality.
@@ -32,8 +32,10 @@ class TTSEngine(TTSInterface):
             base_url (str): The base URL for the Fish TTS API.
 
         """
-        
-        logger.info(f"\nFish TTS API initialized with api key: {api_key} baseurl: {base_url} reference_id: {reference_id}, latency: {latency}")
+
+        logger.info(
+            f"\nFish TTS API initialized with api key: {api_key} baseurl: {base_url} reference_id: {reference_id}, latency: {latency}"
+        )
 
         self.reference_id = reference_id
         self.latency = latency

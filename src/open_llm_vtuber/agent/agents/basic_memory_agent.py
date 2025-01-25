@@ -82,6 +82,7 @@ class BasicMemoryAgent(AgentInterface):
         """Load the memory from chat history"""
         messages = get_history(conf_uid, history_uid)
 
+
         self._memory = []
         self._memory.append(
             {

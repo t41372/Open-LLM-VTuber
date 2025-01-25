@@ -33,7 +33,7 @@ class TTSEngine(TTSInterface):
 
     def generate_audio(self, text, file_name_no_ext=None):
         file_name = self.generate_cache_file_name(file_name_no_ext, self.media_type)
-        cleaned_text = re.sub(r'\[.*?\]', '', text)
+        cleaned_text = re.sub(r"\[.*?\]", "", text)
         # Prepare the data for the POST request
         data = {
             "text": cleaned_text,
@@ -45,7 +45,7 @@ class TTSEngine(TTSInterface):
             "batch_size": self.batch_size,
             "media_type": self.media_type,
             "streaming_mode": self.streaming_mode,
-         }
+        }
 
         # Send POST request to the TTS API
         response = requests.get(self.api_url, params=data, timeout=120)

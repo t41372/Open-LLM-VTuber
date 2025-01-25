@@ -9,6 +9,7 @@ from .tts_interface import TTSInterface
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
+
 class TTSEngine(TTSInterface):
     def __init__(
         self,
@@ -37,7 +38,6 @@ class TTSEngine(TTSInterface):
         self.num_threads = num_threads
         self.speed = speed  # Speech speed
         self.debug = debug  # Debug mode flag
-
 
         self.file_extension = "wav"
         self.new_audio_dir = "cache"
@@ -93,7 +93,9 @@ class TTSEngine(TTSInterface):
             audio = self.tts.generate(text, sid=self.sid, speed=self.speed)
 
             if len(audio.samples) == 0:
-                logger.error("Error in generating audios. Please read previous error messages.")
+                logger.error(
+                    "Error in generating audios. Please read previous error messages."
+                )
                 return None
 
             sf.write(

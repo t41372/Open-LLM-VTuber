@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import uuid
 from datetime import datetime
@@ -12,11 +13,48 @@ class HistoryMessage(TypedDict):
     content: str
 
 
+def _is_safe_filename(filename: str) -> bool:
+    """Validate filename for safety and allowed characters"""
+    if not filename or len(filename) > 255:
+        return False
+
+    # Allow alphanumeric, hyphen, underscore, and common unicode characters
+    # Block any filesystem special characters, control characters, and path separators
+    pattern = re.compile(r"^[\w\-_\u0020-\u007E\u00A0-\uFFFF]+$")
+    return bool(pattern.match(filename))
+
+
+def _sanitize_path_component(component: str) -> str:
+    """Sanitize and validate a path component"""
+    # Remove any path components, get just the basename
+    sanitized = os.path.basename(component.strip())
+
+    if not _is_safe_filename(sanitized):
+        raise ValueError(f"Invalid characters in path component: {component}")
+
+    return sanitized
+
+
 def _ensure_conf_dir(conf_uid: str) -> str:
     """Ensure the directory for a specific conf exists and return its path"""
-    base_dir = os.path.join("chat_history", conf_uid)
+    if not conf_uid:
+        raise ValueError("conf_uid cannot be empty")
+
+    safe_conf_uid = _sanitize_path_component(conf_uid)
+    base_dir = os.path.join("chat_history", safe_conf_uid)
     os.makedirs(base_dir, exist_ok=True)
     return base_dir
+
+
+def _get_safe_history_path(conf_uid: str, history_uid: str) -> str:
+    """Get sanitized path for history file"""
+    safe_conf_uid = _sanitize_path_component(conf_uid)
+    safe_history_uid = _sanitize_path_component(history_uid)
+    base_dir = os.path.join("chat_history", safe_conf_uid)
+    full_path = os.path.normpath(os.path.join(base_dir, f"{safe_history_uid}.json"))
+    if not full_path.startswith(base_dir):
+        raise ValueError("Invalid path: Path traversal detected")
+    return full_path
 
 
 def create_new_history(conf_uid: str) -> str:
@@ -25,8 +63,10 @@ def create_new_history(conf_uid: str) -> str:
         logger.warning("No conf_uid provided")
         return ""
 
-    history_uid = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{str(uuid.uuid4())}"
-    conf_dir = _ensure_conf_dir(conf_uid)
+    # Use uuid.uuid4().hex to generate a UUID without hyphens
+    # New format: UUID_YYYY-MM-DD_HH-MM-SS
+    history_uid = f"{uuid.uuid4().hex}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    conf_dir = _ensure_conf_dir(conf_uid)  # conf_uid is sanitized here
 
     # Create history file with empty metadata
     try:
@@ -58,8 +98,7 @@ def store_message(
             logger.warning("Missing history_uid")
         return
 
-    conf_dir = _ensure_conf_dir(conf_uid)
-    filepath = os.path.join(conf_dir, f"{history_uid}.json")
+    filepath = _get_safe_history_path(conf_uid, history_uid)
     logger.debug(f"Storing {role} message to {filepath}")
 
     history_data = []
@@ -89,7 +128,7 @@ def get_metadata(conf_uid: str, history_uid: str) -> dict:
     if not conf_uid or not history_uid:
         return {}
 
-    filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    filepath = _get_safe_history_path(conf_uid, history_uid)
     if not os.path.exists(filepath):
         return {}
 
@@ -113,7 +152,7 @@ def update_metadate(conf_uid: str, history_uid: str, metadata: dict) -> bool:
     if not conf_uid or not history_uid:
         return False
 
-    filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    filepath = _get_safe_history_path(conf_uid, history_uid)
     if not os.path.exists(filepath):
         return False
 
@@ -152,7 +191,7 @@ def get_history(conf_uid: str, history_uid: str) -> List[HistoryMessage]:
             logger.warning("Missing history_uid")
         return []
 
-    filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    filepath = _get_safe_history_path(conf_uid, history_uid)
 
     if not os.path.exists(filepath):
         logger.warning(f"History file not found: {filepath}")
@@ -173,7 +212,7 @@ def delete_history(conf_uid: str, history_uid: str) -> bool:
         logger.warning("Missing conf_uid or history_uid")
         return False
 
-    filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    filepath = _get_safe_history_path(conf_uid, history_uid)
     try:
         if os.path.exists(filepath):
             os.remove(filepath)
@@ -256,7 +295,7 @@ def modify_latest_message(
         logger.warning("Missing conf_uid or history_uid")
         return False
 
-    filepath = os.path.join("chat_history", conf_uid, f"{history_uid}.json")
+    filepath = _get_safe_history_path(conf_uid, history_uid)
     if not os.path.exists(filepath):
         logger.warning(f"History file not found: {filepath}")
         return False
@@ -296,8 +335,8 @@ def rename_history_file(
         logger.warning("Missing required parameters for rename")
         return False
 
-    old_filepath = os.path.join("chat_history", conf_uid, f"{old_history_uid}.json")
-    new_filepath = os.path.join("chat_history", conf_uid, f"{new_history_uid}.json")
+    old_filepath = _get_safe_history_path(conf_uid, old_history_uid)
+    new_filepath = _get_safe_history_path(conf_uid, new_history_uid)
 
     try:
         if os.path.exists(old_filepath):

@@ -57,9 +57,7 @@ class AgentFactory:
                 faster_first_response=basic_memory_settings.get(
                     "faster_first_response", True
                 ),
-                segment_method=basic_memory_settings.get(
-                    "segment_method", "pysbd"
-                ),
+                segment_method=basic_memory_settings.get("segment_method", "pysbd"),
             )
 
         elif conversation_agent_choice == "mem0_agent":

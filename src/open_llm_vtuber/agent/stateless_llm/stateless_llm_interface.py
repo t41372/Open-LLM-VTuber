@@ -20,9 +20,7 @@ class StatelessLLMInterface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def chat_completion(
-        self, 
-        messages: List[Dict[str, Any]],
-        system: str = None
+        self, messages: List[Dict[str, Any]], system: str = None
     ) -> AsyncIterator[str]:
         """
         Generates a chat completion asynchronously and return an iterator to the response.
@@ -36,7 +34,7 @@ class StatelessLLMInterface(metaclass=abc.ABCMeta):
         - str: The content of each chunk from the API response.
 
         Raises:
-        - APIConnectionError: When the server cannot be reached 
+        - APIConnectionError: When the server cannot be reached
         - RateLimitError: When a 429 status code is received
         - APIError: For other API-related errors
         """

@@ -1,27 +1,75 @@
 import re
-from typing import List, Tuple, Optional, AsyncIterator
+from typing import List, Tuple, AsyncIterator
 import pysbd
 from loguru import logger
 from langdetect import detect
 
 # Constants for additional checks
 COMMAS = [
-    ",", "،", "，", "、", "፣", "၊", ";", "΄", "‛", 
-    "।", "﹐", "꓾", "⹁", "︐", "﹑", "､", "،",
+    ",",
+    "،",
+    "，",
+    "、",
+    "፣",
+    "၊",
+    ";",
+    "΄",
+    "‛",
+    "।",
+    "﹐",
+    "꓾",
+    "⹁",
+    "︐",
+    "﹑",
+    "､",
+    "،",
 ]
 
 END_PUNCTUATIONS = [".", "!", "?", "。", "！", "？", "...", "。。。"]
 ABBREVIATIONS = [
-    "Mr.", "Mrs.", "Dr.", "Prof.", "Inc.", "Ltd.", "Jr.", "Sr.",
-    "e.g.", "i.e.", "vs.", "St.", "Rd.", "Dr.",
+    "Mr.",
+    "Mrs.",
+    "Dr.",
+    "Prof.",
+    "Inc.",
+    "Ltd.",
+    "Jr.",
+    "Sr.",
+    "e.g.",
+    "i.e.",
+    "vs.",
+    "St.",
+    "Rd.",
+    "Dr.",
 ]
 
 # Set of languages directly supported by pysbd
 SUPPORTED_LANGUAGES = {
-    'am', 'ar', 'bg', 'da', 'de', 'el', 'en', 'es', 'fa', 
-    'fr', 'hi', 'hy', 'it', 'ja', 'kk', 'mr', 'my', 'nl',
-    'pl', 'ru', 'sk', 'ur', 'zh'
+    "am",
+    "ar",
+    "bg",
+    "da",
+    "de",
+    "el",
+    "en",
+    "es",
+    "fa",
+    "fr",
+    "hi",
+    "hy",
+    "it",
+    "ja",
+    "kk",
+    "mr",
+    "my",
+    "nl",
+    "pl",
+    "ru",
+    "sk",
+    "ur",
+    "zh",
 }
+
 
 def detect_language(text: str) -> str:
     """
@@ -31,48 +79,52 @@ def detect_language(text: str) -> str:
     try:
         detected = detect(text)
         return detected if detected in SUPPORTED_LANGUAGES else None
-    except:
+    except Exception as e:
+        logger.debug(f"Language detection failed, language not supported by pysdb: {e}")
         return None
+
 
 def is_complete_sentence(text: str) -> bool:
     """
     Check if text ends with sentence-ending punctuation and not abbreviation.
-    
+
     Args:
         text: Text to check
-        
+
     Returns:
         bool: Whether the text is a complete sentence
     """
     text = text.strip()
     if not text:
         return False
-        
+
     if any(text.endswith(abbrev) for abbrev in ABBREVIATIONS):
         return False
-        
+
     return any(text.endswith(punct) for punct in END_PUNCTUATIONS)
+
 
 def contains_comma(text: str) -> bool:
     """
     Check if text contains any comma.
-    
+
     Args:
         text: Text to check
-        
+
     Returns:
         bool: Whether the text contains a comma
     """
     return any(comma in text for comma in COMMAS)
 
+
 def comma_splitter(text: str) -> Tuple[str, str]:
     """
     Process text and split it at the first comma.
     Returns the split text (including the comma) and the remaining text.
-    
+
     Args:
         text: Text to split
-        
+
     Returns:
         Tuple[str, str]: (split text with comma, remaining text)
     """
@@ -170,12 +222,12 @@ def segment_text_by_pysbd(text: str) -> Tuple[List[str], str]:
     try:
         # Detect language
         lang = detect_language(text)
-        
+
         if lang is not None:
             # Use pysbd for supported languages
             segmenter = pysbd.Segmenter(language=lang, clean=False)
             sentences = segmenter.segment(text)
-            
+
             if not sentences:
                 return [], text
 
@@ -193,12 +245,14 @@ def segment_text_by_pysbd(text: str) -> Tuple[List[str], str]:
                 remaining = ""
             else:
                 remaining = last_sent
-                
+
         else:
             # Use regex for unsupported languages
             return segment_text_by_regex(text)
 
-        logger.debug(f"Processed sentences: {complete_sentences}, Remaining: {remaining}")
+        logger.debug(
+            f"Processed sentences: {complete_sentences}, Remaining: {remaining}"
+        )
         return complete_sentences, remaining
 
     except Exception as e:
@@ -206,13 +260,16 @@ def segment_text_by_pysbd(text: str) -> Tuple[List[str], str]:
         # Fallback to regex on any error
         return segment_text_by_regex(text)
 
+
 class SentenceDivider:
     """
     A class to handle sentence division logic for streaming text responses.
     Supports faster first response by splitting on commas and regular sentence segmentation.
     """
 
-    def __init__(self, faster_first_response: bool = True, segment_method: str = "pysbd"):
+    def __init__(
+        self, faster_first_response: bool = True, segment_method: str = "pysbd"
+    ):
         """
         Initialize the SentenceDivider.
 
@@ -247,25 +304,29 @@ class SentenceDivider:
         Yields:
             str: Complete sentences as they are formed
         """
-                
+
         self._full_response = []
         last_token_was_punct = False
 
         async for token in token_stream:
             self._buffer += token
             self._full_response.append(token)
-            
+
             # Skip processing if current token is punctuation
             if is_punctuation(token):
                 last_token_was_punct = True
                 continue
-                
+
             # Process buffer only after seeing punctuation followed by non-punctuation
             if last_token_was_punct:
                 last_token_was_punct = False
-                
+
                 # Process first sentence with comma if enabled
-                if self._is_first_sentence and self.faster_first_response and contains_comma(self._buffer):
+                if (
+                    self._is_first_sentence
+                    and self.faster_first_response
+                    and contains_comma(self._buffer)
+                ):
                     sentence, remaining = comma_splitter(self._buffer)
                     if sentence.strip():
                         yield sentence.strip()
@@ -280,7 +341,7 @@ class SentenceDivider:
                             yield sentence.strip()
                     self._buffer = remaining
                     self._is_first_sentence = False
-            
+
             # Also process if buffer gets too long
             elif len(self._buffer) >= 25:
                 sentences, remaining = self._segment_text(self._buffer)

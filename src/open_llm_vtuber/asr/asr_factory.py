@@ -53,6 +53,7 @@ class ASRFactory:
             )
         elif system_name == "sherpa_onnx_asr":
             from .sherpa_onnx_asr import VoiceRecognition as SherpaOnnxASR
+
             return SherpaOnnxASR(**kwargs)
         else:
             raise ValueError(f"Unknown ASR system: {system_name}")

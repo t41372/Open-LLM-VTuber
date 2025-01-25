@@ -9,6 +9,7 @@ from loguru import logger
 
 from .stateless_llm_interface import StatelessLLMInterface
 
+
 class AsyncLLM(StatelessLLMInterface):
     def __init__(
         self,
@@ -19,7 +20,7 @@ class AsyncLLM(StatelessLLMInterface):
     ):
         """
         Initialize Claude LLM.
-        
+
         Args:
             model (str): Model name
             base_url (str): Base URL for Claude API
@@ -28,20 +29,17 @@ class AsyncLLM(StatelessLLMInterface):
         """
         self.model = model
         self.system = system
-        
+
         # Initialize Claude client
         self.client = AsyncAnthropic(
-            api_key=llm_api_key,
-            base_url=base_url if base_url else None
+            api_key=llm_api_key, base_url=base_url if base_url else None
         )
-        
+
         logger.info(f"Initialized Claude AsyncLLM with model: {self.model}")
         logger.debug(f"Base URL: {base_url}")
 
     async def chat_completion(
-        self, 
-        messages: List[Dict[str, Any]],
-        system: str = None
+        self, messages: List[Dict[str, Any]], system: str = None
     ) -> AsyncIterator[str]:
         """
         Generates a chat completion using the Claude API asynchronously.
@@ -56,16 +54,16 @@ class AsyncLLM(StatelessLLMInterface):
         try:
             # Filter out system messages from the conversation as Claude doesn't support them in messages
             filtered_messages = [msg for msg in messages if msg["role"] != "system"]
-            
+
             logger.debug(f"Sending messages to Claude API: {filtered_messages}")
             stream: AsyncStream = await self.client.messages.create(
                 messages=filtered_messages,
                 system=system if system else (self.system if self.system else ""),
                 model=self.model,
                 max_tokens=1024,
-                stream=True
+                stream=True,
             )
-            
+
             async for chunk in stream:
                 if chunk.type == "content_block_delta":
                     if chunk.delta.text is None:
@@ -76,7 +74,7 @@ class AsyncLLM(StatelessLLMInterface):
             logger.error(f"Claude API error occurred: {str(e)}")
             logger.info(f"Model: {self.model}")
             raise
-        
+
         finally:
             logger.debug("Chat completion done.")
             await stream.close()

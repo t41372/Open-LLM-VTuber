@@ -71,7 +71,9 @@ class VoiceRecognition(ASRInterface):
         if self.provider == "cuda":
             try:
                 if "CUDAExecutionProvider" not in onnxruntime.get_available_providers():
-                    logger.warning("CUDA provider not available for ONNX. Falling back to CPU.")
+                    logger.warning(
+                        "CUDA provider not available for ONNX. Falling back to CPU."
+                    )
                     self.provider = "cpu"
             except ImportError:
                 logger.warning("ONNX Runtime not installed. Falling back to CPU.")
