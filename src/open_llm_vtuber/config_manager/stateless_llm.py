@@ -1,5 +1,5 @@
 # config_manager/llm.py
-from typing import Dict, ClassVar, Optional
+from typing import ClassVar
 from pydantic import BaseModel, Field
 from .i18n import I18nMixin, Description
 
@@ -14,7 +14,7 @@ class OpenAICompatibleConfig(I18nMixin):
     project_id: str | None = Field(None, alias="project_id")
     temperature: float = Field(1.0, alias="temperature")
 
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+    DESCRIPTIONS: ClassVar[dict[str, Description]] = {
         "base_url": Description(en="Base URL for the API endpoint", zh="API的URL端点"),
         "llm_api_key": Description(en="API key for authentication", zh="API 认证密钥"),
         "organization_id": Description(
@@ -58,12 +58,10 @@ class OllamaConfig(OpenAICompatibleConfig):
         ),
     }
 
-    @property
-    def DESCRIPTIONS(self) -> dict[str, Description]:
-        """Merge parent class descriptions with Ollama-specific ones."""
-        parent_descriptions = super().DESCRIPTIONS.copy()
-        parent_descriptions.update(self._OLLAMA_DESCRIPTIONS)
-        return parent_descriptions
+    DESCRIPTIONS: ClassVar[dict[str, Description]] = {
+        **OpenAICompatibleConfig.DESCRIPTIONS,
+        **_OLLAMA_DESCRIPTIONS,
+    }
 
 
 class OpenAIConfig(OpenAICompatibleConfig):
@@ -111,7 +109,7 @@ class ClaudeConfig(I18nMixin):
     llm_api_key: str = Field(..., alias="llm_api_key")
     model: str = Field(..., alias="model")
 
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+    DESCRIPTIONS: ClassVar[dict[str, Description]] = {
         "base_url": Description(
             en="Base URL for Claude API", zh="Claude API 的API端点"
         ),
@@ -127,7 +125,7 @@ class LlamaCppConfig(I18nMixin):
 
     model_path: str = Field(..., alias="model_path")
 
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+    DESCRIPTIONS: ClassVar[dict[str, Description]] = {
         "model_path": Description(
             en="Path to the GGUF model file", zh="GGUF 模型文件路径"
         ),
@@ -138,20 +136,20 @@ class StatelessLLMConfigs(I18nMixin, BaseModel):
     """Pool of LLM provider configurations.
     This class contains configurations for different LLM providers."""
 
-    openai_compatible_llm: Optional[OpenAICompatibleConfig] = Field(
+    openai_compatible_llm: OpenAICompatibleConfig | None = Field(
         None, alias="openai_compatible_llm"
     )
-    ollama_llm: Optional[OllamaConfig] = Field(None, alias="ollama_llm")
-    openai_llm: Optional[OpenAIConfig] = Field(None, alias="openai_llm")
-    gemini_llm: Optional[GeminiConfig] = Field(None, alias="gemini_llm")
-    zhipu_llm: Optional[ZhipuConfig] = Field(None, alias="zhipu_llm")
-    deepseek_llm: Optional[DeepseekConfig] = Field(None, alias="deepseek_llm")
-    groq_llm: Optional[GroqConfig] = Field(None, alias="groq_llm")
-    claude_llm: Optional[ClaudeConfig] = Field(None, alias="claude_llm")
-    llama_cpp_llm: Optional[LlamaCppConfig] = Field(None, alias="llama_cpp_llm")
-    mistral_llm: Optional[MistralConfig] = Field(None, alias="mistral_llm")
+    ollama_llm: OllamaConfig | None = Field(None, alias="ollama_llm")
+    openai_llm: OpenAIConfig | None = Field(None, alias="openai_llm")
+    gemini_llm: GeminiConfig | None = Field(None, alias="gemini_llm")
+    zhipu_llm: ZhipuConfig | None = Field(None, alias="zhipu_llm")
+    deepseek_llm: DeepseekConfig | None = Field(None, alias="deepseek_llm")
+    groq_llm: GroqConfig | None = Field(None, alias="groq_llm")
+    claude_llm: ClaudeConfig | None = Field(None, alias="claude_llm")
+    llama_cpp_llm: LlamaCppConfig | None = Field(None, alias="llama_cpp_llm")
+    mistral_llm: MistralConfig | None = Field(None, alias="mistral_llm")
 
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+    DESCRIPTIONS: ClassVar[dict[str, Description]] = {
         "openai_compatible_llm": Description(
             en="Configuration for OpenAI-compatible LLM providers",
             zh="OpenAI兼容的语言模型提供者配置",
