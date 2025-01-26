@@ -19,7 +19,7 @@ from .chat_history_manager import store_message
 
 class TTSTaskManager:
     """Manages TTS tasks and their sequential execution"""
-    
+
     def __init__(self):
         self.task_list: List[asyncio.Task] = []
         self.next_index_to_play: int = 0
@@ -40,7 +40,7 @@ class TTSTaskManager:
     ) -> None:
         """
         Generate and send audio for a sentence
-        
+
         Args:
             tts_text: Text to be spoken
             live2d_model: Live2D model instance
@@ -53,7 +53,9 @@ class TTSTaskManager:
             display_text = tts_text
 
         if not tts_text or not tts_text.strip():
-            logger.error(f'TTS receives "{tts_text}", which is empty. Nothing to speak.')
+            logger.error(
+                f'TTS receives "{tts_text}", which is empty. Nothing to speak.'
+            )
             return
 
         logger.debug(f"🏃Generating audio for '''{tts_text}'''...")
@@ -110,7 +112,7 @@ async def conversation_chain(
 ) -> str:
     """
     One iteration of the main conversation chain.
-    
+
     Args:
         user_input: User input (string or audio array)
         asr_engine: ASR engine instance
@@ -156,7 +158,7 @@ async def conversation_chain(
 
         # Process agent output
         agent_output: AsyncIterator[AgentOutputBase] = agent_engine.chat(user_input)
-        
+
         async for output in agent_output:
             if isinstance(output, SentenceOutput):
                 async for display_text, tts_text, actions in output:

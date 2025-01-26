@@ -28,7 +28,7 @@ class HumeAIAgent(AgentInterface):
     ):
         """
         Initialize Hume AI agent
-        
+
         Args:
             api_key: Hume AI API key
             host: API host
@@ -55,7 +55,7 @@ class HumeAIAgent(AgentInterface):
     async def connect(self, resume_chat_group_id: Optional[str] = None):
         """
         Establish WebSocket connection with optional chat group resumption
-        
+
         Args:
             resume_chat_group_id: Optional chat group ID to resume
         """
@@ -121,7 +121,7 @@ class HumeAIAgent(AgentInterface):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """
         Set chat group ID based on history
-        
+
         Args:
             conf_uid: Configuration ID
             history_uid: History ID
@@ -156,10 +156,10 @@ class HumeAIAgent(AgentInterface):
     async def chat(self, prompt: str) -> AsyncIterator[AudioOutput]:
         """
         Chat with Hume AI and get audio response
-        
+
         Args:
             prompt: User input text
-            
+
         Returns:
             AsyncIterator[AudioOutput]: Stream of AudioOutput objects
         """
@@ -199,9 +199,9 @@ class HumeAIAgent(AgentInterface):
                                 audio_path=str(cache_file),
                                 display_text=self._current_text,
                                 transcript=self._current_text,
-                                actions=Actions()
+                                actions=Actions(),
                             )
-                            
+
                             self._current_text = None
                             self._current_id = None
 

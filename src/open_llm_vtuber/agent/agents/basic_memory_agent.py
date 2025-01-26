@@ -5,8 +5,14 @@ from .agent_interface import AgentInterface
 from ..output_types import SentenceOutput
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from ...chat_history_manager import get_history
-from ..transformers import sentence_divider, actions_extractor, tts_filter, display_processor
+from ..transformers import (
+    sentence_divider,
+    actions_extractor,
+    tts_filter,
+    display_processor,
+)
 from ...config_manager import TTSPreprocessorConfig
+
 
 class BasicMemoryAgent(AgentInterface):
     """
@@ -31,7 +37,7 @@ class BasicMemoryAgent(AgentInterface):
     ):
         """
         Initialize the agent with LLM, system prompt and configuration
-        
+
         Args:
             llm: StatelessLLMInterface - The LLM to use
             system: str - System prompt
@@ -132,11 +138,11 @@ class BasicMemoryAgent(AgentInterface):
     ) -> Callable[..., AsyncIterator[SentenceOutput]]:
         """
         Create the chat pipeline with transformers
-        
+
         The pipeline:
         LLM tokens -> sentence_divider -> actions_extractor -> display_processor -> tts_filter
         """
-        
+
         @tts_filter(self._tts_preprocessor_config)
         @display_processor()
         @actions_extractor(self._live2d_model)
@@ -147,10 +153,10 @@ class BasicMemoryAgent(AgentInterface):
         async def chat_with_memory(prompt: str) -> AsyncIterator[str]:
             """
             Chat implementation with memory and processing pipeline
-            
+
             Args:
                 prompt: str - User input
-                
+
             Returns:
                 AsyncIterator[str] - Token stream from LLM
             """

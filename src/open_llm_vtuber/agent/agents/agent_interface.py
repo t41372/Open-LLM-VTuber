@@ -45,7 +45,7 @@ class AgentInterface(ABC):
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """
         Load the agent's working memory from chat history
-        
+
         Args:
             conf_uid: str - Configuration ID
             history_uid: str - History ID

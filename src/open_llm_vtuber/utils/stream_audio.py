@@ -3,6 +3,7 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 from ..agent.output_types import Actions
 
+
 def _get_volume_by_chunks(audio: AudioSegment, chunk_length_ms: int) -> list:
     """
     Calculate the normalized volume (RMS) for each chunk of the audio.

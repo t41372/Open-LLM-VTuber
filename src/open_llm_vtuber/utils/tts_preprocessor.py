@@ -188,12 +188,12 @@ def filter_asterisks(text):
     # First remove double asterisks pattern
     # \*\*([^*]+)\*\* matches text between double asterisks
     filtered_text = re.sub(r"\*\*([^*]+)\*\*", "", text)
-    
+
     # Then remove single asterisks pattern
     # \*([^*]+)\* matches text between single asterisks
     filtered_text = re.sub(r"\*([^*]+)\*", "", filtered_text)
-    
+
     # Clean up any extra spaces
     filtered_text = re.sub(r"\s+", " ", filtered_text).strip()
-    
+
     return filtered_text
