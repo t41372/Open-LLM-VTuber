@@ -41,8 +41,12 @@ class OllamaConfig(OpenAICompatibleConfig):
     keep_alive: float = Field(-1, alias="keep_alive")
     unload_at_exit: bool = Field(True, alias="unload_at_exit")
 
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "llm_api_key": Description(en="API key for authentication", zh="API 认证密钥"),
+    # Ollama-specific descriptions
+    _OLLAMA_DESCRIPTIONS: ClassVar[dict[str, Description]] = {
+        "llm_api_key": Description(
+            en="API key for authentication (defaults to 'default_api_key' for Ollama)",
+            zh="API 认证密钥 (Ollama 默认为 'default_api_key')",
+        ),
         "keep_alive": Description(
             en="Keep the model loaded for this many seconds after the last request. "
             "Set to -1 to keep the model loaded indefinitely.",
@@ -53,6 +57,13 @@ class OllamaConfig(OpenAICompatibleConfig):
             zh="是否在程序退出时卸载模型。",
         ),
     }
+
+    @property
+    def DESCRIPTIONS(self) -> dict[str, Description]:
+        """Merge parent class descriptions with Ollama-specific ones."""
+        parent_descriptions = super().DESCRIPTIONS.copy()
+        parent_descriptions.update(self._OLLAMA_DESCRIPTIONS)
+        return parent_descriptions
 
 
 class OpenAIConfig(OpenAICompatibleConfig):
