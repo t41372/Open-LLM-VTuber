@@ -111,20 +111,6 @@ class MeloTTSConfig(I18nMixin):
     }
 
 
-class PiperTTSConfig(I18nMixin):
-    """Configuration for Piper TTS."""
-
-    voice_model_path: str = Field(..., alias="voice_model_path")
-    verbose: bool = Field(False, alias="verbose")
-
-    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
-        "voice_model_path": Description(
-            en="Path to the voice model file", zh="语音模型文件路径"
-        ),
-        "verbose": Description(en="Enable verbose output", zh="启用详细输出"),
-    }
-
-
 class XTTSConfig(I18nMixin):
     """Configuration for XTTS."""
 
@@ -286,7 +272,6 @@ class TTSConfig(I18nMixin):
         "edge_tts",
         "cosyvoice_tts",
         "melo_tts",
-        "piper_tts",
         "coqui_tts",
         "x_tts",
         "gpt_sovits_tts",
@@ -299,7 +284,6 @@ class TTSConfig(I18nMixin):
     edge_tts: Optional[EdgeTTSConfig] = Field(None, alias="edge_tts")
     cosyvoice_tts: Optional[CosyvoiceTTSConfig] = Field(None, alias="cosyvoice_tts")
     melo_tts: Optional[MeloTTSConfig] = Field(None, alias="melo_tts")
-    piper_tts: Optional[PiperTTSConfig] = Field(None, alias="piper_tts")
     coqui_tts: Optional[CoquiTTSConfig] = Field(None, alias="coqui_tts")
     x_tts: Optional[XTTSConfig] = Field(None, alias="x_tts")
     gpt_sovits_tts: Optional[GPTSoVITSConfig] = Field(None, alias="gpt_sovits")
@@ -319,7 +303,6 @@ class TTSConfig(I18nMixin):
             en="Configuration for Cosyvoice TTS", zh="Cosyvoice TTS 配置"
         ),
         "melo_tts": Description(en="Configuration for Melo TTS", zh="Melo TTS 配置"),
-        "piper_tts": Description(en="Configuration for Piper TTS", zh="Piper TTS 配置"),
         "coqui_tts": Description(en="Configuration for Coqui TTS", zh="Coqui TTS 配置"),
         "x_tts": Description(en="Configuration for XTTS", zh="XTTS 配置"),
         "gpt_sovits_tts": Description(
@@ -348,8 +331,6 @@ class TTSConfig(I18nMixin):
             values.cosyvoice_tts.model_validate(values.cosyvoice_tts.model_dump())
         elif tts_model == "melo_tts" and values.melo_tts is not None:
             values.melo_tts.model_validate(values.melo_tts.model_dump())
-        elif tts_model == "piper_tts" and values.piper_tts is not None:
-            values.piper_tts.model_validate(values.piper_tts.model_dump())
         elif tts_model == "coqui_tts" and values.coqui_tts is not None:
             values.coqui_tts.model_validate(values.coqui_tts.model_dump())
         elif tts_model == "x_tts" and values.x_tts is not None:
