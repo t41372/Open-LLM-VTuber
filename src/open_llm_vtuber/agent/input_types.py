@@ -72,12 +72,12 @@ class BatchInput(BaseInput):
     Input type for batch processing, containing complete transcription and optional media
     
     Attributes:
-        texts: Dictionary of text data from different sources
-        images: Dictionary of images keyed by unique identifiers
-        files: List of files
+        texts: List of text data from different sources
+        images: Optional list of images
+        files: Optional list of files
     """
-    texts: Dict[str, TextData]
-    images: Optional[Dict[str, ImageData]] = None
+    texts: List[TextData]
+    images: Optional[List[ImageData]] = None
     files: Optional[List[FileData]] = None
 
 

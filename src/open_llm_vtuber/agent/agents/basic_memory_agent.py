@@ -1,4 +1,4 @@
-from typing import AsyncIterator, List, Dict, Any, Callable
+from typing import AsyncIterator, List, Dict, Any, Callable, Union
 from loguru import logger
 
 from .agent_interface import AgentInterface
@@ -12,6 +12,7 @@ from ..transformers import (
     display_processor,
 )
 from ...config_manager import TTSPreprocessorConfig
+from ..input_types import BatchInput, TextSource, ImageSource
 
 
 class BasicMemoryAgent(AgentInterface):
@@ -133,6 +134,78 @@ class BasicMemoryAgent(AgentInterface):
             }
         )
 
+    def _to_text_prompt(self, input_data: BatchInput) -> str:
+        """
+        Format BatchInput into a prompt string for the LLM.
+        
+        Args:
+            input_data: BatchInput - The input data containing texts and images
+            
+        Returns:
+            str - Formatted message string
+        """
+        message_parts = []
+
+        # Process text inputs in order
+        for text_data in input_data.texts:
+            if text_data.source == TextSource.INPUT:
+                message_parts.append(text_data.content)
+            elif text_data.source == TextSource.CLIPBOARD:
+                message_parts.append(f"[Clipboard content: {text_data.content}]")
+
+        # Process images in order
+        if input_data.images:
+            message_parts.append("\nImages in this message:")
+            for i, img_data in enumerate(input_data.images, 1):
+                source_desc = {
+                    ImageSource.CAMERA: "captured from camera",
+                    ImageSource.SCREEN: "screenshot",
+                    ImageSource.CLIPBOARD: "from clipboard",
+                    ImageSource.UPLOAD: "uploaded",
+                }[img_data.source]
+                message_parts.append(f"- Image {i} ({source_desc})")
+
+        return "\n".join(message_parts)
+
+    def _to_messages(
+        self, input_data: BatchInput
+    ) -> List[Dict[str, Any]]:
+        """
+        Prepare messages list with image support.
+        
+        Args:
+            input_data: BatchInput - The input data
+            
+        Returns:
+            List[Dict[str, Any]] - Messages formatted for OpenAI API
+        """
+        messages = self._memory.copy()
+
+        user_message: Dict[str, Any] = {
+            "role": "user",
+            "content": [],
+        }
+
+        text_content = self._to_text_prompt(input_data)
+        user_message["content"].append({
+            "type": "text",
+            "text": text_content
+        })
+
+        # Add images in order
+        if input_data.images:
+            for img_data in input_data.images:
+                user_message["content"].append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": img_data.data,
+                        "detail": "auto"
+                    }
+                })
+
+        messages.append(user_message)
+        return messages
+
     def _chat_function_factory(
         self, chat_func: Callable[[List[Dict[str, Any]], str], AsyncIterator[str]]
     ) -> Callable[..., AsyncIterator[SentenceOutput]]:
@@ -150,21 +223,21 @@ class BasicMemoryAgent(AgentInterface):
             faster_first_response=self._faster_first_response,
             segment_method=self._segment_method,
         )
-        async def chat_with_memory(prompt: str) -> AsyncIterator[str]:
+        async def chat_with_memory(input_data: BatchInput) -> AsyncIterator[str]:
             """
             Chat implementation with memory and processing pipeline
 
             Args:
-                prompt: str - User input
+                input_data: BatchInput
 
             Returns:
                 AsyncIterator[str] - Token stream from LLM
             """
-            self._add_message(prompt, "user")
-            logger.debug(f"Memory Agent: Sending: '''{self._memory}'''")
+            messages = self._to_messages(input_data)
+            logger.debug(f"Memory Agent: Sending: '''{messages}'''")
 
             # Get token stream from LLM
-            token_stream = chat_func(self._memory, self._system)
+            token_stream = chat_func(messages, self._system)
             complete_response = ""
 
             async for token in token_stream:
@@ -176,6 +249,6 @@ class BasicMemoryAgent(AgentInterface):
 
         return chat_with_memory
 
-    async def chat(self, prompt: str) -> AsyncIterator[SentenceOutput]:
+    async def chat(self, input_data: BatchInput) -> AsyncIterator[SentenceOutput]:
         """Placeholder chat method that will be replaced at runtime"""
-        return self.chat(prompt)
+        return self.chat(input_data)

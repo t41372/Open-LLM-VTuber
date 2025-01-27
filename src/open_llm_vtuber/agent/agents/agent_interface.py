@@ -3,13 +3,14 @@ from typing import AsyncIterator
 from loguru import logger
 
 from ..output_types import BaseOutput
+from ..input_types import BaseInput
 
 
 class AgentInterface(ABC):
     """Base interface for all agent implementations"""
 
     @abstractmethod
-    async def chat(self, prompt: str) -> AsyncIterator[BaseOutput]:
+    async def chat(self, input_data: BaseInput) -> AsyncIterator[BaseOutput]:
         """
         Chat with the agent asynchronously.
 
@@ -19,7 +20,7 @@ class AgentInterface(ABC):
         - AudioOutput: For direct audio output with display text and transcript
 
         Args:
-            prompt: str - User input transcription
+            input_data: BaseInput - User input data (BatchInput or StreamInput)
 
         Returns:
             AsyncIterator[BaseOutput] - Stream of agent outputs
