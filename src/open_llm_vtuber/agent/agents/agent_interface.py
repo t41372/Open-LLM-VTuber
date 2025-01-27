@@ -20,7 +20,7 @@ class AgentInterface(ABC):
         - AudioOutput: For direct audio output with display text and transcript
 
         Args:
-            input_data: BaseInput - User input data (BatchInput or StreamInput)
+            input_data: BaseInput - User input data
 
         Returns:
             AsyncIterator[BaseOutput] - Stream of agent outputs

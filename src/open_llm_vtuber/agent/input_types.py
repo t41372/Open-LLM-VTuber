@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Union
-import numpy as np
-
+from typing import List, Optional
 
 class ImageSource(Enum):
     """Enum for different image sources"""
@@ -79,16 +77,3 @@ class BatchInput(BaseInput):
     texts: List[TextData]
     images: Optional[List[ImageData]] = None
     files: Optional[List[FileData]] = None
-
-
-@dataclass
-class StreamInput(BaseInput):
-    """
-    Input type for real-time streaming data
-    
-    Attributes:
-        audio_chunk: Numpy array containing audio data
-        video_frame: Optional video frame data (Base64 encoded)
-    """
-    audio_chunk: np.ndarray
-    video_frame: Optional[str] = None  # Base64 encoded image
