@@ -71,6 +71,7 @@ class AsyncLLM(StatelessLLMInterface):
         - APIError: For other API-related errors
         """
         logger.debug(f"Messages: {messages}")
+        stream = None
         try:
             # If system prompt is provided, add it to the messages
             messages_with_system = messages
@@ -94,24 +95,27 @@ class AsyncLLM(StatelessLLMInterface):
                 yield chunk.choices[0].delta.content
 
         except APIConnectionError as e:
-            logger.error(f"Failed to connect to the API: {e.__cause__}")
-            raise
+            logger.error(
+                f"Error calling the chat endpoint: Connection error. Failed to connect to the LLM API. \nCheck the configurations and the reachability of the LLM backend. \nSee the logs for details. \nTroubleshooting with documentation: https://open-llm-vtuber.github.io/docs/quick-start/#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5 \n{e.__cause__}"
+            )
+            yield "Error calling the chat endpoint: Connection error. Failed to connect to the LLM API. Check the configurations and the reachability of the LLM backend. See the logs for details. Troubleshooting with documentation: [https://open-llm-vtuber.github.io/docs/quick-start/#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5]"
 
         except RateLimitError as e:
-            logger.error(f"Rate limit exceeded: {e.response}")
-            raise
+            logger.error(f"Error calling the chat endpoint: Rate limit exceeded: {e.response}")
+            yield "Error calling the chat endpoint: Rate limit exceeded. Please try again later. See the logs for details."
 
         except APIError as e:
-            logger.error(f"LLM API: error occurred: {e}")
-            logger.debug(f"Base URL: {self.base_url}")
-            logger.debug(f"Model: {self.model}")
-            logger.debug(f"Messages: {messages}")
-            logger.debug(f"temperature: {self.temperature}")
-            raise
+            logger.error(f"LLM API: Error occurred: {e}")
+            logger.info(f"Base URL: {self.base_url}")
+            logger.info(f"Model: {self.model}")
+            logger.info(f"Messages: {messages}")
+            logger.info(f"temperature: {self.temperature}")
+            yield "Error calling the chat endpoint: Error occurred while generating response. See the logs for details."
 
         finally:
             # make sure the stream is properly closed
             # so when interrupted, no more tokens will being generated.
-            logger.debug("Chat completion finished.")
-            await stream.close()
-            logger.debug("Stream closed.")
+            if stream:
+                logger.debug("Chat completion finished.")
+                await stream.close()
+                logger.debug("Stream closed.")

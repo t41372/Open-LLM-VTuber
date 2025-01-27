@@ -27,18 +27,24 @@ class OllamaLLM(AsyncLLM):
             project_id=project_id,
             temperature=temperature,
         )
-        # preload model
-        logger.info("Preloading model for Ollama")
-        # Send the POST request to preload model
-        logger.debug(
-            requests.post(
-                base_url.replace("/v1", "") + "/api/chat",
-                json={
-                    "model": model,
-                    "keep_alive": keep_alive,
-                },
+        try:
+            # preload model
+            logger.info("Preloading model for Ollama")
+            # Send the POST request to preload model
+            logger.debug(
+                requests.post(
+                    base_url.replace("/v1", "") + "/api/chat",
+                    json={
+                        "model": model,
+                        "keep_alive": keep_alive,
+                    },
+                )
             )
-        )
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Failed to preload model: {e}")
+            logger.critical("Fail to connect to Ollama backend. Is Ollama server running? Try running `ollama list` to start the server and try again.\nThe AI will repeat 'Error connecting chat endpoint' until the server is running.")
+        except Exception as e:
+            logger.error(f"Failed to preload model: {e}")
         # If keep_alive is less than 0, register cleanup to unload the model
         if unload_at_exit:
             atexit.register(self.cleanup)
