@@ -181,6 +181,7 @@ def create_routes(default_context_cache: ServiceContext):
                         content="[Interrupted by user]",
                     )
 
+                # Default sampleRate = 16000, frameSamples = 512, buffer window = 32ms
                 elif data.get("type") == "mic-audio-data":
                     received_data_buffer = np.append(
                         received_data_buffer,

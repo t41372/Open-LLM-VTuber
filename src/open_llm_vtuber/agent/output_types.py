@@ -16,7 +16,7 @@ class Actions:
         return {k: v for k, v in asdict(self).items() if v is not None}
 
 
-class AgentOutputBase(ABC):
+class BaseOutput(ABC):
     """Base class for agent outputs that can be iterated"""
 
     @abstractmethod
@@ -26,7 +26,7 @@ class AgentOutputBase(ABC):
 
 
 @dataclass
-class SentenceOutput(AgentOutputBase):
+class SentenceOutput(BaseOutput):
     """Output type for text-based responses"""
 
     display_sentences: List[str]  # Text for display
@@ -40,7 +40,7 @@ class SentenceOutput(AgentOutputBase):
 
 
 @dataclass
-class AudioOutput(AgentOutputBase):
+class AudioOutput(BaseOutput):
     """Output type for audio-based responses"""
 
     audio_path: str

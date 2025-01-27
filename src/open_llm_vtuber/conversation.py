@@ -10,7 +10,7 @@ from fastapi import WebSocket
 from .live2d_model import Live2dModel
 from .asr.asr_interface import ASRInterface
 from .agent.agents.agent_interface import AgentInterface
-from .agent.output_types import AgentOutputBase, SentenceOutput, AudioOutput, Actions
+from .agent.output_types import BaseOutput, SentenceOutput, AudioOutput, Actions
 from .tts.tts_interface import TTSInterface
 
 from .utils.stream_audio import prepare_audio_payload
@@ -157,7 +157,7 @@ async def conversation_chain(
         logger.info(f"User input: {user_input}")
 
         # Process agent output
-        agent_output: AsyncIterator[AgentOutputBase] = agent_engine.chat(user_input)
+        agent_output: AsyncIterator[BaseOutput] = agent_engine.chat(user_input)
 
         async for output in agent_output:
             if isinstance(output, SentenceOutput):
