@@ -1,4 +1,4 @@
-from typing import AsyncIterator, List, Dict, Any, Callable, Union
+from typing import AsyncIterator, List, Dict, Any, Callable
 from loguru import logger
 
 from .agent_interface import AgentInterface
@@ -137,10 +137,10 @@ class BasicMemoryAgent(AgentInterface):
     def _to_text_prompt(self, input_data: BatchInput) -> str:
         """
         Format BatchInput into a prompt string for the LLM.
-        
+
         Args:
             input_data: BatchInput - The input data containing texts and images
-            
+
         Returns:
             str - Formatted message string
         """
@@ -167,15 +167,13 @@ class BasicMemoryAgent(AgentInterface):
 
         return "\n".join(message_parts)
 
-    def _to_messages(
-        self, input_data: BatchInput
-    ) -> List[Dict[str, Any]]:
+    def _to_messages(self, input_data: BatchInput) -> List[Dict[str, Any]]:
         """
         Prepare messages list with image support.
-        
+
         Args:
             input_data: BatchInput - The input data
-            
+
         Returns:
             List[Dict[str, Any]] - Messages formatted for OpenAI API
         """
@@ -187,21 +185,17 @@ class BasicMemoryAgent(AgentInterface):
         }
 
         text_content = self._to_text_prompt(input_data)
-        user_message["content"].append({
-            "type": "text",
-            "text": text_content
-        })
+        user_message["content"].append({"type": "text", "text": text_content})
 
         # Add images in order
         if input_data.images:
             for img_data in input_data.images:
-                user_message["content"].append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": img_data.data,
-                        "detail": "auto"
+                user_message["content"].append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": img_data.data, "detail": "auto"},
                     }
-                })
+                )
 
         messages.append(user_message)
         return messages
@@ -233,8 +227,8 @@ class BasicMemoryAgent(AgentInterface):
             Returns:
                 AsyncIterator[str] - Token stream from LLM
             """
+
             messages = self._to_messages(input_data)
-            logger.debug(f"Memory Agent: Sending: '''{messages}'''")
 
             # Get token stream from LLM
             token_stream = chat_func(messages, self._system)
