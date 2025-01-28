@@ -181,6 +181,7 @@ def create_routes(default_context_cache: ServiceContext):
                         content="[Interrupted by user]",
                     )
 
+                # Default sampleRate = 16000, frameSamples = 512, buffer window = 32ms
                 elif data.get("type") == "mic-audio-data":
                     received_data_buffer = np.append(
                         received_data_buffer,
@@ -206,13 +207,17 @@ def create_routes(default_context_cache: ServiceContext):
                                 }
                             )
                         )
-
                     elif data.get("type") == "text-input":
                         user_input = data.get("text")
                     else:
-                        user_input: np.ndarray | str = received_data_buffer
+                        user_input = received_data_buffer
 
                     received_data_buffer = np.array([])
+
+                    # Get images if present
+                    images = data.get("images")
+                    
+                    logger.debug(f"data: {data}")
 
                     # Initiate conversation chain task asynchronously
                     # We'll store the task object so we can cancel it if needed
@@ -227,6 +232,7 @@ def create_routes(default_context_cache: ServiceContext):
                             websocket_send=websocket.send_text,
                             conf_uid=session_service_context.character_config.conf_uid,
                             history_uid=current_history_uid,
+                            images=images,
                         )
                     )
 

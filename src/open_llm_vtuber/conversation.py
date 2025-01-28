@@ -2,7 +2,7 @@ from datetime import datetime
 import uuid
 import json
 import asyncio
-from typing import AsyncIterator, List
+from typing import AsyncIterator, List, Dict, Union, Any
 import numpy as np
 from loguru import logger
 from fastapi import WebSocket
@@ -10,7 +10,8 @@ from fastapi import WebSocket
 from .live2d_model import Live2dModel
 from .asr.asr_interface import ASRInterface
 from .agent.agents.agent_interface import AgentInterface
-from .agent.output_types import AgentOutputBase, SentenceOutput, AudioOutput, Actions
+from .agent.output_types import BaseOutput, SentenceOutput, AudioOutput, Actions
+from .agent.input_types import BatchInput, TextData, ImageData, TextSource, ImageSource
 from .tts.tts_interface import TTSInterface
 
 from .utils.stream_audio import prepare_audio_payload
@@ -101,7 +102,7 @@ class TTSTaskManager:
 
 
 async def conversation_chain(
-    user_input: str | np.ndarray,
+    user_input: Union[str, np.ndarray],
     asr_engine: ASRInterface,
     agent_engine: AgentInterface,
     tts_engine: TTSInterface,
@@ -109,6 +110,7 @@ async def conversation_chain(
     websocket_send: WebSocket.send,
     conf_uid: str = "",
     history_uid: str = "",
+    images: List[Dict[str, Any]] = None,
 ) -> str:
     """
     One iteration of the main conversation chain.
@@ -119,11 +121,10 @@ async def conversation_chain(
         agent_engine: Agent instance
         tts_engine: TTS engine instance
         live2d_model: Live2D model instance
-        tts_preprocessor_config: TTS preprocessor config
-        translate_engine: Optional translator instance
         websocket_send: WebSocket send function
         conf_uid: Configuration ID
         history_uid: History ID
+        images: Optional list of image data from frontend
 
     Returns:
         str: Complete response from the agent
@@ -146,18 +147,38 @@ async def conversation_chain(
         logger.info(f"New Conversation Chain {session_emoji} started!")
 
         # Handle audio input
+        input_text = user_input
         if isinstance(user_input, np.ndarray):
             logger.info("Transcribing audio input...")
-            user_input = await asr_engine.async_transcribe_np(user_input)
+            input_text = await asr_engine.async_transcribe_np(user_input)
             await websocket_send(
-                json.dumps({"type": "user-input-transcription", "text": user_input})
+                json.dumps({"type": "user-input-transcription", "text": input_text})
             )
 
-        store_message(conf_uid, history_uid, "human", user_input)
-        logger.info(f"User input: {user_input}")
+        # Prepare BatchInput
+        batch_input = BatchInput(
+            texts=[TextData(source=TextSource.INPUT, content=input_text)],
+            images=(
+                [
+                    ImageData(
+                        source=ImageSource(img["source"]),
+                        data=img["data"],
+                        mime_type=img["mime_type"],
+                    )
+                    for img in (images or [])
+                ]
+                if images
+                else None
+            ),
+        )
+
+        store_message(conf_uid, history_uid, "human", input_text)
+        logger.info(f"User input: {input_text}")
+        if images:
+            logger.info(f"With {len(images)} images")
 
         # Process agent output
-        agent_output: AsyncIterator[AgentOutputBase] = agent_engine.chat(user_input)
+        agent_output: AsyncIterator[BaseOutput] = agent_engine.chat(batch_input)
 
         async for output in agent_output:
             if isinstance(output, SentenceOutput):

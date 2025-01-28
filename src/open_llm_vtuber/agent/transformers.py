@@ -3,7 +3,7 @@ from functools import wraps
 from .output_types import Actions, SentenceOutput
 from ..utils.tts_preprocessor import tts_filter as filter_text
 from ..live2d_model import Live2dModel
-from .sentence_divider import SentenceDivider
+from ..utils.sentence_divider import SentenceDivider
 from ..config_manager import TTSPreprocessorConfig
 
 

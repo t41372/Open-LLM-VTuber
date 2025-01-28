@@ -2,14 +2,15 @@ from abc import ABC, abstractmethod
 from typing import AsyncIterator
 from loguru import logger
 
-from ..output_types import AgentOutputBase
+from ..output_types import BaseOutput
+from ..input_types import BaseInput
 
 
 class AgentInterface(ABC):
     """Base interface for all agent implementations"""
 
     @abstractmethod
-    async def chat(self, prompt: str) -> AsyncIterator[AgentOutputBase]:
+    async def chat(self, input_data: BaseInput) -> AsyncIterator[BaseOutput]:
         """
         Chat with the agent asynchronously.
 
@@ -19,10 +20,10 @@ class AgentInterface(ABC):
         - AudioOutput: For direct audio output with display text and transcript
 
         Args:
-            prompt: str - User input transcription
+            input_data: BaseInput - User input data
 
         Returns:
-            AsyncIterator[AgentOutputBase] - Stream of agent outputs
+            AsyncIterator[BaseOutput] - Stream of agent outputs
         """
         logger.critical("Agent: No chat function set.")
         raise ValueError("Agent: No chat function set.")
