@@ -10,6 +10,7 @@ def tts_filter(
     ignore_brackets: bool,
     ignore_parentheses: bool,
     ignore_asterisks: bool,
+    ignore_angle_brackets: bool,
     translator: TranslateInterface | None = None,
 ) -> str:
     """
@@ -56,6 +57,13 @@ def tts_filter(
             text = remove_special_characters(text)
         except Exception as e:
             logger.warning(f"Error removing special characters: {e}")
+            logger.warning(f"Text: {text}")
+            logger.warning("Skipping...")
+    if ignore_angle_brackets:
+        try:
+            text = filter_angle_brackets(text)
+        except Exception as e:
+            logger.warning(f"Error ignoring angle brackets: {e}")
             logger.warning(f"Text: {text}")
             logger.warning("Skipping...")
     if translator:
@@ -152,6 +160,18 @@ def filter_parentheses(text: str) -> str:
         str: The filtered text.
     """
     return _filter_nested(text, '(', ')')
+
+def filter_angle_brackets(text: str) -> str:
+    """
+    Filter text to remove all text within angle brackets, handling nested cases.
+
+    Args:
+        text (str): The text to filter.
+
+    Returns:
+        str: The filtered text.
+    """
+    return _filter_nested(text, '<', '>')
 
 def filter_asterisks(text):
     """
