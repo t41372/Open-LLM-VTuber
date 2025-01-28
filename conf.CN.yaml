@@ -11,7 +11,8 @@ system_config:
   config_alts_dir: "characters" # 用于存放替代配置的目录
   tool_prompts: # 要插入到角色提示词中的工具提示词
     live2d_expression_prompt: "live2d_expression_prompt" # 将追加到系统提示末尾，让 LLM（大型语言模型）包含控制面部表情的关键字。支持的关键字将自动加载到 `[<insert_emomap_keys>]` 的位置。
-    think_tag_prompt: "think_tag_prompt"
+    # 启用此选项可让不具备思维链的LLM也能展示内心想法、心理活动和动作（以括号形式呈现），但不会进行语音合成。更多详情请参考 think_tag_prompt。
+    # think_tag_prompt: "think_tag_prompt"
 
 # 默认角色的配置
 character_config:

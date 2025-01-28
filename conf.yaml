@@ -9,8 +9,10 @@ system_config:
   tool_prompts:
     # This will be appended to the end of system prompt to let LLM include keywords to control facial expressions.
     # Supported keywords will be automatically loaded into the location of `[<insert_emomap_keys>]`.
-    live2d_expression_prompt: "live2d_expression_prompt" 
+    live2d_expression_prompt: "live2d_expression_prompt"
+    # Enable this to let LLMs without chain-of-thought capability show inner thoughts, mental activities and actions (in parentheses format) without voice synthesis. See think_tag_prompt for more details.
     think_tag_prompt: "think_tag_prompt"
+
 
 # configuration for the default character
 character_config:
