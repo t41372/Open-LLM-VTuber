@@ -265,15 +265,18 @@ def segment_text_by_pysbd(text: str) -> Tuple[List[str], str]:
 
 class TagState(Enum):
     """State of a tag in text"""
-    START = "start"         # <tag>
-    INSIDE = "inside"      # text between tags
-    END = "end"           # </tag>
+
+    START = "start"  # <tag>
+    INSIDE = "inside"  # text between tags
+    END = "end"  # </tag>
     SELF_CLOSING = "self"  # <tag/>
-    NONE = "none"         # no tag
+    NONE = "none"  # no tag
+
 
 @dataclass
 class TagInfo:
     """Information about a tag"""
+
     name: str
     state: TagState
 
@@ -283,18 +286,21 @@ class TagInfo:
             return "none"
         return f"{self.name}:{self.state.value}"
 
+
 @dataclass
 class SentenceWithTags:
     """A sentence with its tag information, supporting nested tags"""
+
     text: str
     tags: List[TagInfo]  # List of tags from outermost to innermost
 
+
 class SentenceDivider:
     def __init__(
-        self, 
-        faster_first_response: bool = True, 
+        self,
+        faster_first_response: bool = True,
         segment_method: str = "pysbd",
-        valid_tags: List[str] = None
+        valid_tags: List[str] = None,
     ):
         """
         Initialize the SentenceDivider.
@@ -311,36 +317,33 @@ class SentenceDivider:
         self._buffer = ""
         # Replace active_tags dict with a stack to handle nesting
         self._tag_stack = []
-        
+
     def _get_current_tags(self) -> List[TagInfo]:
         """
         Get all current active tags from outermost to innermost.
-        
+
         Returns:
             List[TagInfo]: List of active tags
         """
-        return [
-            TagInfo(tag.name, TagState.INSIDE) 
-            for tag in self._tag_stack
-        ]
+        return [TagInfo(tag.name, TagState.INSIDE) for tag in self._tag_stack]
 
     def _get_current_tag(self) -> Optional[TagInfo]:
         """
         Get the current innermost active tag.
-        
+
         Returns:
             TagInfo if there's an active tag, None otherwise
         """
         return self._tag_stack[-1] if self._tag_stack else None
-        
+
     def _extract_tag(self, text: str) -> Tuple[Optional[TagInfo], str]:
         """
         Extract the first tag from text if present.
         Handles nested tags by maintaining a tag stack.
-        
+
         Args:
             text: Text to check for tags
-            
+
         Returns:
             Tuple of (TagInfo if tag found else None, remaining text)
         """
@@ -349,7 +352,7 @@ class SentenceDivider:
         first_pos = len(text)
         tag_type = None
         matched_tag = None
-        
+
         # Check for self-closing tags
         for tag in self.valid_tags:
             pattern = f"<{tag}/>"
@@ -359,7 +362,7 @@ class SentenceDivider:
                 first_tag = match
                 tag_type = TagState.SELF_CLOSING
                 matched_tag = tag
-                
+
         # Check for opening tags
         for tag in self.valid_tags:
             pattern = f"<{tag}>"
@@ -369,7 +372,7 @@ class SentenceDivider:
                 first_tag = match
                 tag_type = TagState.START
                 matched_tag = tag
-                
+
         # Check for closing tags
         for tag in self.valid_tags:
             pattern = f"</{tag}>"
@@ -379,10 +382,10 @@ class SentenceDivider:
                 first_tag = match
                 tag_type = TagState.END
                 matched_tag = tag
-                
+
         if not first_tag:
             return None, text
-            
+
         # Handle the found tag
         if tag_type == TagState.START:
             # Push new tag onto stack
@@ -393,22 +396,19 @@ class SentenceDivider:
                 logger.warning(f"Mismatched closing tag: {matched_tag}")
             else:
                 self._tag_stack.pop()
-                
-        return (
-            TagInfo(matched_tag, tag_type),
-            text[first_tag.end():].lstrip()
-        )
+
+        return (TagInfo(matched_tag, tag_type), text[first_tag.end() :].lstrip())
 
     async def _process_buffer(self) -> List[SentenceWithTags]:
         """
         Process the current buffer and return complete sentences with tags.
         Handles tags that may appear anywhere in the buffer.
-        
+
         Returns:
             List[SentenceWithTags]: List of sentences with their tag information
         """
         result = []
-        
+
         while self._buffer.strip():
             # Find the next tag position
             next_tag_pos = len(self._buffer)
@@ -418,72 +418,92 @@ class SentenceDivider:
                     pos = self._buffer.find(pattern)
                     if pos != -1 and pos < next_tag_pos:
                         next_tag_pos = pos
-            
+
             if next_tag_pos == 0:
                 # Tag is at the start of buffer
                 tag_info, remaining = self._extract_tag(self._buffer)
                 if tag_info:
-                    result.append(SentenceWithTags(
-                        text=self._buffer[:len(self._buffer)-len(remaining)].strip(),
-                        tags=[tag_info]  # Tag itself is a single-item list
-                    ))
+                    result.append(
+                        SentenceWithTags(
+                            text=self._buffer[
+                                : len(self._buffer) - len(remaining)
+                            ].strip(),
+                            tags=[tag_info],  # Tag itself is a single-item list
+                        )
+                    )
                     self._buffer = remaining
                     continue
-                    
+
             elif next_tag_pos < len(self._buffer):
                 # Tag is in the middle - process text before tag first
                 text_before_tag = self._buffer[:next_tag_pos]
                 current_tags = self._get_current_tags()
-                
+
                 # Process complete sentences in text before tag
                 if contains_end_punctuation(text_before_tag):
                     sentences, remaining = self._segment_text(text_before_tag)
                     for sentence in sentences:
                         if sentence.strip():
-                            result.append(SentenceWithTags(
-                                text=sentence.strip(),
-                                tags=current_tags or [TagInfo("", TagState.NONE)]
-                            ))
-                    
+                            result.append(
+                                SentenceWithTags(
+                                    text=sentence.strip(),
+                                    tags=current_tags or [TagInfo("", TagState.NONE)],
+                                )
+                            )
+
                     if remaining.strip():
-                        result.append(SentenceWithTags(
-                            text=remaining.strip(),
-                            tags=current_tags or [TagInfo("", TagState.NONE)]
-                        ))
-                        
+                        result.append(
+                            SentenceWithTags(
+                                text=remaining.strip(),
+                                tags=current_tags or [TagInfo("", TagState.NONE)],
+                            )
+                        )
+
                 elif text_before_tag.strip():
                     # No complete sentence but has content
-                    result.append(SentenceWithTags(
-                        text=text_before_tag.strip(),
-                        tags=current_tags or [TagInfo("", TagState.NONE)]
-                    ))
-                
+                    result.append(
+                        SentenceWithTags(
+                            text=text_before_tag.strip(),
+                            tags=current_tags or [TagInfo("", TagState.NONE)],
+                        )
+                    )
+
                 # Process the tag
                 self._buffer = self._buffer[next_tag_pos:]
                 tag_info, remaining = self._extract_tag(self._buffer)
                 if tag_info:
-                    result.append(SentenceWithTags(
-                        text=self._buffer[:len(self._buffer)-len(remaining)].strip(),
-                        tags=[tag_info]
-                    ))
+                    result.append(
+                        SentenceWithTags(
+                            text=self._buffer[
+                                : len(self._buffer) - len(remaining)
+                            ].strip(),
+                            tags=[tag_info],
+                        )
+                    )
                     self._buffer = remaining
                 continue
-                
+
             # No tags found - process normal text
             current_tags = self._get_current_tags()
-            
+
             # Handle first sentence with comma if enabled
-            if self._is_first_sentence and self.faster_first_response and contains_comma(self._buffer):
+            if (
+                self._is_first_sentence
+                and self.faster_first_response
+                and contains_comma(self._buffer)
+            ):
                 sentence, remaining = comma_splitter(self._buffer)
                 if sentence.strip():
-                    result.append(SentenceWithTags(
-                        text=sentence.strip(),
-                        tags=current_tags or [TagInfo("", TagState.NONE)]
-                    ))
+                    result.append(
+                        SentenceWithTags(
+                            text=sentence.strip(),
+                            tags=current_tags or [TagInfo("", TagState.NONE)],
+                        )
+                    )
                 self._buffer = remaining
                 self._is_first_sentence = False
                 continue
-                
+
             # Process normal sentences
             if contains_end_punctuation(self._buffer):
                 sentences, remaining = self._segment_text(self._buffer)
@@ -491,12 +511,14 @@ class SentenceDivider:
                 self._is_first_sentence = False
                 for sentence in sentences:
                     if sentence.strip():
-                        result.append(SentenceWithTags(
-                            text=sentence.strip(),
-                            tags=current_tags or [TagInfo("", TagState.NONE)]
-                        ))
+                        result.append(
+                            SentenceWithTags(
+                                text=sentence.strip(),
+                                tags=current_tags or [TagInfo("", TagState.NONE)],
+                            )
+                        )
             break
-            
+
         return result
 
     async def process_stream(self, token_stream) -> AsyncIterator[SentenceWithTags]:
@@ -524,11 +546,11 @@ class SentenceDivider:
             # Process buffer after punctuation, when buffer gets too long,
             # or when we see a tag
             should_process = (
-                last_token_was_punct or 
-                len(self._buffer) >= buffer_threshold or
-                any(f"<{tag}" in self._buffer for tag in self.valid_tags)
+                last_token_was_punct
+                or len(self._buffer) >= buffer_threshold
+                or any(f"<{tag}" in self._buffer for tag in self.valid_tags)
             )
-            
+
             if should_process:
                 last_token_was_punct = False
                 sentences = await self._process_buffer()
@@ -540,26 +562,26 @@ class SentenceDivider:
             tag_info, remaining = self._extract_tag(self._buffer)
             if tag_info:
                 yield SentenceWithTags(
-                    text=self._buffer[:len(self._buffer)-len(remaining)].strip(),
-                    tags=[tag_info]
+                    text=self._buffer[: len(self._buffer) - len(remaining)].strip(),
+                    tags=[tag_info],
                 )
                 self._buffer = remaining
 
             if self._buffer.strip():
                 sentences, remaining = self._segment_text(self._buffer)
                 current_tags = self._get_current_tags()
-                
+
                 for sentence in sentences:
                     if sentence.strip():
                         yield SentenceWithTags(
                             text=sentence.strip(),
-                            tags=current_tags or [TagInfo("", TagState.NONE)]
+                            tags=current_tags or [TagInfo("", TagState.NONE)],
                         )
             if remaining.strip():
-                    yield SentenceWithTags(
-                        text=remaining.strip(),
-                        tags=current_tags or [TagInfo("", TagState.NONE)]
-                    )
+                yield SentenceWithTags(
+                    text=remaining.strip(),
+                    tags=current_tags or [TagInfo("", TagState.NONE)],
+                )
 
     @property
     def complete_response(self) -> str:
@@ -577,97 +599,3 @@ class SentenceDivider:
         self._is_first_sentence = True
         self._buffer = ""
         self._tag_stack = []
-
-async def test_sentence_divider():
-    """
-    Test function to verify different tag and text combinations.
-    Tests various scenarios including:
-    - Simple tags
-    - Nested tags
-    - Multiple nested tags
-    - Self-closing tags
-    - Tags in middle of sentences
-    - Multiple tags in one sentence
-    - Tags with punctuation
-    - Complex nested structures
-    """
-    divider = SentenceDivider(
-        faster_first_response=True,
-        valid_tags=["think", "emotion", "action"]
-    )
-    
-    async def process_text(text: str):
-        """
-        Helper function to process text and print results.
-        
-        Args:
-            text: Input text to process
-        """
-        print(f"\nInput text: {text}")
-        print("-" * 50)
-        
-        async def token_stream():
-            for char in text:
-                yield char
-                
-        async for sentence in divider.process_stream(token_stream()):
-            tag_info = [str(t) for t in sentence.tags] if sentence.tags else ["none"]
-            print(f"Text: {sentence.text}")
-            print(f"Tags: {tag_info}")
-        print("-" * 50)
-        divider.reset()
-    
-    # Test case 1: Simple tag
-    await process_text("This is normal text. <think>This is thinking content.</think> This is normal text again.")
-    
-    # Test case 2: Nested tags
-    await process_text("""
-    Starting conversation.
-    <think>Start thinking.
-    <emotion>Thinking with emotion.</emotion>
-    Continue thinking.</think>
-    End conversation.
-    """)
-    
-    # Test case 3: Multiple nested tags
-    await process_text("""
-    <think>Outer thought
-    <emotion>Emotion 1
-    <action>Movement
-    </action>Emotion 2</emotion>
-    End thought</think>
-    """)
-    
-    # Test case 4: Self-closing tags
-    await process_text("Speaking<action/>Continue speaking.<think/>Final words.")
-    
-    # Test case 5: Tags in middle of sentences
-    await process_text("This is a<think>sentence with thought</think>in the middle.")
-    
-    # Test case 6: Multiple tags in one sentence
-    await process_text("This has<emotion>emotion</emotion>and<think>thought</think>combined.")
-    
-    # Test case 7: Tags with punctuation
-    await process_text("""
-    First sentence.<think>Thinking, with comma.
-    Finished thinking.</think>Last sentence.
-    """)
-    
-    # Test case 8: Complex nested structure
-    await process_text("""
-    Begin dialogue.
-    <think>Start thinking!
-    <emotion>Feeling happy!
-    <action>Jumped once.</action>
-    Still happy.</emotion>
-    Finished thinking!</think>
-    End dialogue.
-    """)
-
-if __name__ == "__main__":
-    import asyncio
-    
-    async def main():
-        await test_sentence_divider()
-    
-    asyncio.run(main())

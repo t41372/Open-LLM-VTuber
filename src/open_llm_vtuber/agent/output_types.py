@@ -30,14 +30,15 @@ class SentenceOutput(BaseOutput):
     """
     Output type for text-based responses.
     Contains a single sentence pair (display and TTS) with associated actions.
-    
+
     Attributes:
         display_text: Text to be displayed in UI
         tts_text: Text to be sent to TTS engine
         actions: Associated actions (expressions, pictures, sounds)
     """
+
     display_text: str  # Text for display
-    tts_text: str     # Text for TTS
+    tts_text: str  # Text for TTS
     actions: Actions
 
     async def __aiter__(self):
