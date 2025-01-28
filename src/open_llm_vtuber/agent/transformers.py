@@ -108,6 +108,7 @@ def tts_filter(tts_preprocessor_config: TTSPreprocessorConfig = None):
                     ignore_brackets=config.ignore_brackets,
                     ignore_parentheses=config.ignore_parentheses,
                     ignore_asterisks=config.ignore_asterisks,
+                    ignore_angle_brackets=config.ignore_angle_brackets,
                     translator=None,  # Translation handled separately
                 )
                 yield SentenceOutput(
