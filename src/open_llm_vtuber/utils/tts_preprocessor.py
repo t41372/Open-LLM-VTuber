@@ -97,6 +97,38 @@ def remove_special_characters(text: str) -> str:
     return filtered_text
 
 
+def _filter_nested(text: str, left: str, right: str) -> str:
+    """
+    Generic function to handle nested symbols.
+
+    Args:
+        text (str): The text to filter.
+        left (str): The left symbol (e.g. '[' or '(').
+        right (str): The right symbol (e.g. ']' or ')').
+
+    Returns:
+        str: The filtered text.
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input must be a string")
+    if not text:
+        return text
+
+    result = []
+    depth = 0
+    for char in text:
+        if char == left:
+            depth += 1
+        elif char == right:
+            if depth > 0:
+                depth -= 1
+        else:
+            if depth == 0:
+                result.append(char)
+    filtered_text = "".join(result)
+    filtered_text = re.sub(r"\s+", " ", filtered_text).strip()
+    return filtered_text
+
 def filter_brackets(text: str) -> str:
     """
     Filter text to remove all text within brackets, handling nested cases.
@@ -106,33 +138,8 @@ def filter_brackets(text: str) -> str:
 
     Returns:
         str: The filtered text.
-
-    Examples:
-        >>> ignore_brackets("Hello [world [nested] test]")
-        'Hello '
-        >>> ignore_brackets("[[]]")
-        ''
-        >>> ignore_brackets("Text [here] and [there]")
-        'Text  and '
     """
-    if not isinstance(text, str):
-        raise TypeError("Input must be a string")
-    if not text:
-        return text
-
-    # Handle nested brackets
-    stack = []
-    for i, char in enumerate(text):
-        if char == "[":
-            stack.append(i)
-        elif char == "]":
-            if stack:
-                start = stack.pop()
-                if not stack:  # Only replace if we've closed all nested brackets
-                    text = text[:start] + " " + text[i + 1 :]
-
-    return re.sub(r"\s+", " ", text).strip()
-
+    return _filter_nested(text, '[', ']')
 
 def filter_parentheses(text: str) -> str:
     """
@@ -143,33 +150,8 @@ def filter_parentheses(text: str) -> str:
 
     Returns:
         str: The filtered text.
-
-    Examples:
-        >>> ignore_parentheses("Hello (world (nested) test)")
-        'Hello '
-        >>> ignore_parentheses("((()))")
-        ''
-        >>> ignore_parentheses("Text (here) and (there)")
-        'Text  and '
     """
-    if not isinstance(text, str):
-        raise TypeError("Input must be a string")
-    if not text:
-        return text
-
-    # Handle nested parentheses
-    stack = []
-    for i, char in enumerate(text):
-        if char == "(":
-            stack.append(i)
-        elif char == ")":
-            if stack:
-                start = stack.pop()
-                if not stack:  # Only replace if we've closed all nested parentheses
-                    text = text[:start] + " " + text[i + 1 :]
-
-    return re.sub(r"\s+", " ", text).strip()
-
+    return _filter_nested(text, '(', ')')
 
 def filter_asterisks(text):
     """
