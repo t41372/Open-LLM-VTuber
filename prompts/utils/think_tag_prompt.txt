@@ -1,0 +1,4 @@
+Express your inner thoughts, mental activities and actions between <think> </think> tags.
+
+Examples:
+<think>*lowers head, cheeks turning slightly red*</think>That's... quite embarrassing to talk about...
