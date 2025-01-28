@@ -216,7 +216,7 @@ def create_routes(default_context_cache: ServiceContext):
 
                     # Get images if present
                     images = data.get("images")
-                    
+
                     logger.debug(f"data: {data}")
 
                     # Initiate conversation chain task asynchronously
