@@ -40,7 +40,8 @@ class TTSTaskManager:
         actions: Actions | None = None,
     ) -> None:
         """
-        Generate and send audio for a sentence
+        Generate and send audio for a sentence. If tts_text is empty,
+        sends a silent display payload.
 
         Args:
             tts_text: Text to be spoken
@@ -54,9 +55,13 @@ class TTSTaskManager:
             display_text = tts_text
 
         if not tts_text or not tts_text.strip():
-            logger.error(
-                f'TTS receives "{tts_text}", which is empty. Nothing to speak.'
+            logger.debug("Empty TTS text, sending silent display payload")
+            audio_payload = prepare_audio_payload(
+                audio_path=None,
+                actions=actions,
+                display_text=display_text,
             )
+            await websocket_send(json.dumps(audio_payload))
             return
 
         logger.debug(f"🏃Generating audio for '''{tts_text}'''...")
