@@ -27,6 +27,7 @@ class LLMFactory:
             or llm_provider == "deepseek_llm"
             or llm_provider == "groq_llm"
             or llm_provider == "mistral_llm"
+            or llm_provider == "custom_api"
         ):
             return OpenAICompatibleLLM(
                 model=kwargs.get("model"),

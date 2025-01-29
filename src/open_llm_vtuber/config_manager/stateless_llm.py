@@ -89,6 +89,10 @@ class ZhipuConfig(OpenAICompatibleConfig):
 
     base_url: str = Field("https://open.bigmodel.cn/api/paas/v4/", alias="base_url")
 
+class CustomConfig(OpenAICompatibleConfig):
+    """Configuration for siliconflow API."""
+
+    base_url: str = Field("https://api.siliconflow.cn/v1/chat/completions", alias="base_url")
 
 class DeepseekConfig(OpenAICompatibleConfig):
     """Configuration for Deepseek API."""
@@ -148,6 +152,7 @@ class StatelessLLMConfigs(I18nMixin, BaseModel):
     claude_llm: ClaudeConfig | None = Field(None, alias="claude_llm")
     llama_cpp_llm: LlamaCppConfig | None = Field(None, alias="llama_cpp_llm")
     mistral_llm: MistralConfig | None = Field(None, alias="mistral_llm")
+    custom_api: CustomConfig | None = Field(None, alias="custom_api")
 
     DESCRIPTIONS: ClassVar[dict[str, Description]] = {
         "openai_compatible_llm": Description(
@@ -174,5 +179,8 @@ class StatelessLLMConfigs(I18nMixin, BaseModel):
         ),
         "llama_cpp_llm": Description(
             en="Configuration for local Llama.cpp", zh="本地Llama.cpp配置"
+        ),
+        "custom_api": Description(
+            en="Customize API configuration", zh="自定义api配置"
         ),
     }

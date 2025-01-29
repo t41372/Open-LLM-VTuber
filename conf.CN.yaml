@@ -86,7 +86,10 @@ character_config:
 
     llm_configs:
       # 一个配置池，用于不同代理中使用的所有无状态 llm 提供商的凭据和连接详细信息
-
+      custom_api:
+        base_url: "https://api.siliconflow.cn/" # 基础 URL
+        llm_api_key: "YOUR API KEY" # API 密钥
+        model: "Qwen/Qwen2.5-7B-Instruct" # 使用的模型
       # OpenAI 兼容推理后端
       openai_compatible_llm:
         base_url: "http://localhost:11434/v1" # 基础 URL
@@ -287,9 +290,9 @@ character_config:
       # 将参考音频放到 GPT-Sovits 的根路径，或在此处设置路径
       api_url: "http://127.0.0.1:9880/tts" # API URL
       text_lang: "zh" # 文本语言
-      ref_audio_path: "" # 参考音频路径
-      prompt_lang: "zh" # 提示语言
-      prompt_text: "" # 提示文本
+      ref_audio_path: "slicer_opt\\ks3.あらあら、今回はどんなサプライズがあるんですの.wav" # str.(必需) 参考音频的路径
+      prompt_lang: "ja" # str.(必需) 参考音频提示文本的语言
+      prompt_text: "あらあら、今回はどんなサプライズがあるんですの" # str.(可选) 参考音频的提示文本
       text_split_method: "cut5" # 文本分割方法
       batch_size: "1" # 批处理大小
       media_type: "wav" # 媒体类型
