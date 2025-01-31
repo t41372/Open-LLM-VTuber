@@ -6,7 +6,7 @@
 # 系统设置：与服务器初始化相关的设置
 system_config:
   conf_version: "v1.0.0-alpha.1" # 配置文件版本
-  host: "localhost" # 服务器监听的地址，"0.0.0.0" 表示监听所有网络接口；如果需要安全，可以使用 "127.0.0.1"（仅本地访问）
+  host: "0.0.0.0" # 服务器监听的地址，"0.0.0.0" 表示监听所有网络接口；如果需要安全，可以使用 "127.0.0.1"（仅本地访问）
   port: 12393 # 服务器监听的端口
   config_alts_dir: "characters" # 用于存放替代配置的目录
   tool_prompts: # 要插入到角色提示词中的工具提示词
@@ -86,11 +86,11 @@ character_config:
       # 一个配置池，用于不同代理中使用的所有无状态 llm 提供商的凭据和连接详细信息
       custom_api:
 #        base_url: "https://generativelanguage.googleapis.com/v1beta/openai/" # 基础 URL
-#        llm_api_key: "AIzaSyCaOI-5ofVeNYoJ-fNa6d6JoLmUFgYdQKY" # API 密钥
+#        llm_api_key: "" # API 密钥
 #        model: "gemini-2.0-flash-exp" # 使用的模型
 
         base_url: "https://api.siliconflow.cn/" # 基础 URL
-        llm_api_key: "sk-djmxueppvdrduoklkfpbbrschjyirozcdmvclutgbujolwca" # API 密钥
+        llm_api_key: "" # API 密钥
         model: "Qwen/Qwen2.5-7B-Instruct" # 使用的模型
 
 
@@ -134,7 +134,7 @@ character_config:
         temperature: 1.0 # 温度，介于 0 到 2 之间
 
       zhipu_llm:
-        llm_api_key: "807884d98ebd411eba1bc65f4c19fb94.fZIiUteP9G6a2Yua" # 智谱 AI API 密钥
+        llm_api_key: "" # 智谱 AI API 密钥
         model: "glm-4-flash" # 使用的模型
         temperature: 1.0 # 温度，介于 0 到 2 之间
 
@@ -362,12 +362,11 @@ character_config:
 
 
       #  腾讯文本翻译  每月500万字符  记得关闭后付费,需要手动前往 机器翻译控制台 > 系统设置 关闭
-      #   配合gptsovits使用的 当llm输出文本为中文,但需要sovits输出日语时要先将文本翻译为日语,不然会有奇怪的bug
       #   https://cloud.tencent.com/document/product/551/35017
       #   https://console.cloud.tencent.com/cam/capi
       tencent:
-        secret_id: "secret_id"
-        secret_key: "secret_key"
+        secret_id: ""
+        secret_key: ""
         region: "ap-guangzhou"
         source_lang: "zh"
         target_lang: "ja"
