@@ -143,7 +143,7 @@ def check_and_extract_local_file(url: str, output_dir: str) -> Path | None:
             return extracted_dir
 
         try:
-            logger.info(f"⏳ 正在解压本地文件...")
+            logger.info("⏳ 正在解压本地文件...")
             with tarfile.open(compressed_path, "r:bz2") as tar:
                 tar.extractall(path=output_dir)
             logger.success(f"解压完成至: {extracted_dir}")
