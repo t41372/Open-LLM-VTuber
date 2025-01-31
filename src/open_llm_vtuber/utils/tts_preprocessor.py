@@ -173,29 +173,24 @@ def filter_angle_brackets(text: str) -> str:
     """
     return _filter_nested(text, '<', '>')
 
-def filter_asterisks(text):
+def filter_asterisks(text: str) -> str:
     """
-    Removes text enclosed within both single (*) and double (**) asterisks from a string.
-
+    Removes text enclosed within asterisks of any length (*, **, ***, etc.) from a string.
+    
     Args:
-      text: The input string.
-
+        text: The input string.
+    
     Returns:
-      The string with asterisk-enclosed text removed.
-
-    Examples:
-        >>> filter_asterisks("Mix of *single* and **double** asterisks")
-        'Mix of  and  asterisks'
+        The string with asterisk-enclosed text removed.
     """
-    # First remove double asterisks pattern
-    # \*\*([^*]+)\*\* matches text between double asterisks
-    filtered_text = re.sub(r"\*\*([^*]+)\*\*", "", text)
-
-    # Then remove single asterisks pattern
-    # \*([^*]+)\* matches text between single asterisks
-    filtered_text = re.sub(r"\*([^*]+)\*", "", filtered_text)
-
+    # Handle asterisks of any length (*, **, ***, etc.)
+    # Pattern explanation:
+    # \*{1,} - Match one or more asterisks
+    # ((?!\*).)*? - Match any character that's not an asterisk, non-greedy
+    # \*{1,} - Match one or more asterisks at the end
+    filtered_text = re.sub(r'\*{1,}((?!\*).)*?\*{1,}', '', text)
+    
     # Clean up any extra spaces
-    filtered_text = re.sub(r"\s+", " ", filtered_text).strip()
-
+    filtered_text = re.sub(r'\s+', ' ', filtered_text).strip()
+    
     return filtered_text
