@@ -168,7 +168,7 @@ class VoiceRecognition(ASRInterface):
                     )
 
                     url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2"
-                    output_dir = "./models"
+                    output_dir = "/models"
                     # 先尝试本地解压
                     local_result = check_and_extract_local_file(url, output_dir)
 
