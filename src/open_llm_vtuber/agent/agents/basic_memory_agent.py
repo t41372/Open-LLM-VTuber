@@ -80,11 +80,19 @@ class BasicMemoryAgent(AgentInterface):
         logger.debug(f"Memory Agent: Setting system prompt: '''{system}'''")
         self._system = system
 
-    def _add_message(self, message: str, role: str):
+    def _add_message(self, message: str | List[Dict[str, Any]], role: str):
         """Add a message to the memory"""
+        if isinstance(message, list):
+            text_content = ""
+            for item in message:
+                if item.get("type") == "text":
+                    text_content += item["text"]
+        else:
+            text_content = message
+
         self._memory.append({
             "role": role,
-            "content": message,
+            "content": text_content,
         })
 
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
@@ -168,34 +176,32 @@ class BasicMemoryAgent(AgentInterface):
     def _to_messages(self, input_data: BatchInput) -> List[Dict[str, Any]]:
         """
         Prepare messages list with image support.
-
-        Args:
-            input_data: BatchInput - The input data
-
-        Returns:
-            List[Dict[str, Any]] - Messages formatted for OpenAI API
         """
         messages = self._memory.copy()
-
-        user_message: Dict[str, Any] = {
-            "role": "user",
-            "content": [],
-        }
-
-        text_content = self._to_text_prompt(input_data)
-        user_message["content"].append({"type": "text", "text": text_content})
-
-        # Add images in order
+        
         if input_data.images:
+            content = []
+            text_content = self._to_text_prompt(input_data)
+            content.append({"type": "text", "text": text_content})
+            
             for img_data in input_data.images:
-                user_message["content"].append(
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": img_data.data, "detail": "auto"},
-                    }
-                )
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": img_data.data, "detail": "auto"},
+                })
+            
+            user_message = {
+                "role": "user",
+                "content": content
+            }
+        else:
+            user_message = {
+                "role": "user", 
+                "content": self._to_text_prompt(input_data)
+            }
 
         messages.append(user_message)
+        self._add_message(user_message["content"], "user")
         return messages
 
     def _chat_function_factory(
@@ -257,3 +263,30 @@ class BasicMemoryAgent(AgentInterface):
         Reset the interrupt handled flag for a new conversation.
         """
         self._interrupt_handled = False
+
+    def start_group_conversation(self, human_name: str, ai_participants: List[str]) -> None:
+        """
+        Start a group conversation by adding a system message that informs the AI about 
+        the conversation participants.
+
+        Args:
+            human_name: str - Name of the human participant
+            ai_participants: List[str] - Names of other AI participants in the conversation
+        """
+        other_ais = ", ".join(name for name in ai_participants)
+        
+        group_context = (
+            f"You are in a group conversation. "
+            f"The human participant is {human_name}. "
+            f"The other AI participants are: {other_ais}. "
+            f"Avoid using `:` to indicate your response. Just speak naturally."
+            f"You are free to address other AI participants as you would in a real conversation."
+            f"Try to keep your responses short and concise. Engage in the interaction actively."
+        )
+        
+        self._memory.append({
+            "role": "user",
+            "content": group_context
+        })
+        
+        logger.debug(f"Added group conversation context: '''{group_context}'''")

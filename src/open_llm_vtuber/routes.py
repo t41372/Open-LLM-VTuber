@@ -1,28 +1,8 @@
-import json
-import asyncio
-import numpy as np
 from uuid import uuid4
-from typing import Dict, List, Optional
 from fastapi import APIRouter, WebSocket
 from starlette.websockets import WebSocketDisconnect
 from loguru import logger
-from .conversation import conversation_chain, group_conversation_chain
 from .service_context import ServiceContext
-from .config_manager.utils import (
-    scan_config_alts_directory,
-    scan_bg_directory,
-)
-from .chat_history_manager import (
-    create_new_history,
-    store_message,
-    modify_latest_message,
-    get_history,
-    delete_history,
-    get_history_list,
-)
-from .chat_group import ChatGroupManager
-from .message_handler import message_handler
-from .utils.stream_audio import prepare_audio_payload
 from .websocket_handler import WebSocketHandler
 
 

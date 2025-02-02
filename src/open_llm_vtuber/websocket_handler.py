@@ -4,14 +4,13 @@ import asyncio
 import json
 from enum import Enum
 import numpy as np
-from uuid import uuid4
 from loguru import logger
 
 from .service_context import ServiceContext
 from .chat_group import ChatGroupManager
 from .message_handler import message_handler
 from .utils.stream_audio import prepare_audio_payload
-from .conversation import conversation_chain, group_conversation_chain
+from .conversation import SingleConversation, GroupConversation
 from .chat_history_manager import (
     create_new_history,
     store_message,
@@ -155,7 +154,8 @@ class WebSocketHandler:
         if handler:
             await handler(websocket, client_uid, data)
         else:
-            logger.warning(f"Unknown message type: {msg_type}")
+            if msg_type != "group-operation-result":
+                logger.warning(f"Unknown message type: {msg_type}")
 
     async def _send_error(self, websocket: WebSocket, error_message: str) -> None:
         """Send error message to client"""
@@ -460,7 +460,7 @@ class WebSocketHandler:
                 np.array(audio_data, dtype=np.float32),
             )
 
-    async def _handle_conversation_trigger(self, websocket: WebSocket, client_uid: str, data: dict):
+    async def _handle_conversation_trigger(self, websocket: WebSocket, client_uid: str, data: WSMessage) -> None:
         """Handle triggers that start a conversation"""
         context = self.client_contexts[client_uid]
         msg_type = data.get("type")
@@ -494,48 +494,62 @@ class WebSocketHandler:
             )
 
     async def _handle_group_conversation(
-        self, client_uid: str, user_input: str, 
-        images: list, group, websocket: WebSocket
+        self, 
+        client_uid: str, 
+        user_input: str, 
+        images: list, 
+        group, 
+        websocket: WebSocket
     ):
         """Handle group conversation logic"""
         if group.group_id not in self.active_group_conversations or \
            self.active_group_conversations[group.group_id].done():
+            
             logger.info(f"Starting new group conversation for {group.group_id}")
             
+            conversation = GroupConversation(
+                client_contexts=self.client_contexts,
+                client_connections=self.client_connections,
+                asr_engine=self.client_contexts[client_uid].asr_engine,
+                tts_engine=self.client_contexts[client_uid].tts_engine,
+                websocket_send=websocket.send_text,
+                broadcast_func=self.broadcast_to_group,
+                group_members=group.members,
+                initiator_client_uid=client_uid,
+            )
+            
             self.active_group_conversations[group.group_id] = asyncio.create_task(
-                group_conversation_chain(
+                conversation.process_conversation(
                     user_input=user_input,
-                    initiator_client_uid=client_uid,
-                    client_contexts=self.client_contexts,
-                    client_connections=self.client_connections,
-                    asr_engine=self.client_contexts[client_uid].asr_engine,
-                    tts_engine=self.client_contexts[client_uid].tts_engine,
-                    websocket_send=websocket.send_text,
-                    broadcast_func=self.broadcast_to_group,
-                    group_members=group.members,
                     images=images,
                 )
             )
 
     async def _handle_individual_conversation(
-        self, client_uid: str, user_input: str,
-        images: list, websocket: WebSocket,
+        self, 
+        client_uid: str, 
+        user_input: str,
+        images: list, 
+        websocket: WebSocket,
         context: ServiceContext
     ):
         """Handle individual conversation logic"""
+        conversation = SingleConversation(
+            agent_engine=context.agent_engine,
+            live2d_model=context.live2d_model,
+            asr_engine=context.asr_engine,
+            tts_engine=context.tts_engine,
+            websocket_send=websocket.send_text,
+            conf_uid=context.character_config.conf_uid,
+            history_uid=context.history_uid,
+            client_uid=client_uid,
+            character_name=context.character_config.conf_name,
+        )
+
         self.current_conversation_tasks[client_uid] = asyncio.create_task(
-            conversation_chain(
-                client_uid=client_uid,
+            conversation.process_conversation(
                 user_input=user_input,
-                asr_engine=context.asr_engine,
-                tts_engine=context.tts_engine,
-                agent_engine=context.agent_engine,
-                live2d_model=context.live2d_model,
-                websocket_send=websocket.send_text,
-                conf_uid=context.character_config.conf_uid,
-                history_uid=context.history_uid,
                 images=images,
-                character_name=context.character_config.conf_name,
             )
         )
 
