@@ -17,17 +17,15 @@ class ChatGroupManager:
 
     def create_group_for_client(self, client_uid: str) -> str:
         group_id = f"group_{client_uid}"
-        new_group = Group(
-            group_id=group_id,
-            owner_uid=client_uid,
-            members={client_uid}
-        )
+        new_group = Group(group_id=group_id, owner_uid=client_uid, members={client_uid})
         self.groups[group_id] = new_group
         self.client_group_map[client_uid] = group_id
         logger.info(f"Created group {group_id} for client {client_uid}")
         return group_id
 
-    def add_client_to_group(self, inviter_uid: str, invitee_uid: str) -> Tuple[bool, str]:
+    def add_client_to_group(
+        self, inviter_uid: str, invitee_uid: str
+    ) -> Tuple[bool, str]:
         """
         Add a client to the group of the inviter
         If inviter is not in a group, create one
@@ -46,9 +44,7 @@ class ChatGroupManager:
         if not inviter_group_id:
             group_id = f"group_{inviter_uid}"
             new_group = Group(
-                group_id=group_id,
-                owner_uid=inviter_uid,
-                members={inviter_uid}
+                group_id=group_id, owner_uid=inviter_uid, members={inviter_uid}
             )
             self.groups[group_id] = new_group
             self.client_group_map[inviter_uid] = group_id
@@ -59,11 +55,13 @@ class ChatGroupManager:
         group = self.groups[inviter_group_id]
         group.members.add(invitee_uid)
         self.client_group_map[invitee_uid] = inviter_group_id
-        
+
         logger.info(f"Added client {invitee_uid} to group {inviter_group_id}")
         return True, f"Successfully added {invitee_uid} to the group"
 
-    def remove_client_from_group(self, remover_uid: str, target_uid: str) -> Tuple[bool, str]:
+    def remove_client_from_group(
+        self, remover_uid: str, target_uid: str
+    ) -> Tuple[bool, str]:
         """
         Remove a client from their group
         Returns (success, message)
@@ -92,14 +90,14 @@ class ChatGroupManager:
                 self.client_group_map[owner_uid] = ""
             del self.groups[target_group_id]
             logger.info(f"Removed empty group {target_group_id}")
-        
+
         logger.info(f"Removed client {target_uid} from group {target_group_id}")
         return True, f"Successfully removed {target_uid} from the group"
 
     def remove_client(self, client_uid: str) -> List[str]:
         """
         Remove client from their group and return affected members
-        
+
         Returns:
             List[str]: List of remaining group members
         """
@@ -109,7 +107,7 @@ class ChatGroupManager:
 
         group = self.groups[group_id]
         affected_members = list(group.members)
-        
+
         # Remove client from group
         if client_uid in group.members:
             group.members.remove(client_uid)

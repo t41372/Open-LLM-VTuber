@@ -251,10 +251,12 @@ class ServiceContext:
 
         for prompt_name, prompt_file in self.system_config.tool_prompts.items():
             prompt_content = prompt_loader.load_util(prompt_file)
-            
+
             if prompt_name == "live2d_expression_prompt":
-                prompt_content = prompt_content.replace("[<insert_emomap_keys>]", self.live2d_model.emo_str)
-            
+                prompt_content = prompt_content.replace(
+                    "[<insert_emomap_keys>]", self.live2d_model.emo_str
+                )
+
             persona_prompt += prompt_content
 
         logger.debug("\n === System Prompt ===")

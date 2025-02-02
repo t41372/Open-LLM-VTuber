@@ -16,7 +16,7 @@ def create_routes(default_context_cache: ServiceContext) -> APIRouter:
     Returns:
         APIRouter: Configured router with WebSocket endpoint.
     """
-    
+
     router = APIRouter()
     ws_handler = WebSocketHandler(default_context_cache)
 
@@ -25,7 +25,7 @@ def create_routes(default_context_cache: ServiceContext) -> APIRouter:
         """WebSocket endpoint for client connections"""
         await websocket.accept()
         client_uid = str(uuid4())
-        
+
         try:
             await ws_handler.handle_new_connection(websocket, client_uid)
             await ws_handler.handle_websocket_communication(websocket, client_uid)

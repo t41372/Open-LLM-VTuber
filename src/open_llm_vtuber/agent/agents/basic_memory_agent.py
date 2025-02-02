@@ -90,10 +90,12 @@ class BasicMemoryAgent(AgentInterface):
         else:
             text_content = message
 
-        self._memory.append({
-            "role": role,
-            "content": text_content,
-        })
+        self._memory.append(
+            {
+                "role": role,
+                "content": text_content,
+            }
+        )
 
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
@@ -131,14 +133,18 @@ class BasicMemoryAgent(AgentInterface):
             self._memory[-1]["content"] = heard_response + "..."
         else:
             if heard_response:
-                self._memory.append({
-                    "role": "assistant",
-                    "content": heard_response + "...",
-                })
-        self._memory.append({
-            "role": "system",
-            "content": "[Interrupted by user]",
-        })
+                self._memory.append(
+                    {
+                        "role": "assistant",
+                        "content": heard_response + "...",
+                    }
+                )
+        self._memory.append(
+            {
+                "role": "system",
+                "content": "[Interrupted by user]",
+            }
+        )
 
     def _to_text_prompt(self, input_data: BatchInput) -> str:
         """
@@ -178,27 +184,23 @@ class BasicMemoryAgent(AgentInterface):
         Prepare messages list with image support.
         """
         messages = self._memory.copy()
-        
+
         if input_data.images:
             content = []
             text_content = self._to_text_prompt(input_data)
             content.append({"type": "text", "text": text_content})
-            
+
             for img_data in input_data.images:
-                content.append({
-                    "type": "image_url",
-                    "image_url": {"url": img_data.data, "detail": "auto"},
-                })
-            
-            user_message = {
-                "role": "user",
-                "content": content
-            }
+                content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": img_data.data, "detail": "auto"},
+                    }
+                )
+
+            user_message = {"role": "user", "content": content}
         else:
-            user_message = {
-                "role": "user", 
-                "content": self._to_text_prompt(input_data)
-            }
+            user_message = {"role": "user", "content": self._to_text_prompt(input_data)}
 
         messages.append(user_message)
         self._add_message(user_message["content"], "user")
@@ -264,9 +266,11 @@ class BasicMemoryAgent(AgentInterface):
         """
         self._interrupt_handled = False
 
-    def start_group_conversation(self, human_name: str, ai_participants: List[str]) -> None:
+    def start_group_conversation(
+        self, human_name: str, ai_participants: List[str]
+    ) -> None:
         """
-        Start a group conversation by adding a system message that informs the AI about 
+        Start a group conversation by adding a system message that informs the AI about
         the conversation participants.
 
         Args:
@@ -274,7 +278,7 @@ class BasicMemoryAgent(AgentInterface):
             ai_participants: List[str] - Names of other AI participants in the conversation
         """
         other_ais = ", ".join(name for name in ai_participants)
-        
+
         group_context = (
             f"You are in a group conversation. "
             f"The human participant is {human_name}. "
@@ -283,10 +287,7 @@ class BasicMemoryAgent(AgentInterface):
             f"You are free to address other AI participants as you would in a real conversation."
             f"Try to keep your responses short and concise. Engage in the interaction actively."
         )
-        
-        self._memory.append({
-            "role": "user",
-            "content": group_context
-        })
-        
+
+        self._memory.append({"role": "user", "content": group_context})
+
         logger.debug(f"Added group conversation context: '''{group_context}'''")

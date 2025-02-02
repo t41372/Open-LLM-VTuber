@@ -3,11 +3,11 @@ import uuid
 import json
 import asyncio
 from typing import (
-    List, 
-    Dict, 
-    Union, 
-    Any, 
-    Callable, 
+    List,
+    Dict,
+    Union,
+    Any,
+    Callable,
     Optional,
     TypedDict,
     Awaitable,
@@ -22,19 +22,13 @@ from .live2d_model import Live2dModel
 from .asr.asr_interface import ASRInterface
 from .agent.agents.agent_interface import AgentInterface
 from .agent.output_types import (
-    BaseOutput, 
-    SentenceOutput, 
-    AudioOutput, 
-    Actions, 
-    DisplayText
+    BaseOutput,
+    SentenceOutput,
+    AudioOutput,
+    Actions,
+    DisplayText,
 )
-from .agent.input_types import (
-    BatchInput, 
-    TextData, 
-    ImageData, 
-    TextSource, 
-    ImageSource
-)
+from .agent.input_types import BatchInput, TextData, ImageData, TextSource, ImageSource
 from .tts.tts_interface import TTSInterface
 from .utils.stream_audio import prepare_audio_payload
 from .chat_history_manager import store_message
@@ -45,8 +39,10 @@ from .message_handler import message_handler
 WebSocketSend = Callable[[str], Awaitable[None]]
 BroadcastFunc = Callable[[List[str], dict, Optional[str]], Awaitable[None]]
 
+
 class AudioPayload(TypedDict):
     """Type definition for audio payload"""
+
     type: str
     audio: Optional[str]
     volumes: Optional[List[float]]
@@ -55,15 +51,19 @@ class AudioPayload(TypedDict):
     actions: Optional[Actions]
     forwarded: Optional[bool]
 
+
 @dataclass
 class BroadcastContext:
     """Context for broadcasting messages in group chat"""
+
     broadcast_func: Optional[BroadcastFunc] = None
     group_members: Optional[List[str]] = None
     current_client_uid: Optional[str] = None
 
+
 class ConversationConfig(BaseModel):
     """Configuration for conversation chain"""
+
     conf_uid: str = ""
     history_uid: str = ""
     client_uid: str = ""
@@ -72,6 +72,7 @@ class ConversationConfig(BaseModel):
 
 class GroupConversationState(BaseModel):
     """State for group conversation"""
+
     conversation_history: List[str] = []
     memory_index: Dict[str, int] = {}
     group_queue: List[str] = []
@@ -97,7 +98,7 @@ class TTSTaskManager:
     ) -> None:
         """
         Generate and send audio for a sentence.
-        
+
         Args:
             tts_text: Text to synthesize
             display_text: Text to display
@@ -112,7 +113,9 @@ class TTSTaskManager:
             await self._send_silent_payload(display_text, actions, websocket_send)
             return
 
-        logger.debug(f"🏃Generating audio for '''{tts_text}''' (by {display_text.name})")
+        logger.debug(
+            f"🏃Generating audio for '''{tts_text}''' (by {display_text.name})"
+        )
 
         async with self._lock:
             task = asyncio.create_task(
@@ -193,6 +196,7 @@ class TTSTaskManager:
         """Clear all pending tasks"""
         self.task_list.clear()
 
+
 async def _process_agent_output(
     output: BaseOutput,
     tts_manager: TTSTaskManager,
@@ -203,7 +207,7 @@ async def _process_agent_output(
 ) -> str:
     """
     Process a single agent output and return the response text.
-    
+
     Args:
         output: Agent output to process
         tts_manager: TTS task manager instance
@@ -211,7 +215,7 @@ async def _process_agent_output(
         tts_engine: TTS engine instance
         websocket_send: WebSocket send function
         broadcast_ctx: Optional broadcast context for group chat
-        
+
     Returns:
         str: Accumulated response text
     """
@@ -220,24 +224,28 @@ async def _process_agent_output(
     try:
         if isinstance(output, SentenceOutput):
             full_response = await _handle_sentence_output(
-                output, tts_manager, live2d_model, tts_engine, 
-                websocket_send, broadcast_ctx
+                output,
+                tts_manager,
+                live2d_model,
+                tts_engine,
+                websocket_send,
+                broadcast_ctx,
             )
         elif isinstance(output, AudioOutput):
-            full_response = await _handle_audio_output(
-                output, websocket_send
-            )
+            full_response = await _handle_audio_output(output, websocket_send)
         else:
             logger.warning(f"Unknown output type: {type(output)}")
     except Exception as e:
         logger.error(f"Error processing agent output: {e}")
         # Send error message to client
-        await websocket_send(json.dumps({
-            "type": "error",
-            "message": f"Error processing response: {str(e)}"
-        }))
+        await websocket_send(
+            json.dumps(
+                {"type": "error", "message": f"Error processing response: {str(e)}"}
+            )
+        )
 
     return full_response
+
 
 async def _handle_sentence_output(
     output: SentenceOutput,
@@ -262,6 +270,7 @@ async def _handle_sentence_output(
         )
     return full_response
 
+
 async def _handle_audio_output(
     output: AudioOutput,
     websocket_send: WebSocketSend,
@@ -271,12 +280,11 @@ async def _handle_audio_output(
     async for audio_path, display_text, transcript, actions in output:
         full_response += display_text.text
         audio_payload = prepare_audio_payload(
-            audio_path=audio_path,
-            display_text=display_text,
-            actions=actions
+            audio_path=audio_path, display_text=display_text, actions=actions
         )
         await websocket_send(json.dumps(audio_payload))
     return full_response
+
 
 async def _finalize_conversation_turn(
     tts_manager: TTSTaskManager,
@@ -288,7 +296,7 @@ async def _finalize_conversation_turn(
 ) -> bool:
     """
     Finalize a conversation turn by handling TTS tasks and sending completion signals.
-    
+
     Args:
         tts_manager: TTS task manager instance
         websocket_send: WebSocket send function
@@ -296,7 +304,7 @@ async def _finalize_conversation_turn(
         character_name: Optional character name for logging
         broadcast_ctx: Optional broadcast context for group chat
         session_emoji: Optional emoji for logging
-        
+
     Returns:
         bool: True if the turn was successfully finalized
     """
@@ -309,13 +317,13 @@ async def _finalize_conversation_turn(
     try:
         await asyncio.gather(*tts_manager.task_list)
         await _send_completion_signals(
-            websocket_send, client_uid, character_name,
-            broadcast_ctx, session_emoji
+            websocket_send, client_uid, character_name, broadcast_ctx, session_emoji
         )
         return True
     except Exception as e:
         logger.error(f"Error finalizing conversation turn: {e}")
         return False
+
 
 async def _send_completion_signals(
     websocket_send: WebSocketSend,
@@ -340,7 +348,7 @@ async def _send_completion_signals(
     # Send force-new-message
     force_new_msg = {"type": "force-new-message"}
     await websocket_send(json.dumps(force_new_msg))
-    
+
     # Broadcast to group if in group chat
     if broadcast_ctx and broadcast_ctx.broadcast_func and broadcast_ctx.group_members:
         await broadcast_ctx.broadcast_func(
@@ -355,9 +363,8 @@ async def _send_completion_signals(
     )
 
     # Send conversation-chain-end
-    await _send_chain_end_signal(
-        websocket_send, broadcast_ctx, session_emoji
-    )
+    await _send_chain_end_signal(websocket_send, broadcast_ctx, session_emoji)
+
 
 async def _send_chain_end_signal(
     websocket_send: WebSocketSend,
@@ -410,7 +417,7 @@ def _create_batch_input(
 
 class SingleConversation:
     """Handles single-user conversation"""
-    
+
     def __init__(
         self,
         agent_engine: AgentInterface,
@@ -444,10 +451,7 @@ class SingleConversation:
             logger.info("Transcribing audio input...")
             input_text = await self.asr_engine.async_transcribe_np(user_input)
             await self.websocket_send(
-                json.dumps({
-                    "type": "user-input-transcription", 
-                    "text": input_text
-                })
+                json.dumps({"type": "user-input-transcription", "text": input_text})
             )
             return input_text
         return user_input
@@ -455,10 +459,12 @@ class SingleConversation:
     async def _send_conversation_start_signals(self) -> None:
         """Send initial conversation signals"""
         await self.websocket_send(
-            json.dumps({
-                "type": "control",
-                "text": "conversation-chain-start",
-            })
+            json.dumps(
+                {
+                    "type": "control",
+                    "text": "conversation-chain-start",
+                }
+            )
         )
         await self.websocket_send(
             json.dumps({"type": "full-text", "text": "Thinking..."})
@@ -481,12 +487,10 @@ class SingleConversation:
 
             # Process user input
             input_text = await self._process_user_input(user_input)
-            
+
             # Create batch input
-            batch_input = _create_batch_input(
-                input_text, images, self.character_name
-            )
-            
+            batch_input = _create_batch_input(input_text, images, self.character_name)
+
             # Store user message
             store_message(self.conf_uid, self.history_uid, "human", input_text)
             logger.info(f"User input: {input_text}")
@@ -520,10 +524,11 @@ class SingleConversation:
             raise
         except Exception as e:
             logger.error(f"Error in conversation chain: {e}")
-            await self.websocket_send(json.dumps({
-                "type": "error",
-                "message": f"Conversation error: {str(e)}"
-            }))
+            await self.websocket_send(
+                json.dumps(
+                    {"type": "error", "message": f"Conversation error: {str(e)}"}
+                )
+            )
             raise
         finally:
             self.cleanup()
@@ -553,7 +558,7 @@ class SingleConversation:
 
 class GroupConversation:
     """Handles group conversation"""
-    
+
     def __init__(
         self,
         client_contexts: Dict[str, ServiceContext],
@@ -579,26 +584,29 @@ class GroupConversation:
             conversation_history=[],
             memory_index={uid: 0 for uid in group_members},
             group_queue=list(group_members),
-            session_emoji=self.session_emoji
+            session_emoji=self.session_emoji,
         )
-        
+
         # Initialize group conversation context for each AI
         self._init_group_conversation()
-        
+
     def _init_group_conversation(self) -> None:
         """Initialize group conversation context for each AI participant"""
         # Get all AI character names
         ai_names = [
-            ctx.character_config.conf_name 
-            for ctx in self.client_contexts.values()
+            ctx.character_config.conf_name for ctx in self.client_contexts.values()
         ]
-        
+
         for context in self.client_contexts.values():
             agent = context.agent_engine
-            if hasattr(agent, 'start_group_conversation'):
+            if hasattr(agent, "start_group_conversation"):
                 agent.start_group_conversation(
-                    human_name="Human",  
-                    ai_participants=[name for name in ai_names if name != context.character_config.conf_name]
+                    human_name="Human",
+                    ai_participants=[
+                        name
+                        for name in ai_names
+                        if name != context.character_config.conf_name
+                    ],
                 )
                 logger.debug(
                     f"Initialized group conversation context for "
@@ -612,7 +620,7 @@ class GroupConversation:
     ) -> None:
         """Process group conversation"""
         self.state.conversation_history = [f"Human: {user_input}"]
-        
+
         try:
             logger.info(f"Group Conversation Chain {self.session_emoji} started!")
 
@@ -627,12 +635,10 @@ class GroupConversation:
                         current_member_uid=self.state.group_queue.pop(0),
                         images=images,
                     )
-                    
+
                 except Exception as e:
                     logger.error(f"Error in group member turn: {e}")
-                    await self._handle_member_error(
-                        f"Error in conversation: {str(e)}"
-                    )
+                    await self._handle_member_error(f"Error in conversation: {str(e)}")
 
         except asyncio.CancelledError:
             logger.info(
@@ -642,9 +648,7 @@ class GroupConversation:
             raise
         except Exception as e:
             logger.error(f"Error in group conversation chain: {e}")
-            await self._handle_member_error(
-                f"Fatal error in conversation: {str(e)}"
-            )
+            await self._handle_member_error(f"Fatal error in conversation: {str(e)}")
             raise
         finally:
             self.cleanup()
@@ -680,13 +684,13 @@ class GroupConversation:
     ) -> None:
         """Handle a single group member's conversation turn"""
         await self._broadcast_thinking_state()
-        
+
         context = self.client_contexts[current_member_uid]
         current_ws_send = self.client_connections[current_member_uid].send_text
 
         # Get new messages for this AI
         new_messages = self.state.conversation_history[
-            self.state.memory_index[current_member_uid]:
+            self.state.memory_index[current_member_uid] :
         ]
         new_context = "\n".join(new_messages) if new_messages else ""
 
@@ -713,7 +717,7 @@ class GroupConversation:
             ai_message = f"{context.character_config.conf_name}: {full_response}"
             self.state.conversation_history.append(ai_message)
             logger.info(f"Appended complete response: {ai_message}")
-            
+
         # Update memory index and queue
         self.state.memory_index[current_member_uid] = len(
             self.state.conversation_history
@@ -738,7 +742,7 @@ class GroupConversation:
             {
                 "type": "error",
                 "message": error_message,
-            }
+            },
         )
 
     async def _process_member_response(
@@ -771,9 +775,7 @@ class GroupConversation:
 
             if self.tts_manager.task_list:
                 await asyncio.gather(*self.tts_manager.task_list)
-                await current_ws_send(json.dumps({
-                    "type": "backend-synth-complete"
-                }))
+                await current_ws_send(json.dumps({"type": "backend-synth-complete"}))
 
                 await _finalize_conversation_turn(
                     tts_manager=self.tts_manager,
@@ -801,10 +803,7 @@ class GroupConversation:
             logger.info("Transcribing audio input...")
             input_text = await self.asr_engine.async_transcribe_np(user_input)
             await self.websocket_send(
-                json.dumps({
-                    "type": "user-input-transcription", 
-                    "text": input_text
-                })
+                json.dumps({"type": "user-input-transcription", "text": input_text})
             )
             return input_text
         return user_input
@@ -812,10 +811,12 @@ class GroupConversation:
     async def _send_conversation_start_signals(self) -> None:
         """Send initial conversation signals"""
         await self.websocket_send(
-            json.dumps({
-                "type": "control",
-                "text": "conversation-chain-start",
-            })
+            json.dumps(
+                {
+                    "type": "control",
+                    "text": "conversation-chain-start",
+                }
+            )
         )
         await self.websocket_send(
             json.dumps({"type": "full-text", "text": "Thinking..."})
