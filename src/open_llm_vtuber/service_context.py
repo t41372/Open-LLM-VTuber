@@ -47,6 +47,8 @@ class ServiceContext:
         # the system prompt is a combination of the persona prompt and live2d expression prompt
         self.system_prompt: str = None
 
+        self.history_uid: str = ""  # Add history_uid field
+
     def __str__(self):
         return (
             f"ServiceContext:\n"

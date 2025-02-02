@@ -53,18 +53,23 @@ class BasicMemoryAgent(AgentInterface):
         self._tts_preprocessor_config = tts_preprocessor_config
         self._faster_first_response = faster_first_response
         self._segment_method = segment_method
+        # Flag to ensure a single interrupt handling per conversation
+        self._interrupt_handled = False
         self._set_llm(llm)
         self.set_system(system)
         logger.info("BasicMemoryAgent initialized.")
 
     def _set_llm(self, llm: StatelessLLMInterface):
         """
-        Set the (stateless) LLM to be used for chat completion
-        llm: StatelessLLMInterface
-            the LLM
+        Set the (stateless) LLM to be used for chat completion.
+        Instead of assigning directly to `self.chat`, store it to `_chat_function`
+        so that the async method chat remains intact.
+
+        Args:
+            llm: StatelessLLMInterface - the LLM instance.
         """
-        self._llm: StatelessLLMInterface = llm
-        self.chat = self._chat_function_factory(llm.chat_completion)
+        self._llm = llm
+        self._chat_function = self._chat_function_factory(llm.chat_completion)
 
     def set_system(self, system: str):
         """
@@ -76,19 +81,11 @@ class BasicMemoryAgent(AgentInterface):
         self._system = system
 
     def _add_message(self, message: str, role: str):
-        """
-        Add a message to the memory
-        message: str
-            the message
-        role: str
-            the role of the message. Can be "user", "assistant", or "system"
-        """
-        self._memory.append(
-            {
-                "role": role,
-                "content": message,
-            }
-        )
+        """Add a message to the memory"""
+        self._memory.append({
+            "role": role,
+            "content": message,
+        })
 
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
@@ -114,25 +111,26 @@ class BasicMemoryAgent(AgentInterface):
         """
         Handle an interruption by the user.
 
-        heard_response: str
-            the part of the AI response heard by the user before interruption
+        Args:
+            heard_response: str - The part of the AI response heard by the user before interruption
         """
-        if self._memory[-1]["role"] == "assistant":
+        if self._interrupt_handled:
+            return
+
+        self._interrupt_handled = True
+
+        if self._memory and self._memory[-1]["role"] == "assistant":
             self._memory[-1]["content"] = heard_response + "..."
         else:
             if heard_response:
-                self._memory.append(
-                    {
-                        "role": "assistant",
-                        "content": heard_response + "...",
-                    }
-                )
-        self._memory.append(
-            {
-                "role": "system",
-                "content": "[Interrupted by user]",
-            }
-        )
+                self._memory.append({
+                    "role": "assistant",
+                    "content": heard_response + "...",
+                })
+        self._memory.append({
+            "role": "system",
+            "content": "[Interrupted by user]",
+        })
 
     def _to_text_prompt(self, input_data: BatchInput) -> str:
         """
@@ -245,5 +243,17 @@ class BasicMemoryAgent(AgentInterface):
         return chat_with_memory
 
     async def chat(self, input_data: BatchInput) -> AsyncIterator[SentenceOutput]:
-        """Placeholder chat method that will be replaced at runtime"""
-        return self.chat(input_data)
+        """Chat method that will be used to generate responses."""
+        self.reset_interrupt()
+        try:
+            async for output in self._chat_function(input_data):
+                yield output
+        except Exception as e:
+            logger.error(f"Error in chat: {e}")
+            raise
+
+    def reset_interrupt(self) -> None:
+        """
+        Reset the interrupt handled flag for a new conversation.
+        """
+        self._interrupt_handled = False

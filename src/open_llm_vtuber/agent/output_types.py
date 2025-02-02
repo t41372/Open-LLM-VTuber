@@ -26,6 +26,25 @@ class BaseOutput(ABC):
 
 
 @dataclass
+class DisplayText:
+    """Text to be displayed with optional metadata"""
+    text: str
+    name: str = "AI"  # Keep the name field for frontend display
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization"""
+        return {
+            "text": self.text,
+            "name": self.name,
+            "avatar": self.name[0].upper()  # Use first letter as avatar
+        }
+
+    def __str__(self) -> str:
+        """String representation for logging"""
+        return f"{self.name}: {self.text}"
+
+
+@dataclass
 class SentenceOutput(BaseOutput):
     """
     Output type for text-based responses.
@@ -37,7 +56,7 @@ class SentenceOutput(BaseOutput):
         actions: Associated actions (expressions, pictures, sounds)
     """
 
-    display_text: str  # Text for display
+    display_text: DisplayText  # Changed from str to DisplayText
     tts_text: str  # Text for TTS
     actions: Actions
 
@@ -51,7 +70,7 @@ class AudioOutput(BaseOutput):
     """Output type for audio-based responses"""
 
     audio_path: str
-    display_text: str  # Text for display
+    display_text: DisplayText  # Changed from str to DisplayText
     transcript: str  # Original transcript
     actions: Actions
 
