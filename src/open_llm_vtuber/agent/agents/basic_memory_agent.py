@@ -2,7 +2,7 @@ from typing import AsyncIterator, List, Dict, Any, Callable
 from loguru import logger
 
 from .agent_interface import AgentInterface
-from ..output_types import SentenceOutput
+from ..output_types import SentenceOutput, DisplayText
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from ...chat_history_manager import get_history
 from ..transformers import (
@@ -13,6 +13,7 @@ from ..transformers import (
 )
 from ...config_manager import TTSPreprocessorConfig
 from ..input_types import BatchInput, TextSource, ImageSource
+from prompts import prompt_loader
 
 
 class BasicMemoryAgent(AgentInterface):
@@ -53,17 +54,22 @@ class BasicMemoryAgent(AgentInterface):
         self._tts_preprocessor_config = tts_preprocessor_config
         self._faster_first_response = faster_first_response
         self._segment_method = segment_method
+        # Flag to ensure a single interrupt handling per conversation
+        self._interrupt_handled = False
         self._set_llm(llm)
         self.set_system(system)
         logger.info("BasicMemoryAgent initialized.")
 
     def _set_llm(self, llm: StatelessLLMInterface):
         """
-        Set the (stateless) LLM to be used for chat completion
-        llm: StatelessLLMInterface
-            the LLM
+        Set the (stateless) LLM to be used for chat completion.
+        Instead of assigning directly to `self.chat`, store it to `_chat_function`
+        so that the async method chat remains intact.
+
+        Args:
+            llm: StatelessLLMInterface - the LLM instance.
         """
-        self._llm: StatelessLLMInterface = llm
+        self._llm = llm
         self.chat = self._chat_function_factory(llm.chat_completion)
 
     def set_system(self, system: str):
@@ -75,20 +81,36 @@ class BasicMemoryAgent(AgentInterface):
         logger.debug(f"Memory Agent: Setting system prompt: '''{system}'''")
         self._system = system
 
-    def _add_message(self, message: str, role: str):
+    def _add_message(self, message: str | List[Dict[str, Any]], role: str, display_text: DisplayText | None = None):
         """
         Add a message to the memory
-        message: str
-            the message
-        role: str
-            the role of the message. Can be "user", "assistant", or "system"
+        
+        Args:
+            message: Message content (string or list of content items)
+            role: Message role
+            display_text: Optional display information containing name and avatar
         """
-        self._memory.append(
-            {
-                "role": role,
-                "content": message,
-            }
-        )
+        if isinstance(message, list):
+            text_content = ""
+            for item in message:
+                if item.get("type") == "text":
+                    text_content += item["text"]
+        else:
+            text_content = message
+
+        message_data = {
+            "role": role,
+            "content": text_content,
+        }
+
+        # Add display information if provided
+        if display_text:
+            if display_text.name:
+                message_data["name"] = display_text.name
+            if display_text.avatar:
+                message_data["avatar"] = display_text.avatar
+
+        self._memory.append(message_data)
 
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
@@ -114,10 +136,15 @@ class BasicMemoryAgent(AgentInterface):
         """
         Handle an interruption by the user.
 
-        heard_response: str
-            the part of the AI response heard by the user before interruption
+        Args:
+            heard_response: str - The part of the AI response heard by the user before interruption
         """
-        if self._memory[-1]["role"] == "assistant":
+        if self._interrupt_handled:
+            return
+
+        self._interrupt_handled = True
+
+        if self._memory and self._memory[-1]["role"] == "assistant":
             self._memory[-1]["content"] = heard_response + "..."
         else:
             if heard_response:
@@ -170,34 +197,28 @@ class BasicMemoryAgent(AgentInterface):
     def _to_messages(self, input_data: BatchInput) -> List[Dict[str, Any]]:
         """
         Prepare messages list with image support.
-
-        Args:
-            input_data: BatchInput - The input data
-
-        Returns:
-            List[Dict[str, Any]] - Messages formatted for OpenAI API
         """
         messages = self._memory.copy()
 
-        user_message: Dict[str, Any] = {
-            "role": "user",
-            "content": [],
-        }
-
-        text_content = self._to_text_prompt(input_data)
-        user_message["content"].append({"type": "text", "text": text_content})
-
-        # Add images in order
         if input_data.images:
+            content = []
+            text_content = self._to_text_prompt(input_data)
+            content.append({"type": "text", "text": text_content})
+
             for img_data in input_data.images:
-                user_message["content"].append(
+                content.append(
                     {
                         "type": "image_url",
                         "image_url": {"url": img_data.data, "detail": "auto"},
                     }
                 )
 
+            user_message = {"role": "user", "content": content}
+        else:
+            user_message = {"role": "user", "content": self._to_text_prompt(input_data)}
+
         messages.append(user_message)
+        self._add_message(user_message["content"], "user")
         return messages
 
     def _chat_function_factory(
@@ -247,3 +268,32 @@ class BasicMemoryAgent(AgentInterface):
     async def chat(self, input_data: BatchInput) -> AsyncIterator[SentenceOutput]:
         """Placeholder chat method that will be replaced at runtime"""
         return self.chat(input_data)
+
+    def reset_interrupt(self) -> None:
+        """
+        Reset the interrupt handled flag for a new conversation.
+        """
+        self._interrupt_handled = False
+
+    def start_group_conversation(
+        self, human_name: str, ai_participants: List[str]
+    ) -> None:
+        """
+        Start a group conversation by adding a system message that informs the AI about
+        the conversation participants.
+
+        Args:
+            human_name: str - Name of the human participant
+            ai_participants: List[str] - Names of other AI participants in the conversation
+        """
+        other_ais = ", ".join(name for name in ai_participants)
+        
+        # Load and format the group conversation prompt
+        group_context = prompt_loader.load_util("group_conversation_prompt").format(
+            human_name=human_name,
+            other_ais=other_ais
+        )
+
+        self._memory.append({"role": "user", "content": group_context})
+
+        logger.debug(f"Added group conversation context: '''{group_context}'''")

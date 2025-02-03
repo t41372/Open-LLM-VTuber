@@ -4,6 +4,7 @@ import shutil
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.responses import Response
 
 from .routes import create_routes
 from .service_context import ServiceContext
@@ -16,6 +17,14 @@ class CustomStaticFiles(StaticFiles):
         if path.endswith(".js"):
             response.headers["Content-Type"] = "application/javascript"
         return response
+
+
+class AvatarStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        allowed_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.svg')
+        if not any(path.lower().endswith(ext) for ext in allowed_extensions):
+            return Response("Forbidden file type", status_code=403)
+        return await super().get_response(path, scope)
 
 
 class WebSocketServer:
@@ -50,6 +59,11 @@ class WebSocketServer:
             "/bg",
             StaticFiles(directory="backgrounds"),
             name="backgrounds",
+        )
+        self.app.mount(
+            "/avatars",
+            AvatarStaticFiles(directory="avatars"),
+            name="avatars",
         )
         self.app.mount(
             "/", CustomStaticFiles(directory="./frontend", html=True), name="frontend"

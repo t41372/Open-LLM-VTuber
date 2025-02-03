@@ -2,7 +2,7 @@ import base64
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 from ..agent.output_types import Actions
-
+from ..agent.output_types import DisplayText
 
 def _get_volume_by_chunks(audio: AudioSegment, chunk_length_ms: int) -> list:
     """
@@ -26,8 +26,9 @@ def _get_volume_by_chunks(audio: AudioSegment, chunk_length_ms: int) -> list:
 def prepare_audio_payload(
     audio_path: str | None,
     chunk_length_ms: int = 20,
-    display_text: str = None,
+    display_text: DisplayText = None,
     actions: Actions = None,
+    forwarded: bool = False,
 ) -> dict[str, any]:
     """
     Prepares the audio payload for sending to a broadcast endpoint.
@@ -36,12 +37,15 @@ def prepare_audio_payload(
     Parameters:
         audio_path (str | None): The path to the audio file to be processed, or None for silent display
         chunk_length_ms (int): The length of each audio chunk in milliseconds
-        display_text (str, optional): Text to be displayed with the audio
+        display_text (DisplayText, optional): Text to be displayed with the audio
         actions (Actions, optional): Actions associated with the audio
 
     Returns:
         dict: The audio payload to be sent
     """
+    if isinstance(display_text, DisplayText):
+        display_text = display_text.to_dict()
+    
     if not audio_path:
         # Return payload for silent display
         return {
@@ -49,8 +53,9 @@ def prepare_audio_payload(
             "audio": None,
             "volumes": [],
             "slice_length": chunk_length_ms,
-            "text": display_text,
+            "display_text": display_text,
             "actions": actions.to_dict() if actions else None,
+            "forwarded": forwarded,
         }
 
     try:
@@ -68,8 +73,9 @@ def prepare_audio_payload(
         "audio": audio_base64,
         "volumes": volumes,
         "slice_length": chunk_length_ms,
-        "text": display_text,
+        "display_text": display_text,
         "actions": actions.to_dict() if actions else None,
+        "forwarded": forwarded,
     }
 
     return payload

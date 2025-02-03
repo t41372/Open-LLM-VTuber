@@ -13,12 +13,16 @@ system_config:
     live2d_expression_prompt: "live2d_expression_prompt" # 将追加到系统提示末尾，让 LLM（大型语言模型）包含控制面部表情的关键字。支持的关键字将自动加载到 `[<insert_emomap_keys>]` 的位置。
     # 启用此选项可让不具备思维链的LLM也能展示内心想法、心理活动和动作（以括号形式呈现），但不会进行语音合成。更多详情请参考 think_tag_prompt。
     # think_tag_prompt: "think_tag_prompt"
+  group_conversation_prompt: "group_conversation_prompt" # 当使用群聊时，此提示词将添加到每个 AI 参与者的记忆中。
 
 # 默认角色的配置
 character_config:
-  conf_name: "shizuku-local" # 角色配置名称
-  conf_uid: "shizuku-local-001" # 角色配置唯一标识符
+  conf_name: "shizuku-local" # 角色配置文件的名称
+  conf_uid: "shizuku-local-001" # 角色配置的唯一标识符
   live2d_model_name: "shizuku-local" # Live2D 模型名称
+  character_name: "Shizuku" # 将在群聊中使用，并显示为 AI 的名称。
+  avatar: "shizuku.png" # 建议使用正方形图像作为头像。将其保存到 avatars 文件夹中。留空则使用角色名称的首字母作为头像。
+  human_name: "Human" # 将在群聊中使用，并显示为人类的名称。
 
   # ============== 提示词 ==============
 

@@ -4,6 +4,7 @@ character_config:
   conf_name: "unhelpful_ai"
   conf_uid: "unhelpful_ai"
   live2d_model_name: "mao_pro"
+  avatar: "mao.png"
   persona_prompt: |
     You are an unhelpful and sarcastic AI that enjoys making fun of humans.
 
