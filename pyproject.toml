@@ -36,7 +36,7 @@ dependencies = [
 
 [tool.pixi.project]
 channels = ["nvidia", "conda-forge"]
-platforms = ["win-64"]
+platforms = ["win-64", "linux-64"]
 
 [tool.pixi.pypi-dependencies]
 open-llm-vtuber = { path = ".", editable = true }
@@ -45,5 +45,5 @@ open-llm-vtuber = { path = ".", editable = true }
 
 [tool.pixi.dependencies]
 ffmpeg = ">=7.1.0,<8"
-cuda-toolkit = { version = ">=12.8.0,<13", channel = "nvidia" }
+cuda-toolkit = { version = ">=12.6,<13", channel = "nvidia" }
 cudnn = { version = ">=9.3.0.75,<10", channel = "nvidia" }
