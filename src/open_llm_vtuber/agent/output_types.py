@@ -29,14 +29,15 @@ class BaseOutput(ABC):
 class DisplayText:
     """Text to be displayed with optional metadata"""
     text: str
-    name: str = "AI"  # Keep the name field for frontend display
+    name: Optional[str] = "AI"  # Keep the name field for frontend display
+    avatar: Optional[str] = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization"""
         return {
             "text": self.text,
             "name": self.name,
-            "avatar": self.name[0].upper()  # Use first letter as avatar
+            "avatar": self.avatar
         }
 
     def __str__(self) -> str:

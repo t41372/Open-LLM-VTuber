@@ -74,7 +74,6 @@ def actions_extractor(live2d_model: Live2dModel):
 def display_processor():
     """
     Decorator that processes text for display.
-    Uses from_name from input data for display name.
     """
     def decorator(
         func: Callable[..., AsyncIterator[Tuple[SentenceWithTags, Actions]]],
@@ -84,12 +83,6 @@ def display_processor():
             *args, **kwargs
         ) -> AsyncIterator[Tuple[SentenceWithTags, DisplayText, Actions]]:
             stream = func(*args, **kwargs)
-            # Get input_data from args (first argument of chat function)
-            input_data = args[0] if args else None
-            # Use from_name from input_data for display
-            character_name = (
-                input_data.texts[0].from_name if input_data and input_data.texts else "AI"
-            )
 
             async for sentence, actions in stream:
                 text = sentence.text
@@ -101,10 +94,7 @@ def display_processor():
                         elif tag.state == TagState.END:
                             text = ")"
                             
-                display = DisplayText(
-                    text=text,
-                    name=character_name
-                )
+                display = DisplayText(text=text)  # Simplified DisplayText creation
                 yield sentence, display, actions
 
         return wrapper

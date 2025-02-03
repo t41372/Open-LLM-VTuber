@@ -10,7 +10,10 @@ from .service_context import ServiceContext
 from .chat_group import ChatGroupManager
 from .message_handler import message_handler
 from .utils.stream_audio import prepare_audio_payload
-from .conversation import SingleConversation, GroupConversation
+from .conversations import (
+    SingleConversation,
+    GroupConversation,
+)
 from .chat_history_manager import (
     create_new_history,
     store_message,
@@ -237,30 +240,64 @@ class WebSocketHandler:
             )
         )
 
+        # Send initial group status
+        await self.send_group_update(websocket, client_uid)
+
         # Start microphone
         await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
 
     async def _handle_group_operation(
         self, websocket: WebSocket, client_uid: str, data: dict
     ):
-        """Handle group-related operations"""
+        """
+        Handle group-related operations and ensure all group members are synchronized
+        
+        Args:
+            websocket: The WebSocket connection
+            client_uid: Client identifier
+            data: Operation data containing type and target_uid
+        """
         operation = data.get("type")
         target_uid = data.get(
             "invitee_uid" if operation == "add-client-to-group" else "target_uid"
         )
 
         if target_uid:
+            # Get all affected members before operation
             old_members = self.chat_group_manager.get_group_members(client_uid)
+            target_old_members = self.chat_group_manager.get_group_members(target_uid)
+            all_affected_members = set(old_members + target_old_members)
 
             if operation == "add-client-to-group":
                 success, message = self.chat_group_manager.add_client_to_group(
                     inviter_uid=client_uid, invitee_uid=target_uid
                 )
-            else:
+                
+                if success and target_uid in self.client_connections:
+                    try:
+                        # Send group update to the newly invited member
+                        await self.send_group_update(
+                            self.client_connections[target_uid], target_uid
+                        )
+                        # Notify the invited member
+                        await self.client_connections[target_uid].send_text(
+                            json.dumps(
+                                {
+                                    "type": "group-operation-result",
+                                    "success": True,
+                                    "message": f"You have been invited to the group by {client_uid}",
+                                }
+                            )
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to update invited member {target_uid}: {e}")
+                    
+            else:  # remove operation
                 success, message = self.chat_group_manager.remove_client_from_group(
                     remover_uid=client_uid, target_uid=target_uid
                 )
 
+            # Send operation result to the initiator
             await websocket.send_text(
                 json.dumps(
                     {
@@ -272,11 +309,58 @@ class WebSocketHandler:
             )
 
             if success:
-                for member_uid in old_members:
-                    if member_uid in self.client_connections:
-                        await self.send_group_update(
-                            self.client_connections[member_uid], member_uid
+                # For removal operation, we need to update the removed member as well
+                if operation != "add-client-to-group" and target_uid in self.client_connections:
+                    try:
+                        # Send empty group update to removed member
+                        await self.client_connections[target_uid].send_text(
+                            json.dumps(
+                                {
+                                    "type": "group-update",
+                                    "members": [],
+                                    "is_owner": False,
+                                }
+                            )
                         )
+                        # Notify the removed member
+                        await self.client_connections[target_uid].send_text(
+                            json.dumps(
+                                {
+                                    "type": "group-operation-result",
+                                    "success": True,
+                                    "message": "You have been removed from the group",
+                                }
+                            )
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to update removed member {target_uid}: {e}")
+
+                # Get new group members after operation
+                new_members = self.chat_group_manager.get_group_members(client_uid)
+                all_affected_members.update(new_members)
+
+                # Update remaining group members
+                for member_uid in all_affected_members:
+                    if member_uid in self.client_connections and member_uid != target_uid:
+                        try:
+                            await self.send_group_update(
+                                self.client_connections[member_uid], member_uid
+                            )
+                            # Send notification about the operation
+                            if member_uid != client_uid:
+                                await self.client_connections[member_uid].send_text(
+                                    json.dumps(
+                                        {
+                                            "type": "group-operation-result",
+                                            "success": True,
+                                            "message": (
+                                                f"Member {target_uid} was {'added to' if operation == 'add-client-to-group' else 'removed from'} the group"
+                                            ),
+                                        }
+                                    )
+                                )
+                        except Exception as e:
+                            logger.error(f"Failed to update member {member_uid}: {e}")
 
     async def broadcast_to_group(
         self, group_members: list[str], message: dict, exclude_uid: str = None
@@ -295,12 +379,23 @@ class WebSocketHandler:
         """Sends group information to a client"""
         group = self.chat_group_manager.get_client_group(client_uid)
         if group:
+            current_members = self.chat_group_manager.get_group_members(client_uid)
             await websocket.send_text(
                 json.dumps(
                     {
                         "type": "group-update",
-                        "members": list(group.members),
+                        "members": current_members,
                         "is_owner": group.owner_uid == client_uid,
+                    }
+                )
+            )
+        else:
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "group-update",
+                        "members": [],
+                        "is_owner": False,
                     }
                 )
             )
@@ -575,9 +670,6 @@ class WebSocketHandler:
             conversation = GroupConversation(
                 client_contexts=self.client_contexts,
                 client_connections=self.client_connections,
-                asr_engine=self.client_contexts[client_uid].asr_engine,
-                tts_engine=self.client_contexts[client_uid].tts_engine,
-                websocket_send=websocket.send_text,
                 broadcast_func=self.broadcast_to_group,
                 group_members=group.members,
                 initiator_client_uid=client_uid,
@@ -597,18 +689,12 @@ class WebSocketHandler:
         images: list,
         websocket: WebSocket,
         context: ServiceContext,
-    ):
+    ) -> None:
         """Handle individual conversation logic"""
         conversation = SingleConversation(
-            agent_engine=context.agent_engine,
-            live2d_model=context.live2d_model,
-            asr_engine=context.asr_engine,
-            tts_engine=context.tts_engine,
+            context=context,
             websocket_send=websocket.send_text,
-            conf_uid=context.character_config.conf_uid,
-            history_uid=context.history_uid,
             client_uid=client_uid,
-            character_name=context.character_config.conf_name,
         )
 
         self.current_conversation_tasks[client_uid] = asyncio.create_task(

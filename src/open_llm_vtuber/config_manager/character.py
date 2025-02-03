@@ -15,6 +15,8 @@ class CharacterConfig(I18nMixin):
     conf_name: str = Field(..., alias="conf_name")
     conf_uid: str = Field(..., alias="conf_uid")
     live2d_model_name: str = Field(..., alias="live2d_model_name")
+    human_name: str = Field(default="Human", alias="human_name")
+    avatar: str = Field(default="", alias="avatar")
     persona_prompt: str = Field(..., alias="persona_prompt")
     agent_config: AgentConfig = Field(..., alias="agent_config")
     asr_config: ASRConfig = Field(..., alias="asr_config")
@@ -47,6 +49,14 @@ class CharacterConfig(I18nMixin):
         "tts_preprocessor_config": Description(
             en="Configuration for Text-to-Speech Preprocessor",
             zh="语音合成预处理器配置",
+        ),
+        "human_name": Description(
+            en="Name of the human user in conversation",
+            zh="对话中人类用户的名字"
+        ),
+        "avatar": Description(
+            en="Avatar image path for the character",
+            zh="角色头像图片路径"
         ),
     }
 

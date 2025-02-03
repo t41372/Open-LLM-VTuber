@@ -2,7 +2,7 @@ from typing import AsyncIterator, List, Dict, Any, Callable
 from loguru import logger
 
 from .agent_interface import AgentInterface
-from ..output_types import SentenceOutput
+from ..output_types import SentenceOutput, DisplayText
 from ..stateless_llm.stateless_llm_interface import StatelessLLMInterface
 from ...chat_history_manager import get_history
 from ..transformers import (
@@ -69,7 +69,7 @@ class BasicMemoryAgent(AgentInterface):
             llm: StatelessLLMInterface - the LLM instance.
         """
         self._llm = llm
-        self._chat_function = self._chat_function_factory(llm.chat_completion)
+        self.chat = self._chat_function_factory(llm.chat_completion)
 
     def set_system(self, system: str):
         """
@@ -80,8 +80,15 @@ class BasicMemoryAgent(AgentInterface):
         logger.debug(f"Memory Agent: Setting system prompt: '''{system}'''")
         self._system = system
 
-    def _add_message(self, message: str | List[Dict[str, Any]], role: str):
-        """Add a message to the memory"""
+    def _add_message(self, message: str | List[Dict[str, Any]], role: str, display_text: DisplayText | None = None):
+        """
+        Add a message to the memory
+        
+        Args:
+            message: Message content (string or list of content items)
+            role: Message role
+            display_text: Optional display information containing name and avatar
+        """
         if isinstance(message, list):
             text_content = ""
             for item in message:
@@ -90,12 +97,19 @@ class BasicMemoryAgent(AgentInterface):
         else:
             text_content = message
 
-        self._memory.append(
-            {
-                "role": role,
-                "content": text_content,
-            }
-        )
+        message_data = {
+            "role": role,
+            "content": text_content,
+        }
+
+        # Add display information if provided
+        if display_text:
+            if display_text.name:
+                message_data["name"] = display_text.name
+            if display_text.avatar:
+                message_data["avatar"] = display_text.avatar
+
+        self._memory.append(message_data)
 
     def set_memory_from_history(self, conf_uid: str, history_uid: str) -> None:
         """Load the memory from chat history"""
@@ -251,14 +265,8 @@ class BasicMemoryAgent(AgentInterface):
         return chat_with_memory
 
     async def chat(self, input_data: BatchInput) -> AsyncIterator[SentenceOutput]:
-        """Chat method that will be used to generate responses."""
-        self.reset_interrupt()
-        try:
-            async for output in self._chat_function(input_data):
-                yield output
-        except Exception as e:
-            logger.error(f"Error in chat: {e}")
-            raise
+        """Placeholder chat method that will be replaced at runtime"""
+        return self.chat(input_data)
 
     def reset_interrupt(self) -> None:
         """
@@ -280,12 +288,13 @@ class BasicMemoryAgent(AgentInterface):
         other_ais = ", ".join(name for name in ai_participants)
 
         group_context = (
-            f"You are in a group conversation. "
+            f"Now you are in a group conversation. "
             f"The human participant is {human_name}. "
             f"The other AI participants are: {other_ais}. "
-            f"Avoid using `:` to indicate your response. Just speak naturally."
-            f"You are free to address other AI participants as you would in a real conversation."
-            f"Try to keep your responses short and concise. Engage in the interaction actively."
+            f"Avoid using `:` to indicate your response. Just speak naturally. "
+            f"You are free to address other AI participants. "
+            f"Try to vary between short and long responses to allow others to interact. "
+            f"Be proactive in finding interesting topics and to make the conversation lively and fun. "
         )
 
         self._memory.append({"role": "user", "content": group_context})

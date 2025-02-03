@@ -3,7 +3,7 @@ import re
 import json
 import uuid
 from datetime import datetime
-from typing import Literal, List, TypedDict
+from typing import Literal, List, TypedDict, Optional
 from loguru import logger
 
 
@@ -11,6 +11,9 @@ class HistoryMessage(TypedDict):
     role: Literal["human", "ai"]
     timestamp: str
     content: str
+    # Optional display information for the message
+    name: Optional[str]
+    avatar: Optional[str]
 
 
 def _is_safe_filename(filename: str) -> bool:
@@ -88,9 +91,23 @@ def create_new_history(conf_uid: str) -> str:
 
 
 def store_message(
-    conf_uid: str, history_uid: str, role: Literal["human", "ai"], content: str
+    conf_uid: str,
+    history_uid: str,
+    role: Literal["human", "ai"],
+    content: str,
+    name: str | None = None,
+    avatar: str | None = None,
 ):
-    """Store a message in a specific history file"""
+    """Store a message in a specific history file
+
+    Args:
+        conf_uid: Configuration unique identifier
+        history_uid: History unique identifier
+        role: Message role ("human" or "ai")
+        content: Message content
+        name: Optional display name (default None)
+        avatar: Optional avatar URL (default None)
+    """
     if not conf_uid or not history_uid:
         if not conf_uid:
             logger.warning("Missing conf_uid")
@@ -116,6 +133,13 @@ def store_message(
         "timestamp": now_str,
         "content": content,
     }
+
+    # Add optional display information if provided
+    if name is not None:
+        new_item["name"] = name
+    if avatar is not None:
+        new_item["avatar"] = avatar
+
     history_data.append(new_item)
 
     with open(filepath, "w", encoding="utf-8") as f:
@@ -256,9 +280,9 @@ def get_history_list(conf_uid: str) -> List[dict]:
                     history_info = {
                         "uid": history_uid,
                         "latest_message": latest_message,
-                        "timestamp": latest_message["timestamp"]
-                        if latest_message
-                        else None,
+                        "timestamp": (
+                            latest_message["timestamp"] if latest_message else None
+                        ),
                     }
                     histories.append(history_info)
             except Exception as e:
