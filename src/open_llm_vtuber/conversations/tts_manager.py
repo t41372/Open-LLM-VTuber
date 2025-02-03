@@ -9,7 +9,7 @@ from ..agent.output_types import DisplayText, Actions
 from ..live2d_model import Live2dModel
 from ..tts.tts_interface import TTSInterface
 from ..utils.stream_audio import prepare_audio_payload
-from .types import BroadcastContext, WebSocketSend
+from .types import WebSocketSend
 
 
 class TTSTaskManager:
