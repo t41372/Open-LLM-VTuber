@@ -118,8 +118,55 @@ def download_and_extract(url: str, output_dir: str) -> Path:
         return Path(file_path)
 
 
+def check_and_extract_local_file(url: str, output_dir: str) -> Path | None:
+    """
+    新增方法：检查本地是否已存在压缩包，存在则直接解压
+
+    Args:
+        url (str): 原始下载URL（用于解析文件名）
+        output_dir (str): 模型存储目录
+
+    Returns:
+        Path | None: 若存在压缩包并解压成功返回路径，否则返回None
+    """
+    # 从URL解析文件名
+    file_name = url.split("/")[-1]
+    compressed_path = Path(output_dir) / file_name
+
+    # 如果压缩包存在且是tar.bz2格式
+    if compressed_path.exists() and file_name.endswith(".tar.bz2"):
+        logger.info(f"🔍 发现本地压缩包: {compressed_path}")
+        extracted_dir = compressed_path.parent / file_name.replace(".tar.bz2", "")
+
+        if extracted_dir.exists():
+            logger.info(f"✅ 解压目录已存在: {extracted_dir}，无需操作")
+            return extracted_dir
+
+        try:
+            logger.info("⏳ 正在解压本地文件...")
+            with tarfile.open(compressed_path, "r:bz2") as tar:
+                tar.extractall(path=output_dir)
+            logger.success(f"解压完成至: {extracted_dir}")
+            os.remove(compressed_path)  # 解压后删除压缩包
+            return extracted_dir
+        except Exception as e:
+            logger.error(f"解压失败: {str(e)}")
+            return None
+
+    # 如果压缩包不存在或格式不符
+    return None
+
+
 if __name__ == "__main__":
     url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2"
     output_dir = "./models"
 
-    download_and_extract(url, output_dir)
+    # 先尝试本地解压
+    local_result = check_and_extract_local_file(url, output_dir)
+
+    # 本地没有则下载
+    if local_result is None:
+        logger.info("未找到本地压缩包，开始下载...")
+        download_and_extract(url, output_dir)
+    else:
+        logger.info("已通过本地文件完成解压")
