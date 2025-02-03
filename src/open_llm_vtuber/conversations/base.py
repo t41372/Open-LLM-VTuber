@@ -12,6 +12,7 @@ from ..agent.input_types import BatchInput, TextData, ImageData, TextSource, Ima
 from ..asr.asr_interface import ASRInterface
 from ..live2d_model import Live2dModel
 from ..tts.tts_interface import TTSInterface
+from ..utils.stream_audio import prepare_audio_payload
 
 # Constants
 EMOJI_LIST = [
@@ -199,16 +200,26 @@ class BaseConversation:
         output: AudioOutput,
         websocket_send: WebSocketSend,
     ) -> str:
-        """Handle audio output type"""
+        """
+        Process and send AudioOutput directly to the client.
+        Converts local audio files to base64-encoded payloads with volume metrics.
+
+        Args:
+            output: AudioOutput containing audio path and metadata
+            websocket_send: WebSocket send function
+
+        Returns:
+            str: Complete response transcript
+        """
         full_response = ""
         async for audio_path, display_text, transcript, actions in output:
             full_response += transcript
-            audio_payload = {
-                "type": "audio",
-                "audio": audio_path,
-                "display_text": display_text.to_dict() if display_text else None,
-                "actions": actions.to_dict() if actions else None,
-            }
+            # Convert local audio file to base64 payload with volume metrics
+            audio_payload = prepare_audio_payload(
+                audio_path=audio_path,
+                display_text=display_text,
+                actions=actions.to_dict() if actions else None,
+            )
             await websocket_send(json.dumps(audio_payload))
         return full_response
 

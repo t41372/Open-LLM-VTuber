@@ -29,15 +29,19 @@ class TTSTaskManager:
         websocket_send: WebSocketSend,
     ) -> None:
         """
-        Generate and send audio for a sentence.
+        Generate and send audio for a sentence using text-to-speech.
 
         Args:
             tts_text: Text to synthesize
-            display_text: Text to display
+            display_text: Text to display in UI
             actions: Live2D model actions
             live2d_model: Live2D model instance
             tts_engine: TTS engine instance
             websocket_send: WebSocket send function
+
+        Note:
+            This method is not used for agents that provide direct audio output
+            (e.g., Hume AI), as their audio is handled separately in the conversation flow.
         """
         if not tts_text or not tts_text.strip():
             logger.debug("Empty TTS text, sending silent display payload")

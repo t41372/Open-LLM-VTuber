@@ -80,10 +80,10 @@ class SingleConversation(BaseConversation):
             if images:
                 logger.info(f"With {len(images)} images")
 
-            # Process agent response
+            # Process agent response and handle direct audio output if applicable
             full_response = await self._process_agent_response(batch_input)
-
-            # Store AI response
+            
+            # Store conversation history if enabled
             if self.context.history_uid and full_response:
                 store_message(
                     conf_uid=self.context.character_config.conf_uid,
@@ -95,7 +95,7 @@ class SingleConversation(BaseConversation):
                 )
                 logger.info(f"AI response: {full_response}")
 
-            # Finalize conversation
+            # Wait for any pending TTS tasks (if any) before finalizing
             if self.tts_manager.task_list:
                 await asyncio.gather(*self.tts_manager.task_list)
                 await self.websocket_send(
