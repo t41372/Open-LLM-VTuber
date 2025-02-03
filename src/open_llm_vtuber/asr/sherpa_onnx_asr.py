@@ -3,7 +3,7 @@ import numpy as np
 import sherpa_onnx
 from loguru import logger
 from .asr_interface import ASRInterface
-from .utils import download_and_extract
+from .utils import download_and_extract, check_and_extract_local_file
 import onnxruntime
 
 
@@ -166,10 +166,22 @@ class VoiceRecognition(ASRInterface):
                     logger.warning(
                         "SenseVoice model not found. Downloading the model..."
                     )
-                    download_and_extract(
-                        url="https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2",
-                        output_dir="./models",
-                    )
+
+                    url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2"
+                    output_dir = "/models"
+                    # 先尝试本地解压
+                    local_result = check_and_extract_local_file(url, output_dir)
+
+                    # 本地没有则下载
+                    if local_result is None:
+                        logger.info("未找到本地压缩包，开始下载...")
+                        download_and_extract(url, output_dir)
+                    else:
+                        logger.info("已通过本地文件完成解压")
+                    # download_and_extract(
+                    #     url="https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2",
+                    #     output_dir="./models",
+                    # )
                 else:
                     logger.critical(
                         "The SenseVoice model is missing. Please provide the path to the model.onnx file."

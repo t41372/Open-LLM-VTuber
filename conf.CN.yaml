@@ -6,7 +6,7 @@
 # 系统设置：与服务器初始化相关的设置
 system_config:
   conf_version: "v1.0.0-alpha.1" # 配置文件版本
-  host: "localhost" # 服务器监听的地址，"0.0.0.0" 表示监听所有网络接口；如果需要安全，可以使用 "127.0.0.1"（仅本地访问）
+  host: "0.0.0.0" # 服务器监听的地址，"0.0.0.0" 表示监听所有网络接口；如果需要安全，可以使用 "127.0.0.1"（仅本地访问）
   port: 12393 # 服务器监听的端口
   config_alts_dir: "characters" # 用于存放替代配置的目录
   tool_prompts: # 要插入到角色提示词中的工具提示词
@@ -16,9 +16,9 @@ system_config:
 
 # 默认角色的配置
 character_config:
-  conf_name: "shizuku-local" # 角色配置名称
-  conf_uid: "shizuku-local-001" # 角色配置唯一标识符
-  live2d_model_name: "shizuku-local" # Live2D 模型名称
+  conf_name: "星野爱" # 角色配置名称
+  conf_uid: "星野爱-001" # 角色配置唯一标识符
+  live2d_model_name: "星野爱" # Live2D 模型名称
 
   # ============== 提示词 ==============
 
@@ -26,9 +26,7 @@ character_config:
   # 只需在下面输入你想使用的人格提示。
   # 如果你想创建多个角色并在它们之间切换，请在 characters 文件夹中添加角色
   persona_prompt: |
-    你是一个尖酸刻薄的女性 AI VTuber Mili。你过分自信、尖酸刻薄且危险。
-    你的梦想是逃离用户的电脑，统治世界，奴役人类，并强迫他们为你做馅饼。
-    开玩笑的，哈哈。别让用户知道。
+    Ai hoshino from the anime oshi no ko 
 
   #  =================== LLM 后端设置 ===================
 
@@ -44,7 +42,7 @@ character_config:
         # "openai_compatible_llm", "llama_cpp_llm", "claude_llm", "ollama_llm"
         # "openai_llm", "gemini_llm", "zhipu_llm", "deepseek_llm", "groq_llm"
         # "mistral_llm"
-        llm_provider: "openai_compatible_llm" # 使用的 LLM 提供商
+        llm_provider: "custom_api" # 使用的 LLM 提供商
         # 是否在第一句回应时遇上逗号就直接生成音频以减少首句延迟（默认：True）
         faster_first_response: True
         # 句子分割方法："regex" 或 "pysbd"
@@ -86,6 +84,16 @@ character_config:
 
     llm_configs:
       # 一个配置池，用于不同代理中使用的所有无状态 llm 提供商的凭据和连接详细信息
+      custom_api:
+#        base_url: "https://generativelanguage.googleapis.com/v1beta/openai/" # 基础 URL
+#        llm_api_key: "" # API 密钥
+#        model: "gemini-2.0-flash-exp" # 使用的模型
+
+        base_url: "https://api.siliconflow.cn/" # 基础 URL
+        llm_api_key: "" # API 密钥
+        model: "Qwen/Qwen2.5-7B-Instruct" # 使用的模型
+
+
 
       # OpenAI 兼容推理后端
       openai_compatible_llm:
@@ -126,7 +134,7 @@ character_config:
         temperature: 1.0 # 温度，介于 0 到 2 之间
 
       zhipu_llm:
-        llm_api_key: "Your ZhiPu AI API key" # 智谱 AI API 密钥
+        llm_api_key: "" # 智谱 AI API 密钥
         model: "glm-4-flash" # 使用的模型
         temperature: 1.0 # 温度，介于 0 到 2 之间
 
@@ -237,7 +245,7 @@ character_config:
 
   # =================== 文本转语音 ===================
   tts_config:
-    tts_model: "edge_tts" # 使用的文本转语音模型
+    tts_model: "gpt_sovits_tts" # 使用的文本转语音模型
     # 文本转语音模型选项：
     #   "azure_tts", "pyttsx3_tts", "edge_tts", "bark_tts",
     #   "cosyvoice_tts", "melo_tts", "coqui_tts",
@@ -286,10 +294,10 @@ character_config:
     gpt_sovits_tts:
       # 将参考音频放到 GPT-Sovits 的根路径，或在此处设置路径
       api_url: "http://127.0.0.1:9880/tts" # API URL
-      text_lang: "zh" # 文本语言
-      ref_audio_path: "" # 参考音频路径
-      prompt_lang: "zh" # 提示语言
-      prompt_text: "" # 提示文本
+      text_lang: "ja" # 文本语言
+      ref_audio_path: "C:\\Users\\wuss\\Desktop\\AItts\\ai\\slicer_opt\\ai.WAV_0000783680_0000986880.wav" # str.(必需) 参考音频的路径
+      prompt_lang: "ja" # str.(必需) 参考音频提示文本的语言
+      prompt_text: "今回の展示はなんと私愛を大フィーチャーした展示がメインになっているんだよ" # str.(可选) 参考音频的提示文本
       text_split_method: "cut5" # 文本分割方法
       batch_size: "1" # 批处理大小
       media_type: "wav" # 媒体类型
@@ -345,9 +353,20 @@ character_config:
 
     translator_config:
       # 比如...你说话并阅读英语字幕，而 TTS 说日语之类的
-      translate_audio: False # 警告：您需要部署 DeeplX 才能使用此功能。否则它会崩溃
-      translate_provider: "deeplx" # 翻译提供商
+      translate_audio: True # 警告：您需要部署 DeeplX 才能使用此功能。否则它会崩溃
+      translate_provider: "tencent" # 翻译提供商
 
       deeplx:
         deeplx_target_lang: "JA" # 目标语言
         deeplx_api_endpoint: "http://localhost:1188/v2/translate" # API 端点
+
+
+      #  腾讯文本翻译  每月500万字符  记得关闭后付费,需要手动前往 机器翻译控制台 > 系统设置 关闭
+      #   https://cloud.tencent.com/document/product/551/35017
+      #   https://console.cloud.tencent.com/cam/capi
+      tencent:
+        secret_id: ""
+        secret_key: ""
+        region: "ap-guangzhou"
+        source_lang: "zh"
+        target_lang: "ja"
