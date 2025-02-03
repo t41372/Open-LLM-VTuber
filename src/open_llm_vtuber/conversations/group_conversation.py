@@ -66,7 +66,7 @@ class GroupConversation(BaseConversation):
         """Initialize group conversation context for each AI participant"""
         # Get all AI character names
         ai_names = [
-            ctx.character_config.conf_name for ctx in self.client_contexts.values()
+            ctx.character_config.character_name for ctx in self.client_contexts.values()
         ]
 
         for context in self.client_contexts.values():
@@ -77,12 +77,12 @@ class GroupConversation(BaseConversation):
                     ai_participants=[
                         name
                         for name in ai_names
-                        if name != context.character_config.conf_name
+                        if name != context.character_config.character_name
                     ],
                 )
                 logger.debug(
                     f"Initialized group conversation context for "
-                    f"{context.character_config.conf_name}"
+                    f"{context.character_config.character_name}"
                 )
 
     async def process_conversation(
@@ -185,7 +185,7 @@ class GroupConversation(BaseConversation):
         )
 
         logger.info(
-            f"AI {context.character_config.conf_name} "
+            f"AI {context.character_config.character_name} "
             f"(client {current_member_uid}) receiving context:\n{new_context}"
         )
 
@@ -197,7 +197,7 @@ class GroupConversation(BaseConversation):
         )
 
         if full_response:
-            ai_message = f"{context.character_config.conf_name}: {full_response}"
+            ai_message = f"{context.character_config.character_name}: {full_response}"
             self.state.conversation_history.append(ai_message)
             logger.info(f"Appended complete response: {ai_message}")
 
@@ -207,7 +207,7 @@ class GroupConversation(BaseConversation):
                     history_uid=context.history_uid,
                     role="ai",
                     content=full_response,
-                    name=context.character_config.conf_name,
+                    name=context.character_config.character_name,
                     avatar=context.character_config.avatar,
                 )
 
@@ -271,7 +271,7 @@ class GroupConversation(BaseConversation):
                         await self._store_forwarded_message(
                             member_uid=member_uid,
                             content=response_part,
-                            name=context.character_config.conf_name,
+                            name=context.character_config.character_name,
                             avatar=context.character_config.avatar,
                         )
 

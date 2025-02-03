@@ -15,6 +15,7 @@ class CharacterConfig(I18nMixin):
     conf_name: str = Field(..., alias="conf_name")
     conf_uid: str = Field(..., alias="conf_uid")
     live2d_model_name: str = Field(..., alias="live2d_model_name")
+    character_name: str = Field(default="", alias="character_name")
     human_name: str = Field(default="Human", alias="human_name")
     avatar: str = Field(default="", alias="avatar")
     persona_prompt: str = Field(..., alias="persona_prompt")
@@ -33,6 +34,10 @@ class CharacterConfig(I18nMixin):
         ),
         "live2d_model_name": Description(
             en="Name of the Live2D model to use", zh="使用的Live2D模型名称"
+        ),
+        "character_name": Description(
+            en="Name of the AI character in conversation",
+            zh="对话中AI角色的名字"
         ),
         "persona_prompt": Description(
             en="Persona prompt. The persona of your character.", zh="角色人设提示词"
@@ -66,4 +71,10 @@ class CharacterConfig(I18nMixin):
             raise ValueError(
                 "Persona_prompt cannot be empty. Please provide a persona prompt."
             )
+        return v
+
+    @field_validator("character_name")
+    def set_default_character_name(cls, v, values):
+        if not v and "conf_name" in values:
+            return values["conf_name"]
         return v

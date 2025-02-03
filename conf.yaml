@@ -12,13 +12,16 @@ system_config:
     live2d_expression_prompt: "live2d_expression_prompt"
     # Enable this to let LLMs without chain-of-thought capability show inner thoughts, mental activities and actions (in parentheses format) without voice synthesis. See think_tag_prompt for more details.
     think_tag_prompt: "think_tag_prompt"
-
+  group_conversation_prompt: "group_conversation_prompt" # When using group conversation, this prompt will be added to the memory of each AI participant.
 
 # configuration for the default character
 character_config:
-  conf_name: "shizuku-local"
-  conf_uid: "shizuku-local-001"
-  live2d_model_name: "shizuku-local"
+  conf_name: "shizuku-local" # The name of character configuration file.
+  conf_uid: "shizuku-local-001" # The unique identifier of character configuration.
+  live2d_model_name: "shizuku-local" # The name of Live2D model. Must be the same as the corresponding name in model_dict.json
+  character_name: "Shizuku" # Will be used in the group conversation and the display name of the AI.
+  avatar: "shizuku.png" # Suggest using a square image for the avatar. Save it in the avatars folder. Leave blank to use the first letter of the character name as the avatar.
+  human_name: "Human" # Will be used in the group conversation and the display name of the human.
 
   # ============== Prompts ==============
 

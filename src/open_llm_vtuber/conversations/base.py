@@ -150,7 +150,7 @@ class BaseConversation:
     ) -> str:
         """Process agent output with character information"""
         # Update display_text with character info
-        output.display_text.name = character_config.conf_name
+        output.display_text.name = character_config.character_name
         output.display_text.avatar = character_config.avatar
 
         full_response = ""

@@ -13,6 +13,7 @@ from ..transformers import (
 )
 from ...config_manager import TTSPreprocessorConfig
 from ..input_types import BatchInput, TextSource, ImageSource
+from prompts import prompt_loader
 
 
 class BasicMemoryAgent(AgentInterface):
@@ -286,15 +287,11 @@ class BasicMemoryAgent(AgentInterface):
             ai_participants: List[str] - Names of other AI participants in the conversation
         """
         other_ais = ", ".join(name for name in ai_participants)
-
-        group_context = (
-            f"Now you are in a group conversation. "
-            f"The human participant is {human_name}. "
-            f"The other AI participants are: {other_ais}. "
-            f"Avoid using `:` to indicate your response. Just speak naturally. "
-            f"You are free to address other AI participants. "
-            f"Try to vary between short and long responses to allow others to interact. "
-            f"Be proactive in finding interesting topics and to make the conversation lively and fun. "
+        
+        # Load and format the group conversation prompt
+        group_context = prompt_loader.load_util("group_conversation_prompt").format(
+            human_name=human_name,
+            other_ais=other_ais
         )
 
         self._memory.append({"role": "user", "content": group_context})

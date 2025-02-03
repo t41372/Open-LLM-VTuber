@@ -7,6 +7,8 @@
 /character-configs/*
 # but all of the defaults are already tracked, so no need to un-ignore them
 
+# ignore avatars
+avatars/*
 
 # macOS system files
 .DS_Store

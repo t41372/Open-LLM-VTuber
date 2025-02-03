@@ -90,7 +90,7 @@ class SingleConversation(BaseConversation):
                     history_uid=self.context.history_uid,
                     role="ai",
                     content=full_response,
-                    name=self.context.character_config.conf_name,
+                    name=self.context.character_config.character_name,
                     avatar=self.context.character_config.avatar,
                 )
                 logger.info(f"AI response: {full_response}")
