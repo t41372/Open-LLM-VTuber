@@ -52,18 +52,18 @@ def tts_filter(
             logger.warning(f"Error ignoring parentheses: {e}")
             logger.warning(f"Text: {text}")
             logger.warning("Skipping...")
-    if remove_special_char:
-        try:
-            text = remove_special_characters(text)
-        except Exception as e:
-            logger.warning(f"Error removing special characters: {e}")
-            logger.warning(f"Text: {text}")
-            logger.warning("Skipping...")
     if ignore_angle_brackets:
         try:
             text = filter_angle_brackets(text)
         except Exception as e:
             logger.warning(f"Error ignoring angle brackets: {e}")
+            logger.warning(f"Text: {text}")
+            logger.warning("Skipping...")
+    if remove_special_char:
+        try:
+            text = remove_special_characters(text)
+        except Exception as e:
+            logger.warning(f"Error removing special characters: {e}")
             logger.warning(f"Text: {text}")
             logger.warning("Skipping...")
     if translator:
@@ -184,10 +184,6 @@ def filter_asterisks(text: str) -> str:
         The string with asterisk-enclosed text removed.
     """
     # Handle asterisks of any length (*, **, ***, etc.)
-    # Pattern explanation:
-    # \*{1,} - Match one or more asterisks
-    # ((?!\*).)*? - Match any character that's not an asterisk, non-greedy
-    # \*{1,} - Match one or more asterisks at the end
     filtered_text = re.sub(r'\*{1,}((?!\*).)*?\*{1,}', '', text)
     
     # Clean up any extra spaces
